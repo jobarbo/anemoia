@@ -1,0 +1,78 @@
+---
+// Post-processing WebGL canvas overlay
+const { class: className } = Astro.props;
+---
+<div id="shader-container" class={`shader-canvas ${className ?? ''}`}></div>
+
+<script>
+  import p5 from "p5";
+
+  let sketchInstance;
+
+  document.addEventListener('astro:page-load', () => {
+    const container = document.getElementById('shader-container');
+    if (!container) return;
+
+    sketchInstance = new p5((sketch) => {
+      let snow: {x: number, y: number, z: number}[] = [];
+      
+      sketch.setup = () => {
+        const canvas = sketch.createCanvas(window.innerWidth, window.innerHeight, sketch.WEBGL);
+        canvas.parent("shader-container");
+        
+        // Initialize snow particles
+        for (let i = 0; i < 200; i++) {
+          snow.push({
+            x: sketch.random(-sketch.width/2, sketch.width/2),
+            y: sketch.random(-sketch.height/2, sketch.height/2),
+            z: sketch.random(1, 5)
+          });
+        }
+      };
+      
+      sketch.draw = () => {
+        sketch.clear(); // Transparent background
+        
+        sketch.noStroke();
+        sketch.fill(255, 255, 255, 150);
+        
+        for (let particle of snow) {
+          sketch.circle(particle.x, particle.y, particle.z);
+          
+          // Fall
+          particle.y += particle.z * 0.5;
+          particle.x += sketch.sin(sketch.frameCount * 0.01 + particle.y) * 0.5;
+          
+          // Wrap
+          if (particle.y > sketch.height/2) {
+            particle.y = -sketch.height/2;
+            particle.x = sketch.random(-sketch.width/2, sketch.width/2);
+          }
+        }
+      };
+      
+      sketch.windowResized = () => {
+        sketch.resizeCanvas(window.innerWidth, window.innerHeight);
+      };
+    }, container);
+  });
+
+  document.addEventListener('astro:before-preparation', () => {
+    if (sketchInstance) {
+      sketchInstance.remove();
+      sketchInstance = null;
+    }
+  });
+</script>
+
+<style>
+  .shader-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 50; /* Adjust relative to scene layers */
+  }
+</style>

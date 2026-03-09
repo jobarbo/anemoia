@@ -1,0 +1,97 @@
+---
+import { getCollection } from 'astro:content';
+import GameLayout from '../../layouts/GameLayout.astro';
+import SceneRenderer from '../../components/scene/SceneRenderer.astro';
+import ShaderCanvas from '../../components/effects/ShaderCanvas.astro';
+
+import bgImage from '../../assets/background.png';
+import fgImage from '../../assets/foreground.png';
+
+export async function getStaticPaths() {
+  const neighborhoods = await getCollection('neighborhoods');
+  return neighborhoods.map(n => ({
+    params: { slug: n.data.slug },
+    props: { neighborhood: n.data },
+  }));
+}
+
+const { neighborhood } = Astro.props;
+
+// In a real scenario, we'd load the JSON file from neighborhood.scenePath.
+// Since we don't have the real PSD exported, we mock a simple manifest.
+const mockManifest = {
+  canvas: { width: 1920, height: 1080 },
+  layers: [
+    {
+      name: "background",
+      file: bgImage.src, // using imported asset
+      zIndex: 0,
+      position: { left: -5, top: -5, width: 110, height: 110 },
+      parallaxSpeed: 0.05,
+      interactive: false
+    },
+    {
+      name: "foreground",
+      file: fgImage.src,
+      zIndex: 1,
+      position: { left: -5, top: -5, width: 110, height: 110 },
+      parallaxSpeed: 0.15,
+      interactive: true,
+      interaction: {
+        type: "navigate",
+        target: `/story/${neighborhood.stories[0] || 'la-memoire'}`,
+        hoverImage: null
+      }
+    }
+  ]
+};
+
+---
+
+<GameLayout title={`Anemoia - ${neighborhood.name}`}>
+  <main class="neighborhood-container" transition:name={`neighborhood-${neighborhood.slug}`} transition:animate="slide">
+    <a href="/overworld" class="back-btn">Retour à la carte</a>
+    
+    <!-- Real scene renderer would use the actual manifest -->
+    <SceneRenderer manifest={mockManifest} sceneSlug="mock" class="neighborhood-scene">
+      <ShaderCanvas />
+    </SceneRenderer>
+  </main>
+</GameLayout>
+
+<script>
+  import { initMouseParallax } from '../../scripts/parallax';
+  
+  document.addEventListener('astro:page-load', () => {
+    const layers = document.querySelectorAll('.neighborhood-scene .scene__layer, .neighborhood-scene .scene__zone');
+    if (layers.length > 0) {
+      initMouseParallax(layers);
+    }
+  });
+</script>
+
+<style lang="scss">
+  .neighborhood-container {
+    height: 100vh;
+    background: #000;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .back-btn {
+    position: absolute;
+    top: 2rem;
+    left: 2rem;
+    z-index: 100;
+    color: #fff;
+    text-decoration: none;
+    background: rgba(0,0,0,0.5);
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+  }
+
+  .neighborhood-scene {
+    width: 100%;
+    height: 100%;
+  }
+</style>

@@ -1,0 +1,20 @@
+[
+  {
+    "id": "saint-roch",
+    "name": "Saint-Roch",
+    "slug": "saint-roch",
+    "description": "Le quartier dynamique au cœur de la ville.",
+    "scenePath": "/assets/scenes/saint-roch/manifest.json",
+    "stories": ["la-memoire"],
+    "position": { "x": 45, "y": 60 }
+  },
+  {
+    "id": "limoilou",
+    "name": "Limoilou",
+    "slug": "limoilou",
+    "description": "Le charme des balcons et escaliers en colimaçon.",
+    "scenePath": "/assets/scenes/limoilou/manifest.json",
+    "stories": [],
+    "position": { "x": 65, "y": 30 }
+  }
+]

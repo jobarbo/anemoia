@@ -1,0 +1,36 @@
+---
+const { layer, scenePath } = Astro.props;
+
+const style = `
+  --layer-left: ${layer.position.left}%;
+  --layer-top: ${layer.position.top}%;
+  --layer-width: ${layer.position.width}%;
+  --layer-height: ${layer.position.height}%;
+  --layer-z: ${layer.zIndex};
+`;
+
+// Handle both standard file names (appended to scenePath) and absolute/imported paths (starting with /)
+const imagePath = layer.file.startsWith('/') || layer.file.startsWith('http')
+  ? layer.file
+  : `${scenePath}/${layer.file}`;
+---
+{layer.type === 'video' ? (
+  <video 
+    src={imagePath} 
+    autoplay 
+    loop 
+    muted 
+    playsinline 
+    class="scene__layer scene__layer--video"
+    style={style}
+    data-parallax-speed={layer.parallaxSpeed}
+  />
+) : (
+  <img 
+    src={imagePath} 
+    alt={layer.name}
+    class="scene__layer"
+    style={style}
+    data-parallax-speed={layer.parallaxSpeed}
+  />
+)}

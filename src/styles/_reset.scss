@@ -1,0 +1,30 @@
+@use "variables" as *;
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	min-height: 100vh;
+	overflow-x: hidden;
+	background-color: $color-bg;
+	color: $color-text;
+}
+
+img,
+video {
+	max-width: 100%;
+	height: auto;
+	display: block;
+}
+
+body {
+	display: flex;
+	flex-direction: column;
+}

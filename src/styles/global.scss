@@ -1,0 +1,44 @@
+@use "mixins" as *;
+@use "reset";
+@use "typography";
+
+.scene {
+  position: relative;
+  width: 100%;
+  max-width: 100vw;
+  overflow: hidden;
+}
+
+.scene__layer {
+  position: absolute;
+  left: var(--layer-left);
+  top: var(--layer-top);
+  width: var(--layer-width);
+  height: var(--layer-height);
+  z-index: var(--layer-z);
+  will-change: transform;
+}
+
+.scene__zone {
+  position: absolute;
+  left: var(--layer-left);
+  top: var(--layer-top);
+  width: var(--layer-width);
+  height: var(--layer-height);
+  z-index: var(--layer-z);
+  display: block;
+  cursor: pointer;
+  
+  &--navigate {
+    .scene__zone-hover {
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      @include absolute-fill;
+      object-fit: cover;
+    }
+    
+    &:hover .scene__zone-hover {
+      opacity: 1;
+    }
+  }
+}

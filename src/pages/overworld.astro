@@ -1,0 +1,73 @@
+---
+import GameLayout from "../layouts/GameLayout.astro";
+import {getCollection} from "astro:content";
+
+const neighborhoods = await getCollection("neighborhoods");
+---
+
+<GameLayout title='Anemoia - Overworld'>
+	<main class='overworld-container' transition:animate='fade'>
+		<h1>Carte de la ville</h1>
+
+		<div class='map-wrapper'>
+			{/* Fallback simple map representation */}
+			{
+				neighborhoods.map((hood) => (
+					<a href={`/neighborhood/${hood.data.slug}`} class='hood-pin' style={`left: ${hood.data.position.x}%; top: ${hood.data.position.y}%`}>
+						<span class='hood-name'>{hood.data.name}</span>
+					</a>
+				))
+			}
+		</div>
+
+		<a href='/' class='back-btn'>Retour au menu</a>
+	</main>
+</GameLayout>
+
+<style lang='scss'>
+	.overworld-container {
+		padding: 2rem;
+		height: 100vh;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.map-wrapper {
+		flex: 1;
+		position: relative;
+		background: #e0e0e0;
+		border-radius: 8px;
+		margin: 2rem 0;
+	}
+
+	.hood-pin {
+		position: absolute;
+		width: 20px;
+		height: 20px;
+		background: blue;
+		border-radius: 50%;
+		transform: translate(-50%, -50%);
+		text-decoration: none;
+		z-index: 1000;
+
+		&:hover .hood-name {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	.hood-name {
+		position: absolute;
+		top: 100%;
+		left: 50%;
+		transform: translate(-50%, 10px);
+		background: #000;
+		color: #fff;
+		padding: 0.25rem 0.5rem;
+		border-radius: 4px;
+		opacity: 0;
+		transition: all 0.2s;
+		white-space: nowrap;
+		pointer-events: none;
+	}
+</style>

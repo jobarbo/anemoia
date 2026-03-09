@@ -1,0 +1,34 @@
+---
+import SceneLayer from './SceneLayer.astro';
+import InteractiveZone from './InteractiveZone.astro';
+
+interface Layer {
+  name: string;
+  file: string;
+  zIndex: number;
+  position: { left: number; top: number; width: number; height: number };
+  parallaxSpeed: number;
+  interactive: boolean;
+  interaction?: {
+    type: string;
+    target?: string;
+    hoverImage?: string | null;
+  };
+  type?: string;
+}
+
+const { manifest, class: className, sceneSlug } = Astro.props;
+---
+<div class={`scene ${className ?? ''}`}
+     style={`aspect-ratio: ${manifest.canvas.width} / ${manifest.canvas.height}`}>
+  {manifest.layers.map((layer: Layer) => (
+    <>
+      <SceneLayer layer={layer} scenePath={`/assets/scenes/${sceneSlug}/layers`} />
+      
+      {layer.interactive && layer.interaction && (
+        <InteractiveZone zone={layer} />
+      )}
+    </>
+  ))}
+  <slot />
+</div>

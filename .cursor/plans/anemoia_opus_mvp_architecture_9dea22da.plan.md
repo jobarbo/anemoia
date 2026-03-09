@@ -4,16 +4,16 @@ overview: A comprehensive architecture and implementation plan for the Anemoia a
 todos:
   - id: step-1-foundation
     content: "Step 1: Project foundation -- directory structure, SCSS setup, Astro config, content collections, GameLayout with ClientRouter, install dependencies"
-    status: pending
+    status: completed
   - id: step-2-psd-pipeline
     content: "Step 2: PSD-to-web pipeline -- build psd-export.mjs tool, generate manifest.json with percentage-based positions, create SceneRenderer and SceneLayer components"
-    status: pending
+    status: completed
   - id: step-3-interactivity
     content: "Step 3: Interactivity and routing -- dynamic routes for neighborhoods and stories, InteractiveZone component, view transitions with animations, navigation flow"
-    status: pending
+    status: completed
   - id: step-4-effects
     content: "Step 4: Effects layer -- GSAP parallax system, Locomotive Scroll v5 for story view, p5.js ShaderCanvas overlay, atmospheric effects, audio manager, video loop support"
-    status: pending
+    status: completed
 isProject: false
 ---
 
