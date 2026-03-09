@@ -1,6 +1,7 @@
 ---
 import { ClientRouter } from 'astro:transitions';
 import '../styles/global.scss';
+import AudioPlayer from '../components/ui/AudioPlayer.astro';
 
 const { title = "Anemoia" } = Astro.props;
 ---
@@ -14,5 +15,7 @@ const { title = "Anemoia" } = Astro.props;
   </head>
   <body>
     <slot />
+    
+    <AudioPlayer />
   </body>
 </html>

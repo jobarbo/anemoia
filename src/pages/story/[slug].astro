@@ -1,7 +1,6 @@
 ---
 import {getCollection, render} from "astro:content";
 import GameLayout from "../../layouts/GameLayout.astro";
-import AudioPlayer from "../../components/story/AudioPlayer.astro";
 
 export async function getStaticPaths() {
 	const stories = await getCollection("stories");
@@ -21,10 +20,7 @@ const {Content} = await render(story);
 
 		{
 			story.data.audioSrc && (
-				<>
-					<audio src={story.data.audioSrc} autoplay loop transition:persist={`audio-${story.id}`} id='story-audio' />
-					<AudioPlayer />
-				</>
+				<audio src={story.data.audioSrc} autoplay loop transition:persist={`audio-${story.id}`} id='global-audio' />
 			)
 		}
 

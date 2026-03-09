@@ -1,6 +1,6 @@
 ---
 ---
-<div class="audio-player">
+<div class="audio-player" id="audio-player-container" style="display: none;">
   <button id="toggle-audio" aria-label="Toggle Audio">
     <span class="icon-play">▶</span>
     <span class="icon-pause" style="display:none;">⏸</span>
@@ -34,10 +34,18 @@
 
 <script>
   document.addEventListener('astro:page-load', () => {
+    const container = document.getElementById('audio-player-container');
     const btn = document.getElementById('toggle-audio');
-    const audio = document.getElementById('story-audio') as HTMLAudioElement;
+    const audio = document.getElementById('global-audio') as HTMLAudioElement;
     
-    if (!btn || !audio) return;
+    if (!btn || !container) return;
+
+    if (!audio) {
+      container.style.display = 'none';
+      return;
+    }
+    
+    container.style.display = 'block';
     
     const iconPlay = btn.querySelector('.icon-play') as HTMLElement;
     const iconPause = btn.querySelector('.icon-pause') as HTMLElement;
