@@ -1,6 +1,7 @@
 ---
-import {getCollection, render} from "astro:content";
+import { getCollection, render } from "astro:content";
 import GameLayout from "../../layouts/GameLayout.astro";
+import { pageFade } from "../../transitions";
 
 export async function getStaticPaths() {
 	const stories = await getCollection("stories");
@@ -15,14 +16,10 @@ const {Content} = await render(story);
 ---
 
 <GameLayout title={`Anemoia - ${story.data.title}`}>
-	<main class='story-container' data-scroll-container transition:animate='fade'>
+	<main class='story-container' data-scroll-container transition:animate={pageFade}>
 		<a href={`/neighborhood/${story.data.neighborhood}`} class='back-btn' data-scroll-fixed>Retour au quartier</a>
 
-		{
-			story.data.audioSrc && (
-				<audio src={story.data.audioSrc} autoplay loop transition:persist={`audio-${story.id}`} id='global-audio' />
-			)
-		}
+		{story.data.audioSrc && <audio src={story.data.audioSrc} autoplay loop transition:persist={`audio-${story.id}`} id='global-audio' />}
 
 		<div class='story-content' data-scroll-section>
 			<div class='story-header' data-scroll data-scroll-speed='-0.2'>
@@ -52,17 +49,16 @@ const {Content} = await render(story);
 		});
 
 		// Optional: Sync ScrollTrigger with Lenis
-		/*
-    scroll.on('scroll', ScrollTrigger.update);
-    ScrollTrigger.scrollerProxy(container, {
-      scrollTop(value) {
-        return arguments.length ? scroll.scrollTo(value, { duration: 0, disableLerp: true }) : scroll.scroll.instance.scroll.y;
-      },
-      getBoundingClientRect() {
-        return { top: 0, left: 0, width: window.innerWidth, height: window.innerHeight };
-      }
-    });
-    */
+
+		scroll.on("scroll", ScrollTrigger.update);
+		ScrollTrigger.scrollerProxy(container, {
+			scrollTop(value) {
+				return arguments.length ? scroll.scrollTo(value, {duration: 0, disableLerp: true}) : scroll.scroll.instance.scroll.y;
+			},
+			getBoundingClientRect() {
+				return {top: 0, left: 0, width: window.innerWidth, height: window.innerHeight};
+			},
+		});
 	});
 </script>
 

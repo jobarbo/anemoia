@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import GameLayout from '../../layouts/GameLayout.astro';
 import SceneRenderer from '../../components/scene/SceneRenderer.astro';
 import ShaderCanvas from '../../components/effects/ShaderCanvas.astro';
+import { pageSlideFromBottom } from '../../transitions';
 
 import bgImage from '../../assets/background.png';
 import fgImage from '../../assets/foreground.png';
@@ -49,11 +50,11 @@ const mockManifest = {
 ---
 
 <GameLayout title={`Anemoia - ${neighborhood.name}`}>
-  <main class="neighborhood-container" transition:name={`neighborhood-${neighborhood.slug}`} transition:animate="slide">
+  <main class="neighborhood-container" transition:name={`neighborhood-${neighborhood.slug}`} transition:animate={pageSlideFromBottom}>
     <a href="/overworld" class="back-btn">Retour à la carte</a>
     
     <!-- Real scene renderer would use the actual manifest -->
-    <SceneRenderer manifest={mockManifest} sceneSlug="mock" class="neighborhood-scene">
+    <SceneRenderer manifest={mockManifest} sceneSlug="mock" class="neighborhood-scene" viewportAspectRatio>
       <ShaderCanvas />
     </SceneRenderer>
   </main>

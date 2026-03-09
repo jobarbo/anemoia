@@ -2,43 +2,22 @@
 @use "reset";
 @use "typography";
 
-.scene {
-  position: relative;
-  width: 100%;
-  max-width: 100vw;
-  overflow: hidden;
+// View transition keyframes – slide vertical (personnaliser la direction ici)
+// Nouvelle page entre par le bas, ancienne sort par le haut
+@keyframes view-slide-in-from-bottom {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
 }
-
-.scene__layer {
-  position: absolute;
-  left: var(--layer-left);
-  top: var(--layer-top);
-  width: var(--layer-width);
-  height: var(--layer-height);
-  z-index: var(--layer-z);
-  will-change: transform;
+@keyframes view-slide-out-to-top {
+  from { transform: translateY(0); }
+  to { transform: translateY(-100%); }
 }
-
-.scene__zone {
-  position: absolute;
-  left: var(--layer-left);
-  top: var(--layer-top);
-  width: var(--layer-width);
-  height: var(--layer-height);
-  z-index: var(--layer-z);
-  display: block;
-  cursor: pointer;
-  
-  &--navigate {
-    .scene__zone-hover {
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      @include absolute-fill;
-      object-fit: cover;
-    }
-    
-    &:hover .scene__zone-hover {
-      opacity: 1;
-    }
-  }
+// Nouvelle page entre par le haut, ancienne sort par le bas
+@keyframes view-slide-in-from-top {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(0); }
+}
+@keyframes view-slide-out-to-bottom {
+  from { transform: translateY(0); }
+  to { transform: translateY(100%); }
 }

@@ -1,5 +1,5 @@
 ---
-const { layer, scenePath } = Astro.props;
+const {layer, scenePath} = Astro.props;
 
 const style = `
   --layer-left: ${layer.position.left}%;
@@ -10,27 +10,27 @@ const style = `
 `;
 
 // Handle both standard file names (appended to scenePath) and absolute/imported paths (starting with /)
-const imagePath = layer.file.startsWith('/') || layer.file.startsWith('http')
-  ? layer.file
-  : `${scenePath}/${layer.file}`;
+const imagePath = layer.file.startsWith("/") || layer.file.startsWith("http") ? layer.file : `${scenePath}/${layer.file}`;
 ---
-{layer.type === 'video' ? (
-  <video 
-    src={imagePath} 
-    autoplay 
-    loop 
-    muted 
-    playsinline 
-    class="scene__layer scene__layer--video"
-    style={style}
-    data-parallax-speed={layer.parallaxSpeed}
-  />
-) : (
-  <img 
-    src={imagePath} 
-    alt={layer.name}
-    class="scene__layer"
-    style={style}
-    data-parallax-speed={layer.parallaxSpeed}
-  />
-)}
+
+{
+	layer.type === "video" ? (
+		<video src={imagePath} autoplay loop muted playsinline class='scene__layer scene__layer--video' style={style} data-parallax-speed={layer.parallaxSpeed} />
+	) : (
+		<img src={imagePath} alt={layer.name} class='scene__layer' style={style} data-parallax-speed={layer.parallaxSpeed} />
+	)
+}
+
+<style lang='scss'>
+	.scene__layer {
+		left: var(--layer-left);
+		top: var(--layer-top);
+		width: var(--layer-width);
+		height: var(--layer-height);
+		z-index: var(--layer-z);
+		will-change: transform;
+		object-fit: cover;
+		width: 100%;
+		height: 100%;
+	}
+</style>

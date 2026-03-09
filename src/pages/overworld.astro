@@ -1,12 +1,13 @@
 ---
 import GameLayout from "../layouts/GameLayout.astro";
-import {getCollection} from "astro:content";
+import { getCollection } from "astro:content";
+import { pageFade } from "../transitions";
 
 const neighborhoods = await getCollection("neighborhoods");
 ---
 
 <GameLayout title='Anemoia - Overworld'>
-	<main class='overworld-container' transition:animate='fade'>
+	<main class='overworld-container' transition:animate={pageFade}>
 		<h1>Carte de la ville</h1>
 
 		<div class='map-wrapper'>

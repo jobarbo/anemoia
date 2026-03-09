@@ -1,34 +1,62 @@
 ---
-import SceneLayer from './SceneLayer.astro';
-import InteractiveZone from './InteractiveZone.astro';
+import SceneLayer from "./SceneLayer.astro";
+import InteractiveZone from "./InteractiveZone.astro";
 
 interface Layer {
-  name: string;
-  file: string;
-  zIndex: number;
-  position: { left: number; top: number; width: number; height: number };
-  parallaxSpeed: number;
-  interactive: boolean;
-  interaction?: {
-    type: string;
-    target?: string;
-    hoverImage?: string | null;
-  };
-  type?: string;
+	name: string;
+	file: string;
+	zIndex: number;
+	position: {left: number; top: number; width: number; height: number};
+	parallaxSpeed: number;
+	interactive: boolean;
+	interaction?: {
+		type: string;
+		target?: string;
+		hoverImage?: string | null;
+	};
+	type?: string;
 }
 
-const { manifest, class: className, sceneSlug } = Astro.props;
+const {manifest, class: className, sceneSlug, viewportAspectRatio = false} = Astro.props;
 ---
-<div class={`scene ${className ?? ''}`}
-     style={`aspect-ratio: ${manifest.canvas.width} / ${manifest.canvas.height}`}>
-  {manifest.layers.map((layer: Layer) => (
-    <>
-      <SceneLayer layer={layer} scenePath={`/assets/scenes/${sceneSlug}/layers`} />
-      
-      {layer.interactive && layer.interaction && (
-        <InteractiveZone zone={layer} />
-      )}
-    </>
-  ))}
-  <slot />
+
+<div class={`scene ${className ?? ""}`} style={viewportAspectRatio ? undefined : `aspect-ratio: ${manifest.canvas.width} / ${manifest.canvas.height}`}>
+	{
+		manifest.layers.map((layer: Layer) => (
+			<div class='scene__layer-container'>
+				<SceneLayer layer={layer} scenePath={`/assets/scenes/${sceneSlug}/layers`} />
+
+				{layer.interactive && layer.interaction && <InteractiveZone zone={layer} />}
+			</div>
+		))
+	}
+	<slot />
 </div>
+
+<style lang='scss'>
+	@use "../../styles/mixins" as *;
+
+	.scene {
+		position: relative;
+		width: 100%;
+		max-width: 100vw;
+		overflow: hidden;
+
+		&.neighborhood-scene {
+			aspect-ratio: unset;
+			width: 100%;
+			height: 100%;
+		}
+	}
+
+	.scene__layer-container {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+</style>

@@ -1,9 +1,10 @@
 ---
 import GameLayout from '../layouts/GameLayout.astro';
+import { pageFade } from '../transitions';
 ---
 
 <GameLayout title="Anemoia - Start">
-  <main class="splash-container" transition:animate="fade">
+  <main class="splash-container" transition:animate={pageFade}>
     <div class="splash-content">
       <h1>Anémoia</h1>
       <p>Un projet d'art par Olivier Laforest et Jonathan Barbeau</p>
