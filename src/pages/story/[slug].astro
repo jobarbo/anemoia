@@ -2,7 +2,7 @@
 import {getCollection, render} from "astro:content";
 import GameLayout from "../../layouts/GameLayout.astro";
 import BackButton from "../../components/ui/BackButton.astro";
-import {pageFade} from "../../lib/transitions";
+import {pageFade} from "../../lib/transitions.js";
 
 export async function getStaticPaths() {
 	const stories = await getCollection("stories");

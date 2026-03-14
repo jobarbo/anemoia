@@ -2,7 +2,7 @@
 import GameLayout from "../layouts/GameLayout.astro";
 import BackButton from "../components/ui/BackButton.astro";
 import { getCollection } from "astro:content";
-import { pageFade } from "../lib/transitions";
+import { pageFade } from "../lib/transitions.js";
 
 const neighborhoods = await getCollection("neighborhoods");
 

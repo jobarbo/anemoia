@@ -2,17 +2,9 @@
  * p5.js sketch: full-viewport snow overlay.
  * Receives the container element; canvas is sized to window.
  */
-import type p5 from "p5";
-
-interface SnowParticle {
-	x: number;
-	y: number;
-	z: number;
-}
-
-const snow = (container: HTMLElement) => {
-	return (sketch: p5) => {
-		const particles: SnowParticle[] = [];
+export default function (container) {
+	return (sketch) => {
+		const particles = [];
 
 		sketch.setup = () => {
 			const canvas = sketch.createCanvas(window.innerWidth, window.innerHeight, sketch.WEBGL);
@@ -49,6 +41,4 @@ const snow = (container: HTMLElement) => {
 			sketch.resizeCanvas(window.innerWidth, window.innerHeight);
 		};
 	};
-};
-
-export default snow;
+}

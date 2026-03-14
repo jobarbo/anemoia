@@ -1,24 +1,24 @@
 ---
 import SceneLayer from "./SceneLayer.astro";
 import InteractiveZone from "./InteractiveZone.astro";
-import type {Layer} from "../../lib/types";
 
 const {manifest, class: className, sceneSlug, viewportAspectRatio = false} = Astro.props;
 ---
 
 <div class={`scene ${className ?? ""}`} data-scene-renderer style={viewportAspectRatio ? undefined : `aspect-ratio: ${manifest.canvas.width} / ${manifest.canvas.height}`}>
 	{
-		manifest.layers.map((layer: Layer) => (
+		manifest.layers.map((layer) => (
 			<div class='scene__layer-container'>
 				<SceneLayer layer={layer} scenePath={`/assets/scenes/${sceneSlug}/layers`} />
 
 				{layer.interactive && layer.interaction && <InteractiveZone zone={layer} />}
-				{layer.name === "background" && <slot name='background' />}
-				{layer.name === "foreground" && <slot name='foreground' />}
+				<div class='scene__layer-slot-outlet' data-slot-outlet={layer.name}></div>
 			</div>
 		))
 	}
-	<slot />
+	<div class='scene__slotted' data-scene-slotted>
+		<slot />
+	</div>
 </div>
 
 <style lang='scss'>
@@ -49,6 +49,19 @@ const {manifest, class: className, sceneSlug, viewportAspectRatio = false} = Ast
 		justify-content: center;
 	}
 
+	.scene__layer-slot-outlet {
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+	}
+
+	.scene__slotted {
+		position: absolute;
+		width: 0;
+		height: 0;
+		overflow: hidden;
+	}
+
 	/* Layout des blocs enfants (layer, zone) — positionnement par le parent */
 
 	.scene .zone {
@@ -75,10 +88,27 @@ const {manifest, class: className, sceneSlug, viewportAspectRatio = false} = Ast
 </style>
 
 <script>
-	import {initMouseParallax} from "../../scripts/parallax";
+	import {initMouseParallax} from "../../scripts/parallax.js";
+
+	/**
+	 * Move slotted content into the layer outlet that matches its data-slot.
+	 * Layer names come from the manifest (e.g. Photoshop JSON).
+	 */
+	function distributeSlottedContent(scene: Element) {
+		const outlet = scene.querySelector("[data-scene-slotted]");
+		if (!outlet) return;
+		const layerName = (el: Element) => el.getAttribute("data-slot") ?? el.getAttribute("slot");
+		Array.from(outlet.children).forEach((child) => {
+			const targetName = layerName(child);
+			if (!targetName) return;
+			const target = scene.querySelector(`[data-slot-outlet="${targetName}"]`);
+			if (target) target.appendChild(child);
+		});
+	}
 
 	document.addEventListener("astro:page-load", () => {
 		document.querySelectorAll("[data-scene-renderer]").forEach((scene) => {
+			distributeSlottedContent(scene);
 			const layers = scene.querySelectorAll(".layer, .zone");
 			if (layers.length > 0) {
 				initMouseParallax(layers as NodeListOf<Element>);

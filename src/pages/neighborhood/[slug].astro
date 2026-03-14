@@ -4,8 +4,8 @@ import GameLayout from "../../layouts/GameLayout.astro";
 import BackButton from "../../components/ui/BackButton.astro";
 import SceneRenderer from "../../components/scene/SceneRenderer.astro";
 import SketchCanvas from "../../components/effects/SketchCanvas.astro";
-import {pageSlideFromBottom} from "../../lib/transitions";
-import {loadManifest} from "../../lib/load-manifest";
+import {pageSlideFromBottom} from "../../lib/transitions.js";
+import {loadManifest} from "../../lib/load-manifest.js";
 
 export async function getStaticPaths() {
 	const neighborhoods = await getCollection("neighborhoods");
@@ -26,7 +26,7 @@ const manifest = await loadManifest(neighborhood.scenePath, {
 		<BackButton href='/overworld' label='Retour à la carte' />
 
 		<SceneRenderer manifest={manifest} sceneSlug={neighborhood.slug} class='neighborhood-scene' viewportAspectRatio>
-			<SketchCanvas slot='background' sketch='snow' />
+			<SketchCanvas slotTarget='foreground' sketch='rain' />
 		</SceneRenderer>
 	</main>
 </GameLayout>

@@ -2,11 +2,12 @@
 /**
  * Master canvas component: renders a container and loads the matching p5 sketch by name.
  * Usage: <SketchCanvas sketch="snow" /> or <SketchCanvas sketch="your-name" class="my-class" />
+ * When used inside SceneRenderer, set slotTarget to the layer name (from manifest) to place the sketch in that layer.
  */
-const {sketch, class: className} = Astro.props;
+const {sketch, class: className, slotTarget} = Astro.props;
 ---
 
-<div class={`sketch-canvas ${className ?? ""}`} data-sketch-container data-sketch={sketch}></div>
+<div class={`sketch-canvas ${className ?? ""}`} data-sketch-container data-sketch={sketch} {...(slotTarget != null && { "data-slot": slotTarget })}></div>
 
 <script>
 	import p5 from "p5";
@@ -18,7 +19,7 @@ const {sketch, class: className} = Astro.props;
 	 * @param {HTMLElement} container
 	 * @returns {Promise<void>}
 	 */
-	async function mountSketch(container: HTMLElement) {
+	async function mountSketch(container) {
 		const name = container.getAttribute("data-sketch");
 		if (!name) return;
 
@@ -44,7 +45,7 @@ const {sketch, class: className} = Astro.props;
 	 * @param {HTMLElement} container
 	 * @returns {void}
 	 */
-	function unmountSketch(container: HTMLElement) {
+	function unmountSketch(container) {
 		const instance = instances.get(container);
 		if (instance) {
 			instance.remove();

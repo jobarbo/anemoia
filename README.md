@@ -8,6 +8,8 @@ Installation artistique web de type point-and-click qui évoque la nostalgie à 
 
 ## Stack technique
 
+Le code applicatif est en **JavaScript vanilla** (pas de TypeScript) pour rester simple et accessible aux artistes.
+
 - **Astro** — Générateur de site statique, pages et transitions de vue
 - **Content collections** — Quartiers (JSON) et histoires (Markdown)
 - **SCSS** — Styles avec blocs type BEM, variables et mixins
