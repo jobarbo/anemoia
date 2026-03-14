@@ -49,15 +49,13 @@ const mockManifest = {
 ---
 
 <GameLayout title={`Anemoia - ${neighborhood.name}`}>
-	{neighborhood.audioSrc && (
-		<audio id="global-audio" src={neighborhood.audioSrc} loop transition:persist={`neighborhood-audio-${neighborhood.slug}`} />
-	)}
+	{neighborhood.audioSrc && <audio id='global-audio' src={neighborhood.audioSrc} loop transition:persist={`neighborhood-audio-${neighborhood.slug}`} />}
 	<main class='neighborhood-container' transition:name={`neighborhood-${neighborhood.slug}`} transition:animate={pageSlideFromBottom}>
 		<a href='/overworld' class='back-btn'>Retour à la carte</a>
 
 		<!-- Real scene renderer would use the actual manifest -->
 		<SceneRenderer manifest={mockManifest} sceneSlug='mock' class='neighborhood-scene' viewportAspectRatio>
-			<SketchCanvas slot="background" sketch="snow" />
+			<SketchCanvas slot='background' sketch='snow' />
 		</SceneRenderer>
 	</main>
 </GameLayout>
