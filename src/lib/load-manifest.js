@@ -22,13 +22,13 @@ const PLACEHOLDER_FG = "/assets/placeholder/foreground.png";
 
 function getDefaultManifest(_sceneSlug, firstStorySlug) {
 	return {
-		canvas: { width: 1920, height: 1080 },
+		canvas: {width: 1920, height: 1080},
 		layers: [
 			{
 				name: "background",
 				file: PLACEHOLDER_BG,
 				zIndex: 0,
-				position: { left: 0, top: 0, width: 100, height: 100 },
+				position: {left: 0, top: 0, width: 100, height: 100},
 				parallaxSpeed: 0.05,
 				interactive: false,
 			},
@@ -36,7 +36,7 @@ function getDefaultManifest(_sceneSlug, firstStorySlug) {
 				name: "foreground",
 				file: PLACEHOLDER_FG,
 				zIndex: 1,
-				position: { left: 0, top: 0, width: 100, height: 100 },
+				position: {left: 0, top: 0, width: 100, height: 100},
 				parallaxSpeed: 0.15,
 				interactive: true,
 				interaction: {

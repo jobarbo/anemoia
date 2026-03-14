@@ -7,11 +7,11 @@
 const {sketch, class: className, slotTarget} = Astro.props;
 ---
 
-<div class={`sketch-canvas ${className ?? ""}`} data-sketch-container data-sketch={sketch} {...(slotTarget != null && { "data-slot": slotTarget })}></div>
+<div class={`sketch-canvas ${className ?? ""}`} data-sketch-container data-sketch={sketch} {...slotTarget != null && {"data-slot": slotTarget}}></div>
 
 <script>
 	import p5 from "p5";
-	import { getSketchLoader, getKnownSketchNames } from "../../sketches/index.js";
+	import {getSketchLoader, getKnownSketchNames} from "../../sketches/index.js";
 
 	const instances = new WeakMap();
 
@@ -19,7 +19,7 @@ const {sketch, class: className, slotTarget} = Astro.props;
 	 * @param {HTMLElement} container
 	 * @returns {Promise<void>}
 	 */
-	async function mountSketch(container) {
+	async function mountSketch(container: any) {
 		const name = container.getAttribute("data-sketch");
 		if (!name) return;
 
@@ -45,7 +45,7 @@ const {sketch, class: className, slotTarget} = Astro.props;
 	 * @param {HTMLElement} container
 	 * @returns {void}
 	 */
-	function unmountSketch(container) {
+	function unmountSketch(container: any) {
 		const instance = instances.get(container);
 		if (instance) {
 			instance.remove();

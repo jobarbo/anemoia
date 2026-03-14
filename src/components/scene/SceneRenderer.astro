@@ -7,12 +7,12 @@ const {manifest, class: className, sceneSlug, viewportAspectRatio = false} = Ast
 
 <div class={`scene ${className ?? ""}`} data-scene-renderer style={viewportAspectRatio ? undefined : `aspect-ratio: ${manifest.canvas.width} / ${manifest.canvas.height}`}>
 	{
-		manifest.layers.map((layer) => (
+		manifest.layers.map((layer: any) => (
 			<div class='scene__layer-container'>
 				<SceneLayer layer={layer} scenePath={`/assets/scenes/${sceneSlug}/layers`} />
 
 				{layer.interactive && layer.interaction && <InteractiveZone zone={layer} />}
-				<div class='scene__layer-slot-outlet' data-slot-outlet={layer.name}></div>
+				<div class='scene__layer-slot-outlet' data-slot-outlet={layer.name} />
 			</div>
 		))
 	}
