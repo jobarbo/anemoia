@@ -1,98 +1,98 @@
 # Anemoia
 
-A web-based point-and-click art installation that evokes nostalgia through scenes built from photo collages, generated imagery, shaders, music, and short stories. Built with [Astro](https://astro.build).
+Installation artistique web de type point-and-click qui évoque la nostalgie à travers des scènes construites à partir de collages photo, d’images générées, de shaders, de musique et de courtes histoires. Construite avec [Astro](https://astro.build).
 
-**By Olivier Laforest and Jonathan Barbeau.**
-
----
-
-## Tech stack
-
-- **Astro** — Static site generator, pages, and view transitions
-- **Content collections** — Neighborhoods (JSON) and stories (Markdown)
-- **SCSS** — Styles with BEM-style blocks, variables, and mixins
-- **GSAP** — Animations and parallax
-- **Locomotive Scroll** — Smooth scroll on story pages
-- **p5.js** — Canvas overlays (e.g. snow, effects)
-- **PSD export** — Node script to export Photoshop layers and positions
+**Par Olivier Laforest et Jonathan Barbeau.**
 
 ---
 
-## Project structure
+## Stack technique
+
+- **Astro** — Générateur de site statique, pages et transitions de vue
+- **Content collections** — Quartiers (JSON) et histoires (Markdown)
+- **SCSS** — Styles avec blocs type BEM, variables et mixins
+- **GSAP** — Animations et parallaxe
+- **Locomotive Scroll** — Défilement fluide sur les pages d’histoires
+- **p5.js** — Overlays canvas (neige, effets, etc.)
+- **Export PSD** — Script Node pour exporter les calques et positions Photoshop
+
+---
+
+## Structure du projet
 
 ```
 ├── public/
 │   └── assets/
-│       └── scenes/           # Runtime scene assets (one folder per scene)
+│       └── scenes/           # Assets de scène à l’exécution (un dossier par scène)
 │           └── <slug>/
-│               ├── manifest.json   # Layer positions (from PSD export)
-│               ├── layers/        # Exported PNGs
-│               └── ambient.mp3     # Optional scene audio
+│               ├── manifest.json   # Positions des calques (depuis l’export PSD)
+│               ├── layers/        # PNG exportés
+│               └── ambient.mp3     # Audio de scène (optionnel)
 ├── src/
 │   ├── components/
 │   │   ├── scene/            # SceneRenderer, SceneLayer, InteractiveZone
 │   │   ├── effects/          # SketchCanvas (p5)
 │   │   └── ui/               # AudioPlayer, BackButton
 │   ├── content/
-│   │   └── config.ts         # Content collection schemas
+│   │   └── config.ts         # Schémas des content collections
 │   ├── data/
 │   │   ├── neighborhoods/
-│   │   │   └── index.json    # Neighborhood list and map positions
-│   │   └── stories/         # Markdown files (one per story)
+│   │   │   └── index.json    # Liste des quartiers et positions sur la carte
+│   │   └── stories/         # Fichiers Markdown (un par histoire)
 │   ├── layouts/
-│   │   └── GameLayout.astro  # Shared layout, audio, router
+│   │   └── GameLayout.astro  # Layout partagé, audio, routeur
 │   ├── lib/
-│   │   ├── types.ts          # Shared TypeScript types (Manifest, Layer, etc.)
-│   │   ├── transitions.ts    # View transition configs
-│   │   └── load-manifest.ts  # Load or fallback scene manifest
+│   │   ├── types.ts          # Types TypeScript partagés (Manifest, Layer, etc.)
+│   │   ├── transitions.ts   # Config des transitions de vue
+│   │   └── load-manifest.ts  # Chargement ou fallback du manifest de scène
 │   ├── pages/
 │   │   ├── index.astro       # Splash
-│   │   ├── overworld.astro    # Map
+│   │   ├── overworld.astro   # Carte
 │   │   ├── neighborhood/[slug].astro
 │   │   └── story/[slug].astro
-│   ├── scripts/              # Parallax, etc.
-│   ├── sketches/             # p5 sketches (TypeScript)
-│   └── styles/               # Global SCSS, variables, mixins
+│   ├── scripts/              # Parallaxe, etc.
+│   ├── sketches/             # Sketches p5 (TypeScript)
+│   └── styles/               # SCSS global, variables, mixins
 └── tools/
-    └── psd-export.mjs        # PSD → manifest.json + layer PNGs
+    └── psd-export.mjs        # PSD → manifest.json + PNG des calques
 ```
 
-**Where assets go**
+**Où placer les assets**
 
-- **`public/assets/scenes/<slug>/`** — One folder per scene. Put here: `manifest.json`, `layers/*.png`, and optional `ambient.mp3`. This is the single source of truth for scene assets at runtime.
-- **`src/assets/`** — Use for images that need Astro’s build-time optimization (e.g. overworld map). Scene layer images are served from `public/` after PSD export.
-
----
-
-## Commands
-
-| Command           | Action                              |
-| ----------------- | ----------------------------------- |
-| `npm install`     | Install dependencies                |
-| `npm run dev`     | Start dev server at `localhost:4321`|
-| `npm run build`   | Build production site to `./dist/`   |
-| `npm run preview` | Preview the build locally            |
+- **`public/assets/scenes/<slug>/`** — Un dossier par scène. Y mettre : `manifest.json`, `layers/*.png`, et optionnellement `ambient.mp3`. C’est la source unique des assets de scène à l’exécution.
+- **`src/assets/`** — Pour les images qui passent par l’optimisation au build Astro (ex. carte overworld). Les images des calques de scène sont servies depuis `public/` après l’export PSD.
 
 ---
 
-## Adding a new neighborhood
+## Commandes
 
-1. **Create the scene folder**  
-   `public/assets/scenes/<slug>/` (e.g. `public/assets/scenes/saint-roch/`).
+| Commande          | Action                                           |
+| ----------------- | ------------------------------------------------ |
+| `npm install`     | Installer les dépendances                        |
+| `npm run dev`     | Démarrer le serveur de dev sur `localhost:4321`  |
+| `npm run build`   | Construire le site en production dans `./dist/`  |
+| `npm run preview` | Prévisualiser le build en local                  |
 
-2. **Export your PSD** (see “Exporting PSD layers” below) into that folder so you get `manifest.json` and `layers/*.png`.  
-   If you skip this, the app will use a default manifest (placeholder layers) until you add real files.
+---
 
-3. **Optional:** Add `ambient.mp3` in the same folder.
+## Ajouter un nouveau quartier
 
-4. **Register the neighborhood** in `src/data/neighborhoods/index.json`:
+1. **Créer le dossier de scène**  
+   `public/assets/scenes/<slug>/` (ex. `public/assets/scenes/saint-roch/`).
+
+2. **Exporter le PSD** (voir « Export des calques PSD » plus bas) dans ce dossier pour obtenir `manifest.json` et `layers/*.png`.  
+   Si vous ne le faites pas, l’app utilisera un manifest par défaut (calques de remplacement) jusqu’à l’ajout des vrais fichiers.
+
+3. **Optionnel :** ajouter `ambient.mp3` dans le même dossier.
+
+4. **Enregistrer le quartier** dans `src/data/neighborhoods/index.json` :
 
 ```json
 {
   "id": "my-neighborhood",
-  "name": "My Neighborhood",
+  "name": "Mon quartier",
   "slug": "my-neighborhood",
-  "description": "Short description.",
+  "description": "Courte description.",
   "scenePath": "/assets/scenes/my-neighborhood/manifest.json",
   "audioSrc": "/assets/scenes/my-neighborhood/ambient.mp3",
   "stories": ["my-story"],
@@ -100,58 +100,58 @@ A web-based point-and-click art installation that evokes nostalgia through scene
 }
 ```
 
-- `position.x` and `position.y` are percentages for the pin on the overworld map (0–100).
-- `stories` is an array of story slugs (file names without `.md`).
+- `position.x` et `position.y` sont des pourcentages pour l’épingle sur la carte overworld (0–100).
+- `stories` est un tableau de slugs d’histoires (noms de fichiers sans `.md`).
 
 ---
 
-## Adding a new story
+## Ajouter une nouvelle histoire
 
-1. **Create a Markdown file** in `src/data/stories/`, e.g. `src/data/stories/my-story.md`:
+1. **Créer un fichier Markdown** dans `src/data/stories/`, ex. `src/data/stories/my-story.md` :
 
 ```markdown
 ---
-title: My Story Title
+title: Titre de mon histoire
 neighborhood: my-neighborhood
 audioSrc: /assets/scenes/my-neighborhood/ambient.mp3
 order: 1
 ---
 
-Your story body in Markdown.
+Le corps de l’histoire en Markdown.
 ```
 
-2. **Link it from the neighborhood** by adding its slug to the `stories` array in `src/data/neighborhoods/index.json` (see above).
+2. **La lier au quartier** en ajoutant son slug au tableau `stories` dans `src/data/neighborhoods/index.json` (voir ci-dessus).
 
 ---
 
-## Exporting PSD layers
+## Export des calques PSD
 
-Use the Node script to export layer images and a manifest from a Photoshop file:
+Utiliser le script Node pour exporter les images des calques et un manifest depuis un fichier Photoshop :
 
 ```bash
-node tools/psd-export.mjs <path-to-file.psd> [output-dir]
+node tools/psd-export.mjs <chemin-vers-fichier.psd> [dossier-sortie]
 ```
 
-Example:
+Exemple :
 
 ```bash
 node tools/psd-export.mjs ./designs/saint-roch.psd ./public/assets/scenes/saint-roch
 ```
 
-This will:
+Cela va :
 
-- Create `output-dir/layers/` and export each visible layer as a PNG.
-- Write `output-dir/manifest.json` with canvas size and per-layer data: `name`, `file`, `zIndex`, `position` (percent), `parallaxSpeed`, `interactive`.
+- Créer `dossier-sortie/layers/` et exporter chaque calque visible en PNG.
+- Écrire `dossier-sortie/manifest.json` avec la taille du canvas et les données par calque : `name`, `file`, `zIndex`, `position` (pourcent), `parallaxSpeed`, `interactive`.
 
-You can then edit `manifest.json` to set `interactive: true` and add `interaction` (e.g. `type: "navigate"`, `target: "/story/my-story"`, optional `hoverImage`) for clickable zones.
+Vous pouvez ensuite éditer `manifest.json` pour mettre `interactive: true` et ajouter `interaction` (ex. `type: "navigate"`, `target: "/story/my-story"`, optionnel `hoverImage`) pour les zones cliquables.
 
 ---
 
-## Adding a new p5 sketch
+## Ajouter un nouveau sketch p5
 
-1. **Create the sketch** in `src/sketches/`, e.g. `src/sketches/rain.ts`, exporting a default function that takes a container and returns the p5 sketch function (see `snow.ts` for the pattern).
+1. **Créer le sketch** dans `src/sketches/`, ex. `src/sketches/rain.ts`, en exportant une fonction par défaut qui prend un conteneur et retourne la fonction sketch p5 (voir `snow.ts` pour le modèle).
 
-2. **Register it** in `src/sketches/index.ts`:
+2. **L’enregistrer** dans `src/sketches/index.ts` :
 
 ```ts
 const sketchLoaders = {
@@ -160,25 +160,25 @@ const sketchLoaders = {
 };
 ```
 
-3. **Use it in a scene** with `<SketchCanvas sketch="rain" />` (e.g. in a slot of `SceneRenderer`).
+3. **L’utiliser dans une scène** avec `<SketchCanvas sketch="rain" />` (ex. dans un slot de `SceneRenderer`).
 
 ---
 
 ## Styles (SCSS)
 
-- **Variables:** `src/styles/_variables.scss` (`$color-bg`, `$color-accent`, `$font-primary`, etc.). These are auto-injected via Astro config.
-- **Mixins:** `src/styles/_mixins.scss` (e.g. `flex-center`, `absolute-fill`). Also auto-injected.
-- **Conventions:** Prefer BEM-style block names (e.g. `.scene`, `.scene__layer-container`, `.zone--navigate`). Keep layout/positioning for scene layers and zones in `SceneRenderer.astro`; child components handle only their own visuals (e.g. hover).
+- **Variables :** `src/styles/_variables.scss` (`$color-bg`, `$color-accent`, `$font-primary`, etc.). Elles sont injectées automatiquement via la config Astro.
+- **Mixins :** `src/styles/_mixins.scss` (ex. `flex-center`, `absolute-fill`). Également injectés automatiquement.
+- **Conventions :** Privilégier des noms de blocs type BEM (ex. `.scene`, `.scene__layer-container`, `.zone--navigate`). Garder le layout/positionnement des calques et zones de scène dans `SceneRenderer.astro` ; les composants enfants gèrent uniquement leur rendu (ex. hover).
 
 ---
 
-## Contributing
+## Contribuer
 
-To add or change content:
+Pour ajouter ou modifier du contenu :
 
-- **Scenes and images** — Use the PSD export workflow and place assets under `public/assets/scenes/<slug>/`.
-- **Stories** — Add or edit Markdown in `src/data/stories/` and reference them in `src/data/neighborhoods/index.json`.
-- **Audio** — Place `ambient.mp3` (or other files) in the scene folder and set `audioSrc` in the neighborhood or story frontmatter.
-- **New neighborhoods** — Add an entry to `src/data/neighborhoods/index.json` and ensure the scene folder and manifest exist (or rely on the default manifest until then).
+- **Scènes et images** — Utiliser le workflow d’export PSD et placer les assets dans `public/assets/scenes/<slug>/`.
+- **Histoires** — Ajouter ou modifier du Markdown dans `src/data/stories/` et les référencer dans `src/data/neighborhoods/index.json`.
+- **Audio** — Placer `ambient.mp3` (ou autres fichiers) dans le dossier de scène et définir `audioSrc` dans le quartier ou le frontmatter de l’histoire.
+- **Nouveaux quartiers** — Ajouter une entrée dans `src/data/neighborhoods/index.json` et s’assurer que le dossier de scène et le manifest existent (ou s’appuyer sur le manifest par défaut en attendant).
 
-Run `npm run dev` to work locally and `npm run build` to confirm a production build.
+Lancer `npm run dev` pour travailler en local et `npm run build` pour vérifier un build de production.
