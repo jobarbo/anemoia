@@ -1,7 +1,8 @@
 ---
-import { getCollection, render } from "astro:content";
+import {getCollection, render} from "astro:content";
 import GameLayout from "../../layouts/GameLayout.astro";
-import { pageFade } from "../../transitions";
+import BackButton from "../../components/ui/BackButton.astro";
+import {pageFade} from "../../lib/transitions";
 
 export async function getStaticPaths() {
 	const stories = await getCollection("stories");
@@ -15,11 +16,9 @@ const {story} = Astro.props;
 const {Content} = await render(story);
 ---
 
-<GameLayout title={`Anemoia - ${story.data.title}`}>
+<GameLayout title={`Anemoia - ${story.data.title}`} audioSrc={story.data.audioSrc}>
 	<main class='story-container' data-scroll-container transition:animate={pageFade}>
-		<a href={`/neighborhood/${story.data.neighborhood}`} class='back-btn' data-scroll-fixed>Retour au quartier</a>
-
-		{story.data.audioSrc && <audio src={story.data.audioSrc} autoplay loop transition:persist={`audio-${story.id}`} id='global-audio' />}
+		<BackButton href={`/neighborhood/${story.data.neighborhood}`} label='Retour au quartier' dataScrollFixed />
 
 		<div class='story-content' data-scroll-section>
 			<div class='story-header' data-scroll data-scroll-speed='-0.2'>
@@ -46,14 +45,16 @@ const {Content} = await render(story);
 
 		const scroll = new LocomotiveScroll({
 			lenisOptions: {lerp: 0.08, smoothWheel: true},
+			scrollCallback: () => ScrollTrigger.update(),
 		});
 
-		// Optional: Sync ScrollTrigger with Lenis
-
-		scroll.on("scroll", ScrollTrigger.update);
 		ScrollTrigger.scrollerProxy(container, {
 			scrollTop(value) {
-				return arguments.length ? scroll.scrollTo(value, {duration: 0, disableLerp: true}) : scroll.scroll.instance.scroll.y;
+				if (arguments.length && value !== undefined) {
+					scroll.scrollTo(value, {immediate: true});
+					return;
+				}
+				return scroll.lenisInstance?.scroll ?? 0;
 			},
 			getBoundingClientRect() {
 				return {top: 0, left: 0, width: window.innerWidth, height: window.innerHeight};
@@ -67,15 +68,6 @@ const {Content} = await render(story);
 		background: #111;
 		color: #eee;
 		min-height: 100vh;
-	}
-
-	.back-btn {
-		position: fixed;
-		top: 2rem;
-		left: 2rem;
-		z-index: 100;
-		color: #fff;
-		text-decoration: none;
 	}
 
 	.story-content {

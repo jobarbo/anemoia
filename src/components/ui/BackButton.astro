@@ -1,0 +1,23 @@
+---
+interface Props {
+	href: string;
+	label?: string;
+	dataScrollFixed?: boolean;
+}
+const { href, label = "Retour", dataScrollFixed } = Astro.props;
+---
+<a href={href} class="back-btn" data-scroll-fixed={dataScrollFixed ? true : undefined}>{label}</a>
+
+<style lang="scss">
+	.back-btn {
+		position: fixed;
+		top: 2rem;
+		left: 2rem;
+		z-index: 100;
+		color: #fff;
+		text-decoration: none;
+		background: rgba(0, 0, 0, 0.5);
+		padding: 0.5rem 1rem;
+		border-radius: 4px;
+	}
+</style>

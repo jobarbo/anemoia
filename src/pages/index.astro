@@ -1,13 +1,12 @@
 ---
 import GameLayout from "../layouts/GameLayout.astro";
-import {pageFade} from "../transitions";
+import {pageFade} from "../lib/transitions";
 
 // Fichier audio de la scène splash (dans public/). Mettre à null pour désactiver.
 const audioSrc = "/assets/scenes/splash/ambient.mp3";
 ---
 
-<GameLayout title='Anemoia - Start'>
-	{audioSrc && <audio id='global-audio' src={audioSrc} loop transition:persist='splash-audio' />}
+<GameLayout title="Anemoia - Start" audioSrc={audioSrc}>
 	<main class='splash-container' transition:animate={pageFade}>
 		<div class='splash-content'>
 			<h1>Anémoia</h1>

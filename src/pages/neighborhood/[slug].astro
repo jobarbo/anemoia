@@ -1,12 +1,11 @@
 ---
 import {getCollection} from "astro:content";
 import GameLayout from "../../layouts/GameLayout.astro";
+import BackButton from "../../components/ui/BackButton.astro";
 import SceneRenderer from "../../components/scene/SceneRenderer.astro";
 import SketchCanvas from "../../components/effects/SketchCanvas.astro";
-import {pageSlideFromBottom} from "../../transitions";
-
-import bgImage from "../../assets/background.png";
-import fgImage from "../../assets/foreground.png";
+import {pageSlideFromBottom} from "../../lib/transitions";
+import {loadManifest} from "../../lib/load-manifest";
 
 export async function getStaticPaths() {
 	const neighborhoods = await getCollection("neighborhoods");
@@ -17,59 +16,20 @@ export async function getStaticPaths() {
 }
 
 const {neighborhood} = Astro.props;
-
-// In a real scenario, we'd load the JSON file from neighborhood.scenePath.
-// Since we don't have the real PSD exported, we mock a simple manifest.
-const mockManifest = {
-	canvas: {width: 1920, height: 1080},
-	layers: [
-		{
-			name: "background",
-			file: bgImage.src, // using imported asset
-			zIndex: 0,
-			position: {left: 0, top: 0, width: 110, height: 110},
-			parallaxSpeed: 0.05,
-			interactive: false,
-		},
-		{
-			name: "foreground",
-			file: fgImage.src,
-			zIndex: 1,
-			position: {left: 0, top: 0, width: 110, height: 110},
-			parallaxSpeed: 0.15,
-			interactive: true,
-			interaction: {
-				type: "navigate",
-				target: `/story/${neighborhood.stories[0] || "la-memoire"}`,
-				hoverImage: null,
-			},
-		},
-	],
-};
+const manifest = await loadManifest(neighborhood.scenePath, {
+	firstStorySlug: neighborhood.stories[0],
+});
 ---
 
-<GameLayout title={`Anemoia - ${neighborhood.name}`}>
-	{neighborhood.audioSrc && <audio id='global-audio' src={neighborhood.audioSrc} loop transition:persist={`neighborhood-audio-${neighborhood.slug}`} />}
+<GameLayout title={`Anemoia - ${neighborhood.name}`} audioSrc={neighborhood.audioSrc}>
 	<main class='neighborhood-container' transition:name={`neighborhood-${neighborhood.slug}`} transition:animate={pageSlideFromBottom}>
-		<a href='/overworld' class='back-btn'>Retour à la carte</a>
+		<BackButton href='/overworld' label='Retour à la carte' />
 
-		<!-- Real scene renderer would use the actual manifest -->
-		<SceneRenderer manifest={mockManifest} sceneSlug='mock' class='neighborhood-scene' viewportAspectRatio>
+		<SceneRenderer manifest={manifest} sceneSlug={neighborhood.slug} class='neighborhood-scene' viewportAspectRatio>
 			<SketchCanvas slot='background' sketch='snow' />
 		</SceneRenderer>
 	</main>
 </GameLayout>
-
-<script>
-	import {initMouseParallax} from "../../scripts/parallax";
-
-	document.addEventListener("astro:page-load", () => {
-		const layers = document.querySelectorAll(".neighborhood-scene .layer, .neighborhood-scene .zone");
-		if (layers.length > 0) {
-			initMouseParallax(layers);
-		}
-	});
-</script>
 
 <style lang='scss'>
 	.neighborhood-container {
@@ -77,18 +37,6 @@ const mockManifest = {
 		background: #000;
 		overflow: hidden;
 		position: relative;
-	}
-
-	.back-btn {
-		position: absolute;
-		top: 2rem;
-		left: 2rem;
-		z-index: 100;
-		color: #fff;
-		text-decoration: none;
-		background: rgba(0, 0, 0, 0.5);
-		padding: 0.5rem 1rem;
-		border-radius: 4px;
 	}
 
 	.neighborhood-scene {

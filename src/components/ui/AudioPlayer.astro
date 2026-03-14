@@ -38,11 +38,12 @@
 	document.addEventListener("astro:page-load", () => {
 		const container = document.getElementById("audio-player-container");
 		const btn = document.getElementById("toggle-audio");
-		const audio = document.getElementById("global-audio") as HTMLAudioElement;
+		const audio = document.getElementById("global-audio") as HTMLAudioElement | null;
 
 		if (!btn || !container) return;
 
-		if (!audio) {
+		// Hide when no audio element or no valid source (avoids NotSupportedError)
+		if (!audio || !audio.src || audio.src === window.location.href) {
 			container.style.display = "none";
 			return;
 		}
@@ -60,7 +61,9 @@
 
 		btn.addEventListener("click", () => {
 			if (audio.paused) {
-				audio.play();
+				audio.play().catch(() => {
+					// No supported sources or autoplay blocked — keep UI in play state
+				});
 				iconPlay.style.display = "none";
 				iconPause.style.display = "inline";
 			} else {

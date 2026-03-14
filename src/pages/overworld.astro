@@ -1,7 +1,8 @@
 ---
 import GameLayout from "../layouts/GameLayout.astro";
+import BackButton from "../components/ui/BackButton.astro";
 import { getCollection } from "astro:content";
-import { pageFade } from "../transitions";
+import { pageFade } from "../lib/transitions";
 
 const neighborhoods = await getCollection("neighborhoods");
 
@@ -9,10 +10,7 @@ const neighborhoods = await getCollection("neighborhoods");
 const audioSrc = "/assets/scenes/overworld/ambient.mp3";
 ---
 
-<GameLayout title='Anemoia - Overworld'>
-	{audioSrc && (
-		<audio id="global-audio" src={audioSrc} loop transition:persist="overworld-audio" />
-	)}
+<GameLayout title="Anemoia - Overworld" audioSrc={audioSrc}>
 	<main class='overworld-container' transition:animate={pageFade}>
 		<h1>Carte de la ville</h1>
 
@@ -26,7 +24,7 @@ const audioSrc = "/assets/scenes/overworld/ambient.mp3";
 			}
 		</div>
 
-		<a href='/' class='back-btn'>Retour au menu</a>
+		<BackButton href="/" label="Retour au menu" />
 	</main>
 </GameLayout>
 

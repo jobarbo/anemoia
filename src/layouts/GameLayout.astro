@@ -3,7 +3,7 @@ import { ClientRouter } from 'astro:transitions';
 import '../styles/global.scss';
 import AudioPlayer from '../components/ui/AudioPlayer.astro';
 
-const { title = "Anemoia" } = Astro.props;
+const { title = "Anemoia", audioSrc } = Astro.props;
 ---
 <html lang="fr">
   <head>
@@ -15,7 +15,7 @@ const { title = "Anemoia" } = Astro.props;
   </head>
   <body>
     <slot />
-    
+    {audioSrc && <audio id="global-audio" src={audioSrc} loop transition:persist={audioSrc} />}
     <AudioPlayer />
   </body>
 </html>

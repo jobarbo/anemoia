@@ -9,9 +9,8 @@ const {sketch, class: className} = Astro.props;
 <div class={`sketch-canvas ${className ?? ""}`} data-sketch-container data-sketch={sketch}></div>
 
 <script>
-	// @ts-nocheck - Astro script + p5 callback types
 	import p5 from "p5";
-	import {getSketchLoader, getKnownSketchNames} from "../../sketches/index.js";
+	import { getSketchLoader, getKnownSketchNames } from "../../sketches/index.js";
 
 	const instances = new WeakMap();
 
@@ -19,7 +18,7 @@ const {sketch, class: className} = Astro.props;
 	 * @param {HTMLElement} container
 	 * @returns {Promise<void>}
 	 */
-	async function mountSketch(container) {
+	async function mountSketch(container: HTMLElement) {
 		const name = container.getAttribute("data-sketch");
 		if (!name) return;
 
@@ -45,7 +44,7 @@ const {sketch, class: className} = Astro.props;
 	 * @param {HTMLElement} container
 	 * @returns {void}
 	 */
-	function unmountSketch(container) {
+	function unmountSketch(container: HTMLElement) {
 		const instance = instances.get(container);
 		if (instance) {
 			instance.remove();

@@ -1,41 +1,27 @@
 ---
 import SceneLayer from "./SceneLayer.astro";
 import InteractiveZone from "./InteractiveZone.astro";
-
-interface Layer {
-	name: string;
-	file: string;
-	zIndex: number;
-	position: {left: number; top: number; width: number; height: number};
-	parallaxSpeed: number;
-	interactive: boolean;
-	interaction?: {
-		type: string;
-		target?: string;
-		hoverImage?: string | null;
-	};
-	type?: string;
-}
+import type {Layer} from "../../lib/types";
 
 const {manifest, class: className, sceneSlug, viewportAspectRatio = false} = Astro.props;
 ---
 
-<div class={`scene ${className ?? ""}`} style={viewportAspectRatio ? undefined : `aspect-ratio: ${manifest.canvas.width} / ${manifest.canvas.height}`}>
+<div class={`scene ${className ?? ""}`} data-scene-renderer style={viewportAspectRatio ? undefined : `aspect-ratio: ${manifest.canvas.width} / ${manifest.canvas.height}`}>
 	{
 		manifest.layers.map((layer: Layer) => (
 			<div class='scene__layer-container'>
 				<SceneLayer layer={layer} scenePath={`/assets/scenes/${sceneSlug}/layers`} />
 
 				{layer.interactive && layer.interaction && <InteractiveZone zone={layer} />}
-				{layer.name === "background" && <slot name="background" />}
-				{layer.name === "foreground" && <slot name="foreground" />}
+				{layer.name === "background" && <slot name='background' />}
+				{layer.name === "foreground" && <slot name='foreground' />}
 			</div>
 		))
 	}
 	<slot />
 </div>
 
-<style lang="scss">
+<style lang='scss'>
 	@use "../../styles/mixins" as *;
 
 	/* Block: scene (réservé à SceneRenderer) */
@@ -64,16 +50,6 @@ const {manifest, class: className, sceneSlug, viewportAspectRatio = false} = Ast
 	}
 
 	/* Layout des blocs enfants (layer, zone) — positionnement par le parent */
-	.scene .layer {
-		position: absolute;
-		left: var(--layer-left);
-		top: var(--layer-top);
-		width: var(--layer-width);
-		height: var(--layer-height);
-		z-index: var(--layer-z);
-		will-change: transform;
-		object-fit: cover;
-	}
 
 	.scene .zone {
 		position: absolute;
@@ -97,3 +73,16 @@ const {manifest, class: className, sceneSlug, viewportAspectRatio = false} = Ast
 		}
 	}
 </style>
+
+<script>
+	import {initMouseParallax} from "../../scripts/parallax";
+
+	document.addEventListener("astro:page-load", () => {
+		document.querySelectorAll("[data-scene-renderer]").forEach((scene) => {
+			const layers = scene.querySelectorAll(".layer, .zone");
+			if (layers.length > 0) {
+				initMouseParallax(layers as NodeListOf<Element>);
+			}
+		});
+	});
+</script>
