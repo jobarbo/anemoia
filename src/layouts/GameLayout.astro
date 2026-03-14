@@ -1,21 +1,26 @@
 ---
-import { ClientRouter } from 'astro:transitions';
-import '../styles/global.scss';
-import AudioPlayer from '../components/ui/AudioPlayer.astro';
+import {ClientRouter} from "astro:transitions";
+import "../styles/global.scss";
+import AudioPlayer from "../components/ui/AudioPlayer.astro";
 
-const { title = "Anemoia", audioSrc } = Astro.props;
+const {title = "Anemoia", audioSrc} = Astro.props;
 ---
-<html lang="fr">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title}</title>
-    <ClientRouter />
-  </head>
-  <body>
-    <slot />
-    {audioSrc && <audio id="global-audio" src={audioSrc} loop transition:persist={audioSrc} />}
-    <AudioPlayer />
-  </body>
+
+<html lang='fr'>
+	<head>
+		<meta charset='utf-8' />
+		<link rel='icon' type='image/svg+xml' href='/favicon.svg' />
+		<meta name='viewport' content='width=device-width, initial-scale=1' />
+		<title>{title}</title>
+		<ClientRouter />
+	</head>
+	<body>
+		<slot />
+		{audioSrc && (
+			<>
+				<audio id='global-audio' src={audioSrc} loop transition:persist={audioSrc} />
+				<AudioPlayer />
+			</>
+		)}
+	</body>
 </html>

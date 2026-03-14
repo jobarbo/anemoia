@@ -38,7 +38,7 @@
 	document.addEventListener("astro:page-load", () => {
 		const container = document.getElementById("audio-player-container");
 		const btn = document.getElementById("toggle-audio");
-		const audio = document.getElementById("global-audio") as HTMLAudioElement | null;
+		const audio = document.getElementById("global-audio");
 
 		if (!btn || !container) return;
 
@@ -48,10 +48,21 @@
 			return;
 		}
 
+		// Hide when media file is not found or fails to load (404, wrong format, etc.)
+		const hideBecauseError = () => {
+			container.style.display = "none";
+		};
+		audio.addEventListener("error", hideBecauseError);
+		// If already in error state (e.g. 404 before we attached)
+		if (audio.error && audio.error.code !== 0) {
+			container.style.display = "none";
+			return;
+		}
+
 		container.style.display = "block";
 
-		const iconPlay = btn.querySelector(".icon-play") as HTMLElement;
-		const iconPause = btn.querySelector(".icon-pause") as HTMLElement;
+		const iconPlay = btn.querySelector(".icon-play");
+		const iconPause = btn.querySelector(".icon-pause");
 
 		// Initial state check
 		if (!audio.paused) {
