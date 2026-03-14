@@ -11,7 +11,6 @@ const neighborhoods = await getCollection("neighborhoods");
 		<h1>Carte de la ville</h1>
 
 		<div class='map-wrapper'>
-			{/* Fallback simple map representation */}
 			{
 				neighborhoods.map((hood) => (
 					<a href={`/neighborhood/${hood.data.slug}`} class='hood-pin' style={`left: ${hood.data.position.x}%; top: ${hood.data.position.y}%`}>

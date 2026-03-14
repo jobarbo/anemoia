@@ -1,0 +1,84 @@
+---
+/**
+ * Master canvas component: renders a container and loads the matching p5 sketch by name.
+ * Usage: <SketchCanvas sketch="snow" /> or <SketchCanvas sketch="your-name" class="my-class" />
+ */
+const {sketch, class: className} = Astro.props;
+---
+
+<div class={`sketch-canvas ${className ?? ""}`} data-sketch-container data-sketch={sketch}></div>
+
+<script>
+	// @ts-nocheck - Astro script + p5 callback types
+	import p5 from "p5";
+	import {getSketchLoader, getKnownSketchNames} from "../../sketches/index.js";
+
+	const instances = new WeakMap();
+
+	/**
+	 * @param {HTMLElement} container
+	 * @returns {Promise<void>}
+	 */
+	async function mountSketch(container) {
+		const name = container.getAttribute("data-sketch");
+		if (!name) return;
+
+		const loadPromise = getSketchLoader(name);
+		if (!loadPromise) {
+			console.warn(`[SketchCanvas] Unknown sketch: "${name}". Available: ${getKnownSketchNames().join(", ")}`);
+			return;
+		}
+
+		const mod = await loadPromise;
+		const createSketch = mod.default;
+		if (typeof createSketch !== "function") {
+			console.warn(`[SketchCanvas] Sketch "${name}" did not export a default function(container).`);
+			return;
+		}
+
+		const sketchFn = createSketch(container);
+		const instance = new p5(sketchFn, container);
+		instances.set(container, instance);
+	}
+
+	/**
+	 * @param {HTMLElement} container
+	 * @returns {void}
+	 */
+	function unmountSketch(container) {
+		const instance = instances.get(container);
+		if (instance) {
+			instance.remove();
+			instances.delete(container);
+		}
+	}
+
+	document.addEventListener("astro:page-load", () => {
+		document.querySelectorAll("[data-sketch-container]").forEach((el) => {
+			if (el instanceof HTMLElement) mountSketch(el);
+		});
+	});
+
+	document.addEventListener("astro:before-preparation", () => {
+		document.querySelectorAll("[data-sketch-container]").forEach((el) => {
+			if (el instanceof HTMLElement) unmountSketch(el);
+		});
+	});
+</script>
+
+<style>
+	.sketch-canvas {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		pointer-events: none;
+		z-index: var(--layer-z, 1);
+		border-radius: inherit;
+	}
+
+	/* Use when the sketch is a background layer */
+	.sketch-canvas--bg {
+		z-index: 0;
+	}
+</style>

@@ -15,14 +15,16 @@ const imagePath = layer.file.startsWith("/") || layer.file.startsWith("http") ? 
 
 {
 	layer.type === "video" ? (
-		<video src={imagePath} autoplay loop muted playsinline class='scene__layer scene__layer--video' style={style} data-parallax-speed={layer.parallaxSpeed} />
+		<video src={imagePath} autoplay loop muted playsinline class='layer layer--video' style={style} data-parallax-speed={layer.parallaxSpeed} />
 	) : (
-		<img src={imagePath} alt={layer.name} class='scene__layer' style={style} data-parallax-speed={layer.parallaxSpeed} />
+		<img src={imagePath} alt={layer.name} class='layer layer--image' style={style} data-parallax-speed={layer.parallaxSpeed} />
 	)
 }
 
 <style lang='scss'>
-	.scene__layer {
+	/* Block: layer (réservé à SceneLayer) — styles propres au bloc */
+	.layer {
+		position: relative;
 		left: var(--layer-left);
 		top: var(--layer-top);
 		width: var(--layer-width);
@@ -30,7 +32,5 @@ const imagePath = layer.file.startsWith("/") || layer.file.startsWith("http") ? 
 		z-index: var(--layer-z);
 		will-change: transform;
 		object-fit: cover;
-		width: 100%;
-		height: 100%;
 	}
 </style>

@@ -14,18 +14,18 @@ const isNavigation = zone.interaction.type === "navigate";
 
 {
 	isNavigation ? (
-		<a href={zone.interaction.target} class='scene__zone scene__zone--navigate' data-zone-type={zone.interaction.type} style={style} data-parallax-speed={zone.parallaxSpeed}>
-			{zone.interaction.hoverImage && <img src={zone.interaction.hoverImage} class='scene__zone-hover' alt={`Go to ${zone.interaction.target}`} />}
+		<a href={zone.interaction.target} class='zone zone--navigate' data-zone-type={zone.interaction.type} style={style} data-parallax-speed={zone.parallaxSpeed}>
+			{zone.interaction.hoverImage && <img src={zone.interaction.hoverImage} class='zone__hover' alt={`Go to ${zone.interaction.target}`} />}
 		</a>
 	) : (
-		<button class='scene__zone scene__zone--state' data-zone-type={zone.interaction.type} style={style} data-parallax-speed={zone.parallaxSpeed}>
+		<button class='zone zone--state' data-zone-type={zone.interaction.type} style={style} data-parallax-speed={zone.parallaxSpeed}>
 			{/* State toggling logic via JS */}
 		</button>
 	)
 }
 
 <style lang='scss'>
-	.scene__zone {
+	.zone {
 		position: absolute;
 		left: var(--layer-left);
 		top: var(--layer-top);
@@ -36,14 +36,14 @@ const isNavigation = zone.interaction.type === "navigate";
 		cursor: pointer;
 
 		&--navigate {
-			.scene__zone-hover {
+			.zone__hover {
 				opacity: 0;
 				transition: opacity 0.3s ease;
 				@include absolute-fill;
 				object-fit: cover;
 			}
 
-			&:hover .scene__zone-hover {
+			&:hover .zone__hover {
 				opacity: 1;
 			}
 		}

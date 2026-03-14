@@ -27,15 +27,18 @@ const {manifest, class: className, sceneSlug, viewportAspectRatio = false} = Ast
 				<SceneLayer layer={layer} scenePath={`/assets/scenes/${sceneSlug}/layers`} />
 
 				{layer.interactive && layer.interaction && <InteractiveZone zone={layer} />}
+				{layer.name === "background" && <slot name="background" />}
+				{layer.name === "foreground" && <slot name="foreground" />}
 			</div>
 		))
 	}
 	<slot />
 </div>
 
-<style lang='scss'>
+<style lang="scss">
 	@use "../../styles/mixins" as *;
 
+	/* Block: scene (réservé à SceneRenderer) */
 	.scene {
 		position: relative;
 		width: 100%;
@@ -58,5 +61,39 @@ const {manifest, class: className, sceneSlug, viewportAspectRatio = false} = Ast
 		display: flex;
 		align-items: center;
 		justify-content: center;
+	}
+
+	/* Layout des blocs enfants (layer, zone) — positionnement par le parent */
+	.scene .layer {
+		position: absolute;
+		left: var(--layer-left);
+		top: var(--layer-top);
+		width: var(--layer-width);
+		height: var(--layer-height);
+		z-index: var(--layer-z);
+		will-change: transform;
+		object-fit: cover;
+	}
+
+	.scene .zone {
+		position: absolute;
+		left: var(--layer-left);
+		top: var(--layer-top);
+		width: var(--layer-width);
+		height: var(--layer-height);
+		z-index: var(--layer-z);
+		display: block;
+		cursor: pointer;
+
+		&--navigate .zone__hover {
+			opacity: 0;
+			transition: opacity 0.3s ease;
+			@include absolute-fill;
+			object-fit: cover;
+		}
+
+		&--navigate:hover .zone__hover {
+			opacity: 1;
+		}
 	}
 </style>
