@@ -1,71 +1,73 @@
 ---
+
 ---
-<div class="audio-player" id="audio-player-container" style="display: none;">
-  <button id="toggle-audio" aria-label="Toggle Audio">
-    <span class="icon-play">▶</span>
-    <span class="icon-pause" style="display:none;">⏸</span>
-  </button>
+
+<div class='audio-player' id='audio-player-container' style='display: none;'>
+	<button id='toggle-audio' aria-label='Toggle Audio'>
+		<span class='icon-play'>▶</span>
+		<span class='icon-pause' style='display:none;'>⏸</span>
+	</button>
 </div>
 
 <style>
-  .audio-player {
-    position: fixed;
-    bottom: 2rem;
-    right: 2rem;
-    z-index: 1000;
-  }
-  
-  button {
-    background: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    color: white;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    cursor: pointer;
-    backdrop-filter: blur(4px);
-    transition: background 0.3s;
-  }
-  
-  button:hover {
-    background: rgba(255, 255, 255, 0.4);
-  }
+	.audio-player {
+		position: fixed;
+		bottom: 2rem;
+		right: 2rem;
+		z-index: 1000;
+	}
+
+	button {
+		background: rgba(255, 255, 255, 0.2);
+		border: 1px solid rgba(255, 255, 255, 0.5);
+		color: white;
+		width: 48px;
+		height: 48px;
+		border-radius: 50%;
+		cursor: pointer;
+		backdrop-filter: blur(4px);
+		transition: background 0.3s;
+	}
+
+	button:hover {
+		background: rgba(255, 255, 255, 0.4);
+	}
 </style>
 
 <script>
-  document.addEventListener('astro:page-load', () => {
-    const container = document.getElementById('audio-player-container');
-    const btn = document.getElementById('toggle-audio');
-    const audio = document.getElementById('global-audio') as HTMLAudioElement;
-    
-    if (!btn || !container) return;
+	document.addEventListener("astro:page-load", () => {
+		const container = document.getElementById("audio-player-container");
+		const btn = document.getElementById("toggle-audio");
+		const audio = document.getElementById("global-audio") as HTMLAudioElement;
 
-    if (!audio) {
-      container.style.display = 'none';
-      return;
-    }
-    
-    container.style.display = 'block';
-    
-    const iconPlay = btn.querySelector('.icon-play') as HTMLElement;
-    const iconPause = btn.querySelector('.icon-pause') as HTMLElement;
-    
-    // Initial state check
-    if (!audio.paused) {
-      iconPlay.style.display = 'none';
-      iconPause.style.display = 'inline';
-    }
-    
-    btn.addEventListener('click', () => {
-      if (audio.paused) {
-        audio.play();
-        iconPlay.style.display = 'none';
-        iconPause.style.display = 'inline';
-      } else {
-        audio.pause();
-        iconPlay.style.display = 'inline';
-        iconPause.style.display = 'none';
-      }
-    });
-  });
+		if (!btn || !container) return;
+
+		if (!audio) {
+			container.style.display = "none";
+			return;
+		}
+
+		container.style.display = "block";
+
+		const iconPlay = btn.querySelector(".icon-play") as HTMLElement;
+		const iconPause = btn.querySelector(".icon-pause") as HTMLElement;
+
+		// Initial state check
+		if (!audio.paused) {
+			iconPlay.style.display = "none";
+			iconPause.style.display = "inline";
+		}
+
+		btn.addEventListener("click", () => {
+			if (audio.paused) {
+				audio.play();
+				iconPlay.style.display = "none";
+				iconPause.style.display = "inline";
+			} else {
+				audio.pause();
+				iconPlay.style.display = "inline";
+				iconPause.style.display = "none";
+			}
+		});
+	});
 </script>

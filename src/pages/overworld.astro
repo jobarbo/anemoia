@@ -4,9 +4,15 @@ import { getCollection } from "astro:content";
 import { pageFade } from "../transitions";
 
 const neighborhoods = await getCollection("neighborhoods");
+
+// Fichier audio de la carte (dans public/). Mettre à null pour désactiver.
+const audioSrc = "/assets/scenes/overworld/ambient.mp3";
 ---
 
 <GameLayout title='Anemoia - Overworld'>
+	{audioSrc && (
+		<audio id="global-audio" src={audioSrc} loop transition:persist="overworld-audio" />
+	)}
 	<main class='overworld-container' transition:animate={pageFade}>
 		<h1>Carte de la ville</h1>
 

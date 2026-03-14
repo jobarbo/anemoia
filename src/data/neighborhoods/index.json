@@ -5,6 +5,7 @@
 		"slug": "saint-roch",
 		"description": "Le quartier dynamique au cœur de la ville.",
 		"scenePath": "/assets/scenes/saint-roch/manifest.json",
+		"audioSrc": "/assets/scenes/saint-roch/ambient.mp3",
 		"stories": ["la-memoire"],
 		"position": {"x": 45, "y": 60}
 	},
@@ -14,6 +15,7 @@
 		"slug": "limoilou",
 		"description": "Le charme des balcons et escaliers en colimaçon.",
 		"scenePath": "/assets/scenes/limoilou/manifest.json",
+		"audioSrc": "/assets/scenes/limoilou/ambient.mp3",
 		"stories": [],
 		"position": {"x": 65, "y": 30}
 	}

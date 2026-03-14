@@ -49,6 +49,9 @@ const mockManifest = {
 ---
 
 <GameLayout title={`Anemoia - ${neighborhood.name}`}>
+	{neighborhood.audioSrc && (
+		<audio id="global-audio" src={neighborhood.audioSrc} loop transition:persist={`neighborhood-audio-${neighborhood.slug}`} />
+	)}
 	<main class='neighborhood-container' transition:name={`neighborhood-${neighborhood.slug}`} transition:animate={pageSlideFromBottom}>
 		<a href='/overworld' class='back-btn'>Retour à la carte</a>
 
