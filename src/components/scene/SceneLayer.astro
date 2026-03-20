@@ -6,8 +6,8 @@ const {layerDepth = 0.5} = Astro.props;
 const clipMaskPath = layer.clipped && parentLayer ? (parentLayer.file.startsWith("/") || parentLayer.file.startsWith("http") ? parentLayer.file : `${scenePath}/${parentLayer.file}`) : null;
 
 const style = `
-	--layer-left: ${layer.position.left}%;
-	--layer-top: ${layer.position.top}%;
+	--layer-center-left: ${layer.position.centerLeft}%;
+	--layer-center-top: ${layer.position.centerTop}%;
 	--layer-width: ${layer.position.width}%;
 	--layer-height: ${layer.position.height}%;
 	--layer-z: ${layer.zIndex};
@@ -19,19 +19,27 @@ const style = `
 const imagePath = layer.file.startsWith("/") || layer.file.startsWith("http") ? layer.file : `${scenePath}/${layer.file}`;
 
 const isClipped = Boolean(layer.clipped && parentLayer);
-const parentPos = parentLayer?.position ?? {left: 0, top: 0, width: 100, height: 100};
-const childRelLeft = isClipped ? ((layer.position.left - parentPos.left) / parentPos.width) * 100 : layer.position.left;
-const childRelTop = isClipped ? ((layer.position.top - parentPos.top) / parentPos.height) * 100 : layer.position.top;
-const childRelWidth = isClipped ? (layer.position.width / parentPos.width) * 100 : layer.position.width;
-const childRelHeight = isClipped ? (layer.position.height / parentPos.height) * 100 : layer.position.height;
+
+// Convert center to corner position (for wrapper positioning)
+const centerToCornerLeft = (centerLeft: number, width: number) => centerLeft - width / 2;
+const centerToCornerTop = (centerTop: number, height: number) => centerTop - height / 2;
+
+const parentLeftCorner = parentLayer ? centerToCornerLeft(parentLayer.position.centerLeft, parentLayer.position.width) : 0;
+const parentTopCorner = parentLayer ? centerToCornerTop(parentLayer.position.centerTop, parentLayer.position.height) : 0;
+
+// For clipped layers: calculate relative position of child center within parent
+const childRelCenterLeft = isClipped ? ((layer.position.centerLeft - parentLayer.position.centerLeft) / parentLayer.position.width) * 100 : layer.position.centerLeft;
+const childRelCenterTop = isClipped ? ((layer.position.centerTop - parentLayer.position.centerTop) / parentLayer.position.height) * 100 : layer.position.centerTop;
+const childRelWidth = isClipped ? (layer.position.width / parentLayer.position.width) * 100 : layer.position.width;
+const childRelHeight = isClipped ? (layer.position.height / parentLayer.position.height) * 100 : layer.position.height;
 
 const clipWrapperStyle = isClipped
 	? `
 	position: absolute;
-	left: ${parentPos.left}%;
-	top: ${parentPos.top}%;
-	width: ${parentPos.width}%;
-	height: ${parentPos.height}%;
+	left: ${parentLeftCorner}%;
+	top: ${parentTopCorner}%;
+	width: ${parentLayer.position.width}%;
+	height: ${parentLayer.position.height}%;
 	z-index: ${layer.zIndex};
 	overflow: hidden;
 	-webkit-mask-image: url(${clipMaskPath});
@@ -50,8 +58,9 @@ const clipWrapperStyle = isClipped
 const childStyle = isClipped
 	? `
 	position: absolute;
-	left: ${childRelLeft}%;
-	top: ${childRelTop}%;
+	left: ${childRelCenterLeft}%;
+	top: ${childRelCenterTop}%;
+	transform: translate(-50%, -50%);
 	width: ${childRelWidth}%;
 	height: ${childRelHeight}%;
 	z-index: ${layer.zIndex};
@@ -81,8 +90,9 @@ const childStyle = isClipped
 	/* Block: layer (réservé à SceneLayer) — styles propres au bloc */
 	.layer {
 		position: absolute;
-		left: var(--layer-left);
-		top: var(--layer-top);
+		left: var(--layer-center-left);
+		top: var(--layer-center-top);
+		transform: translate(-50%, -50%);
 		width: var(--layer-width);
 		height: var(--layer-height);
 		z-index: var(--layer-z);

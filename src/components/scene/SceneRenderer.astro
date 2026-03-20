@@ -69,8 +69,9 @@ const totalLayers = manifest.layers.length;
 
 	.scene .zone {
 		position: absolute;
-		left: var(--layer-left);
-		top: var(--layer-top);
+		left: var(--layer-center-left);
+		top: var(--layer-center-top);
+		transform: translate(-50%, -50%);
 		width: var(--layer-width);
 		height: var(--layer-height);
 		z-index: var(--layer-z);

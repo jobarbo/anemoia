@@ -3,8 +3,8 @@ const {zone} = Astro.props;
 const {depth = 0.5} = Astro.props;
 
 const style = `
-  --layer-left: ${zone.position.left}%;
-  --layer-top: ${zone.position.top}%;
+  --layer-center-left: ${zone.position.centerLeft}%;
+  --layer-center-top: ${zone.position.centerTop}%;
   --layer-width: ${zone.position.width}%;
   --layer-height: ${zone.position.height}%;
   --layer-z: ${zone.zIndex + 1};
@@ -28,8 +28,9 @@ const isNavigation = zone.interaction.type === "navigate";
 <style lang='scss'>
 	.zone {
 		position: absolute;
-		left: var(--layer-left);
-		top: var(--layer-top);
+		left: var(--layer-center-left);
+		top: var(--layer-center-top);
+		transform: translate(-50%, -50%);
 		width: var(--layer-width);
 		height: var(--layer-height);
 		z-index: var(--layer-z);

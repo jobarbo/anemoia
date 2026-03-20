@@ -60,6 +60,10 @@ const main = async () => {
 		const widthPercent = (node.width / canvasWidth) * 100;
 		const heightPercent = (node.height / canvasHeight) * 100;
 
+		// Calculate center position
+		const centerLeftPercent = ((node.left + node.width / 2) / canvasWidth) * 100;
+		const centerTopPercent = ((node.top + node.height / 2) / canvasHeight) * 100;
+
 		const rawBlendMode = node.layer?.blendMode?.mode ?? node.layer?.blendMode ?? "normal";
 		const blendMode = String(rawBlendMode).replace(/_/g, "-");
 
@@ -78,8 +82,8 @@ const main = async () => {
 			file: fileName,
 			zIndex: state.nextZ++,
 			position: {
-				left: leftPercent,
-				top: topPercent,
+				centerLeft: centerLeftPercent,
+				centerTop: centerTopPercent,
 				width: widthPercent,
 				height: heightPercent,
 			},
