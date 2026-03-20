@@ -2,12 +2,24 @@ import fs from "node:fs";
 import path from "node:path";
 import PSD from "psd";
 
+const MIN_PARALLAX_SPEED = 0.04;
+const MAX_PARALLAX_SPEED = 0.12;
+
 const PSD_PATH = process.argv[2];
 const OUTPUT_DIR = process.argv[3] || path.dirname(PSD_PATH);
 
 if (!PSD_PATH) {
 	console.error("Usage: node tools/psd-export.mjs <path-to-psd> [output-dir]");
 	process.exit(1);
+}
+
+function getParallaxSpeed(layerIndex, totalLayers) {
+	if (totalLayers <= 1) {
+		return Number(((MIN_PARALLAX_SPEED + MAX_PARALLAX_SPEED) / 2).toFixed(3));
+	}
+
+	const depth = layerIndex / (totalLayers - 1);
+	return Number((MIN_PARALLAX_SPEED + depth * (MAX_PARALLAX_SPEED - MIN_PARALLAX_SPEED)).toFixed(3));
 }
 
 const main = async () => {
@@ -83,7 +95,6 @@ const main = async () => {
 				width: widthPercent,
 				height: heightPercent,
 			},
-			parallaxSpeed: 0.1,
 			interactive: false,
 			blendMode,
 			opacity,
@@ -101,6 +112,11 @@ const main = async () => {
 		// bottom-up for zIndex
 		await processNode(node, state);
 	}
+
+	manifest.layers = manifest.layers.map((layer, index) => ({
+		...layer,
+		parallaxSpeed: getParallaxSpeed(index, manifest.layers.length),
+	}));
 
 	const manifestPath = path.join(OUTPUT_DIR, "manifest.json");
 	fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));

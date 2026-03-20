@@ -1,13 +1,11 @@
 ---
 const {zone} = Astro.props;
-const {depth = 0.5} = Astro.props;
 
 const style = `
   --layer-left: ${zone.position.left}%;
   --layer-top: ${zone.position.top}%;
   --layer-width: ${zone.position.width}%;
   --layer-height: ${zone.position.height}%;
-  --layer-z: ${zone.zIndex + 1};
 `;
 
 const isNavigation = zone.interaction.type === "navigate";
@@ -15,11 +13,11 @@ const isNavigation = zone.interaction.type === "navigate";
 
 {
 	isNavigation ? (
-		<a href={zone.interaction.target} class='zone zone--navigate' data-zone-type={zone.interaction.type} style={style} data-parallax-speed={zone.parallaxSpeed} data-parallax-depth={depth}>
+		<a href={zone.interaction.target} class='zone zone--navigate' data-zone-type={zone.interaction.type} style={style}>
 			{zone.interaction.hoverImage && <img src={zone.interaction.hoverImage} class='zone__hover' alt={`Go to ${zone.interaction.target}`} />}
 		</a>
 	) : (
-		<button class='zone zone--state' data-zone-type={zone.interaction.type} style={style} data-parallax-speed={zone.parallaxSpeed} data-parallax-depth={depth}>
+		<button class='zone zone--state' data-zone-type={zone.interaction.type} style={style}>
 			{/* State toggling logic via JS */}
 		</button>
 	)
@@ -32,7 +30,7 @@ const isNavigation = zone.interaction.type === "navigate";
 		top: var(--layer-top);
 		width: var(--layer-width);
 		height: var(--layer-height);
-		z-index: var(--layer-z);
+		z-index: 1;
 		display: block;
 		cursor: pointer;
 

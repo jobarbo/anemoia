@@ -12,11 +12,12 @@ const totalLayers = manifest.layers.length;
 		manifest.layers.map((layer: any, index: number) => {
 			const parentLayer = layer.clipped && layer.clippedTo ? layerMap[layer.clippedTo] : null;
 			const layerDepth = totalLayers > 1 ? index / (totalLayers - 1) : 0.5;
+			const layerStyle = `--layer-stack: ${layer.zIndex};`;
 			return (
-				<div class='scene__layer-container'>
-					<SceneLayer layer={layer} parentLayer={parentLayer} scenePath={`/assets/scenes/${sceneSlug}/layers`} layerDepth={layerDepth} />
+				<div class='scene__layer-container' style={layerStyle} data-parallax-speed={layer.parallaxSpeed} data-parallax-depth={layerDepth}>
+					<SceneLayer layer={layer} parentLayer={parentLayer} scenePath={`/assets/scenes/${sceneSlug}/layers`} />
 
-					{layer.interactive && layer.interaction && <InteractiveZone zone={layer} depth={layerDepth} />}
+					{layer.interactive && layer.interaction && <InteractiveZone zone={layer} />}
 					<div class='scene__layer-slot-outlet' data-slot-outlet={layer.name} />
 				</div>
 			);
@@ -50,6 +51,8 @@ const totalLayers = manifest.layers.length;
 		top: 0;
 		width: 100%;
 		height: 100%;
+		z-index: var(--layer-stack);
+		will-change: transform;
 	}
 
 	.scene__layer-slot-outlet {
@@ -112,7 +115,7 @@ const totalLayers = manifest.layers.length;
 	document.addEventListener("astro:page-load", () => {
 		document.querySelectorAll("[data-scene-renderer]").forEach((scene) => {
 			distributeSlottedContent(scene);
-			const layers = scene.querySelectorAll(".layer, .zone");
+			const layers = scene.querySelectorAll(".scene__layer-container");
 			if (layers.length > 0) {
 				initMouseParallax(layers as NodeListOf<Element>);
 			}

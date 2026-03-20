@@ -1,7 +1,6 @@
 ---
 const {layer, scenePath} = Astro.props;
 const {parentLayer} = Astro.props;
-const {layerDepth = 0.5} = Astro.props;
 
 const clipMaskPath = layer.clipped && parentLayer ? (parentLayer.file.startsWith("/") || parentLayer.file.startsWith("http") ? parentLayer.file : `${scenePath}/${parentLayer.file}`) : null;
 
@@ -10,7 +9,6 @@ const style = `
 	--layer-top: ${layer.position.top}%;
 	--layer-width: ${layer.position.width}%;
 	--layer-height: ${layer.position.height}%;
-	--layer-z: ${layer.zIndex};
 	--layer-opacity: ${typeof layer.opacity === "number" ? layer.opacity : 1};
 	--layer-blend: ${layer.blendMode ?? "normal"};
 `;
@@ -32,7 +30,6 @@ const clipWrapperStyle = isClipped
 	top: ${parentPos.top}%;
 	width: ${parentPos.width}%;
 	height: ${parentPos.height}%;
-	z-index: ${layer.zIndex};
 	overflow: hidden;
 	-webkit-mask-image: url(${clipMaskPath});
 	mask-image: url(${clipMaskPath});
@@ -54,7 +51,6 @@ const childStyle = isClipped
 	top: ${childRelTop}%;
 	width: ${childRelWidth}%;
 	height: ${childRelHeight}%;
-	z-index: ${layer.zIndex};
 	opacity: ${typeof layer.opacity === "number" ? layer.opacity : 1};
 	mix-blend-mode: ${layer.blendMode ?? "normal"};
 `
@@ -63,7 +59,7 @@ const childStyle = isClipped
 
 {
 	isClipped ? (
-		<div class='clipped-wrapper' style={clipWrapperStyle} data-parallax-speed={layer.parallaxSpeed} data-parallax-depth={layerDepth}>
+		<div class='clipped-wrapper' style={clipWrapperStyle}>
 			{layer.type === "video" ? (
 				<video src={imagePath} autoplay loop muted playsinline class='layer layer--video' style={childStyle} />
 			) : (
@@ -71,9 +67,9 @@ const childStyle = isClipped
 			)}
 		</div>
 	) : layer.type === "video" ? (
-		<video src={imagePath} autoplay loop muted playsinline class='layer layer--video' style={style} data-parallax-speed={layer.parallaxSpeed} data-parallax-depth={layerDepth} />
+		<video src={imagePath} autoplay loop muted playsinline class='layer layer--video' style={style} />
 	) : (
-		<img src={imagePath} alt={layer.name} class='layer layer--image' style={style} data-parallax-speed={layer.parallaxSpeed} data-parallax-depth={layerDepth} />
+		<img src={imagePath} alt={layer.name} class='layer layer--image' style={style} />
 	)
 }
 
@@ -85,8 +81,7 @@ const childStyle = isClipped
 		top: var(--layer-top);
 		width: var(--layer-width);
 		height: var(--layer-height);
-		z-index: var(--layer-z);
-		will-change: transform;
+		z-index: 0;
 		object-fit: cover;
 		opacity: var(--layer-opacity);
 		mix-blend-mode: var(--layer-blend);
@@ -94,6 +89,7 @@ const childStyle = isClipped
 
 	.clipped-wrapper {
 		position: absolute;
+		z-index: 0;
 		overflow: hidden;
 	}
 </style>
