@@ -6,6 +6,8 @@ import {pageFade} from "../lib/transitions.js";
 
 const neighborhoods = await getCollection("neighborhoods");
 
+console.log("neighborhoods", neighborhoods);
+
 // Fichier audio de la carte (dans public/). Mettre à null pour désactiver.
 const audioSrc = "/assets/scenes/overworld/ambient.mp3";
 ---
@@ -16,9 +18,9 @@ const audioSrc = "/assets/scenes/overworld/ambient.mp3";
 
 		<div class='map-wrapper'>
 			{
-				neighborhoods.map((hood) => (
-					<a href={`/neighborhood/${hood.data.slug}`} class='hood-pin' style={`left: ${hood.data.position.x}%; top: ${hood.data.position.y}%`}>
-						<span class='hood-name'>{hood.data.name}</span>
+				neighborhoods.map((location) => (
+					<a href={`/neighborhood/${location.data.slug}`} class='hood-pin' style={`left: ${location.data.position.x}%; top: ${location.data.position.y}%`}>
+						<span class='hood-name'>{location.data.name}</span>
 					</a>
 				))
 			}

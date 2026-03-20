@@ -1,12 +1,21 @@
 ---
 const {layer, scenePath} = Astro.props;
 
+const clipMaskPath = layer.clippedTo
+  ? (layer.clippedTo.startsWith("/") || layer.clippedTo.startsWith("http")
+      ? layer.clippedTo
+      : `${scenePath}/${layer.clippedTo}.png`)
+  : null;
+
 const style = `
   --layer-left: ${layer.position.left}%;
   --layer-top: ${layer.position.top}%;
   --layer-width: ${layer.position.width}%;
   --layer-height: ${layer.position.height}%;
   --layer-z: ${layer.zIndex};
+  --layer-opacity: ${typeof layer.opacity === 'number' ? layer.opacity : 1};
+  --layer-blend: ${layer.blendMode ?? 'normal'};
+  --layer-mask: ${clipMaskPath ? `url(${clipMaskPath})` : 'none'};
 `;
 
 // Handle both standard file names (appended to scenePath) and absolute/imported paths (starting with /)
@@ -24,7 +33,7 @@ const imagePath = layer.file.startsWith("/") || layer.file.startsWith("http") ? 
 <style lang='scss'>
 	/* Block: layer (réservé à SceneLayer) — styles propres au bloc */
 	.layer {
-		position: relative;
+		position: absolute;
 		left: var(--layer-left);
 		top: var(--layer-top);
 		width: var(--layer-width);
@@ -32,5 +41,15 @@ const imagePath = layer.file.startsWith("/") || layer.file.startsWith("http") ? 
 		z-index: var(--layer-z);
 		will-change: transform;
 		object-fit: cover;
+		opacity: var(--layer-opacity);
+		mix-blend-mode: var(--layer-blend);
+
+		/* Clipping masks: when a layer is marked as clipped in the PSD export, we
+		   use the clipped-to layer's raster as a CSS mask. */
+		-webkit-mask-image: var(--layer-mask);
+		mask-image: var(--layer-mask);
+		mask-repeat: no-repeat;
+		mask-size: cover;
+		mask-position: center;
 	}
 </style>

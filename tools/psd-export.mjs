@@ -16,8 +16,9 @@ const main = async () => {
   psd.parse();
 
   const tree = psd.tree();
-  const canvasWidth = tree.document.width;
-  const canvasHeight = tree.document.height;
+  const exported = tree.export();
+  const canvasWidth = exported.document?.width ?? psd.header?.cols ?? psd.header?.width;
+  const canvasHeight = exported.document?.height ?? psd.header?.rows ?? psd.header?.height;
 
   const manifest = {
     canvas: { width: canvasWidth, height: canvasHeight },
@@ -29,10 +30,13 @@ const main = async () => {
     fs.mkdirSync(exportDir, { recursive: true });
   }
 
-  const processNode = async (node, zIndex) => {
+  const processNode = async (node, state) => {
     if (node.isGroup()) {
+      // Each group keeps its own clipping context (clipped layers refer to the
+      // last non-clipped layer inside the same group).
+      const groupState = {...state};
       for (const child of node.children().reverse()) {
-        await processNode(child, zIndex++);
+        await processNode(child, groupState);
       }
       return;
     }
@@ -43,7 +47,7 @@ const main = async () => {
     const name = node.name.trim().replace(/[^a-zA-Z0-9-]/g, '-').toLowerCase();
     const fileName = `${name}.png`;
     const outputPath = path.join(exportDir, fileName);
-    
+
     // Save image
     await node.layer.image.saveAsPng(outputPath);
 
@@ -53,10 +57,23 @@ const main = async () => {
     const widthPercent = (node.width / canvasWidth) * 100;
     const heightPercent = (node.height / canvasHeight) * 100;
 
+    const rawBlendMode = node.layer?.blendMode?.mode ?? node.layer?.blendMode ?? 'normal';
+    const blendMode = String(rawBlendMode).replace(/_/g, '-');
+
+    const rawOpacity = typeof node.layer?.opacity === 'number' ? node.layer.opacity : 1;
+    const opacity = rawOpacity > 1 ? rawOpacity / 255 : rawOpacity;
+
+    const clipped = Boolean(node.layer?.clipped);
+    const clipTarget = clipped ? state.lastUnclippedName : undefined;
+
+    if (!clipped) {
+      state.lastUnclippedName = name;
+    }
+
     manifest.layers.push({
       name,
       file: fileName,
-      zIndex,
+      zIndex: state.nextZ++,
       position: {
         left: leftPercent,
         top: topPercent,
@@ -64,13 +81,21 @@ const main = async () => {
         height: heightPercent
       },
       parallaxSpeed: 0.1,
-      interactive: false
+      interactive: false,
+      blendMode,
+      opacity,
+      clipped,
+      clippedTo: clipTarget
     });
   };
 
-  let zIndex = 0;
+  const state = {
+    nextZ: 0,
+    lastUnclippedName: null,
+  };
+
   for (const node of tree.children().reverse()) { // bottom-up for zIndex
-    await processNode(node, zIndex++);
+    await processNode(node, state);
   }
 
   const manifestPath = path.join(OUTPUT_DIR, 'manifest.json');

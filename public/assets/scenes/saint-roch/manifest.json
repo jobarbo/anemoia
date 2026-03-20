@@ -1,0 +1,1402 @@
+{
+  "canvas": {
+    "width": 1920,
+    "height": 7000
+  },
+  "layers": [
+    {
+      "name": "9-2-tree-png-clipart-copy-5",
+      "file": "9-2-tree-png-clipart-copy-5.png",
+      "zIndex": 0,
+      "position": {
+        "left": 53.85416666666667,
+        "top": 74.67142857142856,
+        "width": 14.531250000000002,
+        "height": 6.742857142857144
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "layer-7",
+      "file": "layer-7.png",
+      "zIndex": 1,
+      "position": {
+        "left": 0,
+        "top": 0,
+        "width": 100,
+        "height": 100
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "pngtree-beautiful-cumulus-clouds-transition-from-bright-to-dark-skies-png-image-10144254",
+      "file": "pngtree-beautiful-cumulus-clouds-transition-from-bright-to-dark-skies-png-image-10144254.png",
+      "zIndex": 2,
+      "position": {
+        "left": -5,
+        "top": 42.142857142857146,
+        "width": 108.38541666666666,
+        "height": 55.285714285714285
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "ubisoft",
+      "file": "ubisoft.png",
+      "zIndex": 3,
+      "position": {
+        "left": -20.9375,
+        "top": 66.61428571428571,
+        "width": 61.71875,
+        "height": 17.9
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "brunet",
+      "file": "brunet.png",
+      "zIndex": 4,
+      "position": {
+        "left": 64.89583333333333,
+        "top": 67.82857142857142,
+        "width": 50.416666666666664,
+        "height": 11.285714285714285
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "subway",
+      "file": "subway.png",
+      "zIndex": 5,
+      "position": {
+        "left": 59.21875,
+        "top": 81.27142857142857,
+        "width": 70.05208333333334,
+        "height": 14.314285714285715
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "subway-01",
+      "file": "subway-01.png",
+      "zIndex": 6,
+      "position": {
+        "left": -26.927083333333336,
+        "top": 80.98571428571428,
+        "width": 70.05208333333334,
+        "height": 14.299999999999999
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "beenox",
+      "file": "beenox.png",
+      "zIndex": 7,
+      "position": {
+        "left": 30.625000000000004,
+        "top": 50.94285714285714,
+        "width": 37.135416666666664,
+        "height": 10.414285714285715
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "capture-d-e-cran--le-2026-03-02-a--11-37-21-photoroom-copy-2",
+      "file": "capture-d-e-cran--le-2026-03-02-a--11-37-21-photoroom-copy-2.png",
+      "zIndex": 8,
+      "position": {
+        "left": 51.145833333333336,
+        "top": 46.714285714285715,
+        "width": 44.739583333333336,
+        "height": 13.47142857142857
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "fresk-2",
+      "file": "fresk-2.png",
+      "zIndex": 9,
+      "position": {
+        "left": 33.59375,
+        "top": 56.628571428571426,
+        "width": 51.354166666666664,
+        "height": 17.542857142857144
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "capture-d-e-cran--le-2026-03-02-a--11-37-21-photoroom",
+      "file": "capture-d-e-cran--le-2026-03-02-a--11-37-21-photoroom.png",
+      "zIndex": 10,
+      "position": {
+        "left": 31.927083333333332,
+        "top": 37.9,
+        "width": 44.739583333333336,
+        "height": 13.47142857142857
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "capture-d-e-cran--le-2026-03-02-a--11-37-21-photoroom-copy",
+      "file": "capture-d-e-cran--le-2026-03-02-a--11-37-21-photoroom-copy.png",
+      "zIndex": 11,
+      "position": {
+        "left": -0.20833333333333334,
+        "top": 52.01428571428571,
+        "width": 44.739583333333336,
+        "height": 13.47142857142857
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "8-2-tree-png-copy-2",
+      "file": "8-2-tree-png-copy-2.png",
+      "zIndex": 12,
+      "position": {
+        "left": 60.46875000000001,
+        "top": 62.142857142857146,
+        "width": 6.09375,
+        "height": 1.9285714285714284
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "8-2-tree-png-copy-3",
+      "file": "8-2-tree-png-copy-3.png",
+      "zIndex": 13,
+      "position": {
+        "left": 46.145833333333336,
+        "top": 62.5,
+        "width": 6.09375,
+        "height": 1.9285714285714284
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "9-2-tree-png-clipart",
+      "file": "9-2-tree-png-clipart.png",
+      "zIndex": 14,
+      "position": {
+        "left": 29.21875,
+        "top": 64.14285714285714,
+        "width": 8.697916666666666,
+        "height": 4.014285714285714
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "capture-d-e-cran--le-2026-03-02-a--11-21-57-photoroom",
+      "file": "capture-d-e-cran--le-2026-03-02-a--11-21-57-photoroom.png",
+      "zIndex": 15,
+      "position": {
+        "left": 14.21875,
+        "top": 55.885714285714286,
+        "width": 53.28125,
+        "height": 15.228571428571428
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "layer-2-copy",
+      "file": "layer-2-copy.png",
+      "zIndex": 16,
+      "position": {
+        "left": 53.59374999999999,
+        "top": 66.84285714285714,
+        "width": 20.9375,
+        "height": 4.871428571428572
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "capture-d-e-cran--le-2026-03-02-a--11-24-44-photoroom",
+      "file": "capture-d-e-cran--le-2026-03-02-a--11-24-44-photoroom.png",
+      "zIndex": 17,
+      "position": {
+        "left": 10.3125,
+        "top": 60.6,
+        "width": 52.5,
+        "height": 12.671428571428573
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "9-2-tree-png-clipart-copy-4",
+      "file": "9-2-tree-png-clipart-copy-4.png",
+      "zIndex": 18,
+      "position": {
+        "left": 3.854166666666667,
+        "top": 78.65714285714286,
+        "width": 14.531250000000002,
+        "height": 6.742857142857144
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "capture-d-e-cran--le-2026-03-02-a--11-16-50-photoroom",
+      "file": "capture-d-e-cran--le-2026-03-02-a--11-16-50-photoroom.png",
+      "zIndex": 19,
+      "position": {
+        "left": 31.510416666666668,
+        "top": 60.31428571428571,
+        "width": 54.947916666666664,
+        "height": 16.54285714285714
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "bord-e",
+      "file": "bord-e.png",
+      "zIndex": 20,
+      "position": {
+        "left": 35.67708333333333,
+        "top": 72.35714285714285,
+        "width": 72.39583333333334,
+        "height": 13.028571428571428
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "fabrique",
+      "file": "fabrique.png",
+      "zIndex": 21,
+      "position": {
+        "left": 11.822916666666666,
+        "top": 63.18571428571429,
+        "width": 68.64583333333333,
+        "height": 15.014285714285712
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "layer-8",
+      "file": "layer-8.png",
+      "zIndex": 22,
+      "position": {
+        "left": 1.7187500000000002,
+        "top": 61.48571428571429,
+        "width": 82.65625,
+        "height": 20.07142857142857
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "overlay",
+      "opacity": 0.6196078431372549,
+      "clipped": true,
+      "clippedTo": "fabrique"
+    },
+    {
+      "name": "cgi",
+      "file": "cgi.png",
+      "zIndex": 23,
+      "position": {
+        "left": -22.96875,
+        "top": 74.31428571428572,
+        "width": 60.05208333333333,
+        "height": 13.428571428571429
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "layer-3",
+      "file": "layer-3.png",
+      "zIndex": 24,
+      "position": {
+        "left": 53.02083333333333,
+        "top": 84.34285714285714,
+        "width": 62.291666666666664,
+        "height": 11.571428571428571
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "layer-4",
+      "file": "layer-4.png",
+      "zIndex": 25,
+      "position": {
+        "left": 67.23958333333333,
+        "top": 67.54285714285714,
+        "width": 22.447916666666668,
+        "height": 12.542857142857141
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "soft-light",
+      "opacity": 1,
+      "clipped": true,
+      "clippedTo": "layer-3"
+    },
+    {
+      "name": "layer-6",
+      "file": "layer-6.png",
+      "zIndex": 26,
+      "position": {
+        "left": 46.145833333333336,
+        "top": 79.41428571428571,
+        "width": 43.541666666666664,
+        "height": 10.071428571428571
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "capture-d-e-cran--le-2026-03-02-a--11-11-06-photoroom-copy-2",
+      "file": "capture-d-e-cran--le-2026-03-02-a--11-11-06-photoroom-copy-2.png",
+      "zIndex": 27,
+      "position": {
+        "left": 10.3125,
+        "top": 72.1,
+        "width": 2.083333333333333,
+        "height": 5.1571428571428575
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "layer-2",
+      "file": "layer-2.png",
+      "zIndex": 28,
+      "position": {
+        "left": 9.375,
+        "top": 72.84285714285714,
+        "width": 50.67708333333333,
+        "height": 11.728571428571428
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "9-2-tree-png-clipart-copy-3",
+      "file": "9-2-tree-png-clipart-copy-3.png",
+      "zIndex": 29,
+      "position": {
+        "left": 71.19791666666667,
+        "top": 76.71428571428571,
+        "width": 14.531250000000002,
+        "height": 6.742857142857144
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "8-2-tree-png",
+      "file": "8-2-tree-png.png",
+      "zIndex": 30,
+      "position": {
+        "left": 84.16666666666667,
+        "top": 86.44285714285715,
+        "width": 9.21875,
+        "height": 3.028571428571429
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "8-2-tree-png-copy",
+      "file": "8-2-tree-png-copy.png",
+      "zIndex": 31,
+      "position": {
+        "left": 29.791666666666668,
+        "top": 78.07142857142857,
+        "width": 16.354166666666668,
+        "height": 5.385714285714286
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "tree-png-images--pictures--becuo-20",
+      "file": "tree-png-images--pictures--becuo-20.png",
+      "zIndex": 32,
+      "position": {
+        "left": 40.78125,
+        "top": 78.5,
+        "width": 9.0625,
+        "height": 4.585714285714286
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "tree-png-images--pictures--becuo-20-copy",
+      "file": "tree-png-images--pictures--becuo-20-copy.png",
+      "zIndex": 33,
+      "position": {
+        "left": 80.57291666666667,
+        "top": 85.44285714285714,
+        "width": 7.187499999999999,
+        "height": 3.628571428571428
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "tree-png-images--pictures--becuo-20-copy-2",
+      "file": "tree-png-images--pictures--becuo-20-copy-2.png",
+      "zIndex": 34,
+      "position": {
+        "left": 7.03125,
+        "top": 73.12857142857143,
+        "width": 7.187499999999999,
+        "height": 3.628571428571428
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "tree-png-images--pictures--becuo-20-copy-3",
+      "file": "tree-png-images--pictures--becuo-20-copy-3.png",
+      "zIndex": 35,
+      "position": {
+        "left": 7.291666666666667,
+        "top": 74.28571428571429,
+        "width": 5,
+        "height": 2.5285714285714285
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "capture-d-e-cran--le-2026-03-02-a--11-11-06-photoroom",
+      "file": "capture-d-e-cran--le-2026-03-02-a--11-11-06-photoroom.png",
+      "zIndex": 36,
+      "position": {
+        "left": 87.29166666666667,
+        "top": 82.12857142857143,
+        "width": 3.28125,
+        "height": 8
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "9-2-tree-png-clipart-copy-2",
+      "file": "9-2-tree-png-clipart-copy-2.png",
+      "zIndex": 37,
+      "position": {
+        "left": 51.145833333333336,
+        "top": 76.75714285714285,
+        "width": 11.197916666666668,
+        "height": 5.2
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "capture-d-e-cran--le-2026-03-02-a--11-11-06-photoroom-copy",
+      "file": "capture-d-e-cran--le-2026-03-02-a--11-11-06-photoroom-copy.png",
+      "zIndex": 38,
+      "position": {
+        "left": 7.552083333333333,
+        "top": 77.4,
+        "width": 3.28125,
+        "height": 8
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "capture-d-e-cran--le-2026-03-02-a--11-15-08-photoroom",
+      "file": "capture-d-e-cran--le-2026-03-02-a--11-15-08-photoroom.png",
+      "zIndex": 39,
+      "position": {
+        "left": 40.78125,
+        "top": 68.89999999999999,
+        "width": 58.90625000000001,
+        "height": 18.285714285714285
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "capture-d-e-cran--le-2026-03-02-a--11-15-08-photoroom-copy",
+      "file": "capture-d-e-cran--le-2026-03-02-a--11-15-08-photoroom-copy.png",
+      "zIndex": 40,
+      "position": {
+        "left": -9.0625,
+        "top": 69.65714285714286,
+        "width": 58.90625000000001,
+        "height": 18.285714285714285
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "layer-1",
+      "file": "layer-1.png",
+      "zIndex": 41,
+      "position": {
+        "left": 0,
+        "top": 78.65714285714286,
+        "width": 93.38541666666667,
+        "height": 21.642857142857146
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "8-2-tree-png-copy-4",
+      "file": "8-2-tree-png-copy-4.png",
+      "zIndex": 42,
+      "position": {
+        "left": 55.46875,
+        "top": 94.32857142857142,
+        "width": 22.96875,
+        "height": 7.557142857142857
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "9-2-tree-png-clipart-copy-7",
+      "file": "9-2-tree-png-clipart-copy-7.png",
+      "zIndex": 43,
+      "position": {
+        "left": 71.04166666666667,
+        "top": 88.68571428571428,
+        "width": 23.90625,
+        "height": 11.1
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "9-2-tree-png-clipart-copy-8",
+      "file": "9-2-tree-png-clipart-copy-8.png",
+      "zIndex": 44,
+      "position": {
+        "left": 65.52083333333333,
+        "top": 92.61428571428571,
+        "width": 15.208333333333332,
+        "height": 7.085714285714285
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "9-2-tree-png-clipart-copy-9",
+      "file": "9-2-tree-png-clipart-copy-9.png",
+      "zIndex": 45,
+      "position": {
+        "left": 80.88541666666667,
+        "top": 94.32857142857142,
+        "width": 11.71875,
+        "height": 5.485714285714286
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "tree-png-images--pictures--becuo-20-copy-4",
+      "file": "tree-png-images--pictures--becuo-20-copy-4.png",
+      "zIndex": 46,
+      "position": {
+        "left": 65.9375,
+        "top": 96.3,
+        "width": 14.947916666666666,
+        "height": 7.557142857142857
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "8-2-tree-png-copy-4",
+      "file": "8-2-tree-png-copy-4.png",
+      "zIndex": 42,
+      "position": {
+        "left": 75.10416666666667,
+        "top": 94.11428571428571,
+        "width": 27.187499999999996,
+        "height": 8.957142857142857
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "9-2-tree-png-clipart-copy-7",
+      "file": "9-2-tree-png-clipart-copy-7.png",
+      "zIndex": 43,
+      "position": {
+        "left": 65.15625,
+        "top": 88.68571428571428,
+        "width": 28.385416666666668,
+        "height": 13.17142857142857
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "9-2-tree-png-clipart-copy-8",
+      "file": "9-2-tree-png-clipart-copy-8.png",
+      "zIndex": 44,
+      "position": {
+        "left": 85.26041666666667,
+        "top": 93.30000000000001,
+        "width": 17.96875,
+        "height": 8.385714285714286
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "9-2-tree-png-clipart-copy-9",
+      "file": "9-2-tree-png-clipart-copy-9.png",
+      "zIndex": 45,
+      "position": {
+        "left": 90.36458333333334,
+        "top": 92.10000000000001,
+        "width": 13.90625,
+        "height": 6.5
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "tree-png-images--pictures--becuo-20-copy-4",
+      "file": "tree-png-images--pictures--becuo-20-copy-4.png",
+      "zIndex": 46,
+      "position": {
+        "left": 90.36458333333334,
+        "top": 93.55714285714286,
+        "width": 17.708333333333336,
+        "height": 8.957142857142857
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "8-2-tree-png-copy-4",
+      "file": "8-2-tree-png-copy-4.png",
+      "zIndex": 42,
+      "position": {
+        "left": -0.052083333333333336,
+        "top": 78.67142857142856,
+        "width": 13.958333333333334,
+        "height": 4.585714285714286
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "9-2-tree-png-clipart-copy-7",
+      "file": "9-2-tree-png-clipart-copy-7.png",
+      "zIndex": 43,
+      "position": {
+        "left": 9.375,
+        "top": 75.24285714285715,
+        "width": 14.531250000000002,
+        "height": 6.742857142857144
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "9-2-tree-png-clipart-copy-8",
+      "file": "9-2-tree-png-clipart-copy-8.png",
+      "zIndex": 44,
+      "position": {
+        "left": 6.041666666666667,
+        "top": 77.62857142857142,
+        "width": 9.270833333333334,
+        "height": 4.3
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "9-2-tree-png-clipart-copy-9",
+      "file": "9-2-tree-png-clipart-copy-9.png",
+      "zIndex": 45,
+      "position": {
+        "left": 15.364583333333334,
+        "top": 78.67142857142856,
+        "width": 7.135416666666666,
+        "height": 3.3285714285714287
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "tree-png-images--pictures--becuo-20-copy-4",
+      "file": "tree-png-images--pictures--becuo-20-copy-4.png",
+      "zIndex": 46,
+      "position": {
+        "left": 6.302083333333333,
+        "top": 79.87142857142857,
+        "width": 9.0625,
+        "height": 4.585714285714286
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "8-2-tree-png-copy-4",
+      "file": "8-2-tree-png-copy-4.png",
+      "zIndex": 42,
+      "position": {
+        "left": 78.69791666666667,
+        "top": 72.48571428571428,
+        "width": 9.635416666666668,
+        "height": 3.1714285714285717
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "9-2-tree-png-clipart-copy-7",
+      "file": "9-2-tree-png-clipart-copy-7.png",
+      "zIndex": 43,
+      "position": {
+        "left": 71.71875,
+        "top": 70.11428571428571,
+        "width": 10.052083333333334,
+        "height": 4.685714285714285
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "9-2-tree-png-clipart-copy-8",
+      "file": "9-2-tree-png-clipart-copy-8.png",
+      "zIndex": 44,
+      "position": {
+        "left": 77.70833333333333,
+        "top": 71.77142857142857,
+        "width": 6.406249999999999,
+        "height": 2.9714285714285715
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "9-2-tree-png-clipart-copy-9",
+      "file": "9-2-tree-png-clipart-copy-9.png",
+      "zIndex": 45,
+      "position": {
+        "left": 72.70833333333333,
+        "top": 72.5,
+        "width": 4.947916666666666,
+        "height": 2.3
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "tree-png-images--pictures--becuo-20-copy-4",
+      "file": "tree-png-images--pictures--becuo-20-copy-4.png",
+      "zIndex": 46,
+      "position": {
+        "left": 77.13541666666667,
+        "top": 72.21428571428572,
+        "width": 6.302083333333333,
+        "height": 3.1714285714285717
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "8-2-tree-png-copy-4",
+      "file": "8-2-tree-png-copy-4.png",
+      "zIndex": 42,
+      "position": {
+        "left": 12.1875,
+        "top": 71.77142857142857,
+        "width": 9.114583333333332,
+        "height": 3.028571428571429
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "9-2-tree-png-clipart-copy-7",
+      "file": "9-2-tree-png-clipart-copy-7.png",
+      "zIndex": 43,
+      "position": {
+        "left": 5.15625,
+        "top": 69.81428571428572,
+        "width": 9.0625,
+        "height": 4.3999999999999995
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "9-2-tree-png-clipart-copy-8",
+      "file": "9-2-tree-png-clipart-copy-8.png",
+      "zIndex": 44,
+      "position": {
+        "left": 10.9375,
+        "top": 71.31428571428572,
+        "width": 6.09375,
+        "height": 2.7142857142857144
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "9-2-tree-png-clipart-copy-9",
+      "file": "9-2-tree-png-clipart-copy-9.png",
+      "zIndex": 45,
+      "position": {
+        "left": 6.666666666666667,
+        "top": 72.12857142857143,
+        "width": 4.479166666666667,
+        "height": 2.1714285714285713
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "tree-png-images--pictures--becuo-20-copy-4",
+      "file": "tree-png-images--pictures--becuo-20-copy-4.png",
+      "zIndex": 46,
+      "position": {
+        "left": 11.71875,
+        "top": 72.74285714285715,
+        "width": 6.145833333333333,
+        "height": 2.9000000000000004
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "9-2-tree-png-clipart-copy-7",
+      "file": "9-2-tree-png-clipart-copy-7.png",
+      "zIndex": 42,
+      "position": {
+        "left": -14.531250000000002,
+        "top": 85.57142857142857,
+        "width": 25.520833333333332,
+        "height": 11.714285714285715
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "9-2-tree-png-clipart-copy-8",
+      "file": "9-2-tree-png-clipart-copy-8.png",
+      "zIndex": 43,
+      "position": {
+        "left": 0.26041666666666663,
+        "top": 89.75714285714285,
+        "width": 16.041666666666668,
+        "height": 7.542857142857143
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "9-2-tree-png-clipart-copy-9",
+      "file": "9-2-tree-png-clipart-copy-9.png",
+      "zIndex": 44,
+      "position": {
+        "left": -12.552083333333334,
+        "top": 91.45714285714286,
+        "width": 12.552083333333334,
+        "height": 5.800000000000001
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "tree-png-images--pictures--becuo-20-copy-4",
+      "file": "tree-png-images--pictures--becuo-20-copy-4.png",
+      "zIndex": 45,
+      "position": {
+        "left": -6.666666666666667,
+        "top": 93.55714285714286,
+        "width": 15.572916666666666,
+        "height": 8.028571428571428
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "tree-png-images--pictures--becuo-20-copy-5",
+      "file": "tree-png-images--pictures--becuo-20-copy-5.png",
+      "zIndex": 42,
+      "position": {
+        "left": 8.333333333333332,
+        "top": 66.32857142857142,
+        "width": 3.854166666666667,
+        "height": 1.9285714285714284
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "tree-png-images--pictures--becuo-20-copy-6",
+      "file": "tree-png-images--pictures--becuo-20-copy-6.png",
+      "zIndex": 43,
+      "position": {
+        "left": 7.708333333333334,
+        "top": 66.72857142857143,
+        "width": 3.3333333333333335,
+        "height": 1.685714285714286
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "tree-png-images--pictures--becuo-20-copy-7",
+      "file": "tree-png-images--pictures--becuo-20-copy-7.png",
+      "zIndex": 44,
+      "position": {
+        "left": 9.375,
+        "top": 65.85714285714286,
+        "width": 4.21875,
+        "height": 2.1142857142857143
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "tree-png-images--pictures--becuo-20-copy-5",
+      "file": "tree-png-images--pictures--becuo-20-copy-5.png",
+      "zIndex": 42,
+      "position": {
+        "left": 83.02083333333333,
+        "top": 66.84285714285714,
+        "width": 3.90625,
+        "height": 1.9285714285714284
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "tree-png-images--pictures--becuo-20-copy-6",
+      "file": "tree-png-images--pictures--becuo-20-copy-6.png",
+      "zIndex": 43,
+      "position": {
+        "left": 85.78125,
+        "top": 66.54285714285714,
+        "width": 3.3333333333333335,
+        "height": 1.7000000000000002
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "tree-png-images--pictures--becuo-20-copy-7",
+      "file": "tree-png-images--pictures--becuo-20-copy-7.png",
+      "zIndex": 44,
+      "position": {
+        "left": 86.97916666666666,
+        "top": 66.15714285714286,
+        "width": 4.270833333333333,
+        "height": 2.1285714285714286
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "9-2-tree-png-clipart-copy",
+      "file": "9-2-tree-png-clipart-copy.png",
+      "zIndex": 42,
+      "position": {
+        "left": 49.322916666666664,
+        "top": 49.7,
+        "width": 3.854166666666667,
+        "height": 1.7999999999999998
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "9-2-tree-png-clipart-copy-6",
+      "file": "9-2-tree-png-clipart-copy-6.png",
+      "zIndex": 43,
+      "position": {
+        "left": 49.270833333333336,
+        "top": 50.8,
+        "width": 1.9270833333333335,
+        "height": 0.8857142857142857
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "fils",
+      "file": "fils.png",
+      "zIndex": 44,
+      "position": {
+        "left": 4.6875,
+        "top": 56.942857142857136,
+        "width": 0.15625,
+        "height": 0.04285714285714286
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "pngtree-bike-rack-adventure-bike-png-image-12860299",
+      "file": "pngtree-bike-rack-adventure-bike-png-image-12860299.png",
+      "zIndex": 45,
+      "position": {
+        "left": -6.458333333333334,
+        "top": 90.8,
+        "width": 47.291666666666664,
+        "height": 10.885714285714286
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "pngtree-bike-rack-adventure-bike-png-image-12860299-copy",
+      "file": "pngtree-bike-rack-adventure-bike-png-image-12860299-copy.png",
+      "zIndex": 46,
+      "position": {
+        "left": 27.604166666666668,
+        "top": 93.5,
+        "width": 47.34375,
+        "height": 10.885714285714286
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "pngtree-bike-rack-adventure-bike-png-image-12860299-copy-2",
+      "file": "pngtree-bike-rack-adventure-bike-png-image-12860299-copy-2.png",
+      "zIndex": 47,
+      "position": {
+        "left": 54.79166666666667,
+        "top": 94.94285714285714,
+        "width": 51.40625,
+        "height": 11.142857142857142
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "bicycle-png-image-bike-picture-19",
+      "file": "bicycle-png-image-bike-picture-19.png",
+      "zIndex": 48,
+      "position": {
+        "left": 5.625,
+        "top": 64.4,
+        "width": 2.8125,
+        "height": 0.8
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "bicycle-png-image-bike-picture-19-copy-3",
+      "file": "bicycle-png-image-bike-picture-19-copy-3.png",
+      "zIndex": 49,
+      "position": {
+        "left": 5.625,
+        "top": 64.4,
+        "width": 2.8125,
+        "height": 0.8
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "bicycle-png-image-bike-picture-19-copy",
+      "file": "bicycle-png-image-bike-picture-19-copy.png",
+      "zIndex": 50,
+      "position": {
+        "left": 86.14583333333333,
+        "top": 59.3,
+        "width": 2.8125,
+        "height": 0.8142857142857143
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "bicycle-png-image-bike-picture-19-copy-2",
+      "file": "bicycle-png-image-bike-picture-19-copy-2.png",
+      "zIndex": 51,
+      "position": {
+        "left": 66.45833333333333,
+        "top": 49.55714285714286,
+        "width": 2.8125,
+        "height": 0.8
+      },
+      "parallaxSpeed": 0.1,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    }
+  ]
+}

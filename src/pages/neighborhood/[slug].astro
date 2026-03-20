@@ -35,12 +35,13 @@ const manifest = await loadManifest(neighborhood.scenePath, {
 	.neighborhood-container {
 		height: 100vh;
 		background: #000;
-		overflow: hidden;
+		overflow-y: auto;
+		overflow-x: hidden;
 		position: relative;
 	}
 
 	.neighborhood-scene {
 		width: 100%;
-		height: 100%;
+		height: auto;
 	}
 </style>

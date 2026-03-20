@@ -14,6 +14,8 @@ export async function getStaticPaths() {
 
 const {story} = Astro.props;
 const {Content} = await render(story);
+
+console.log("story", story);
 ---
 
 <GameLayout title={`Anemoia - ${story.data.title}`} audioSrc={story.data.audioSrc}>
