@@ -1,5 +1,6 @@
 ---
 const {zone} = Astro.props;
+const {depth = 0.5} = Astro.props;
 
 const style = `
   --layer-left: ${zone.position.left}%;
@@ -14,11 +15,11 @@ const isNavigation = zone.interaction.type === "navigate";
 
 {
 	isNavigation ? (
-		<a href={zone.interaction.target} class='zone zone--navigate' data-zone-type={zone.interaction.type} style={style} data-parallax-speed={zone.parallaxSpeed}>
+		<a href={zone.interaction.target} class='zone zone--navigate' data-zone-type={zone.interaction.type} style={style} data-parallax-speed={zone.parallaxSpeed} data-parallax-depth={depth}>
 			{zone.interaction.hoverImage && <img src={zone.interaction.hoverImage} class='zone__hover' alt={`Go to ${zone.interaction.target}`} />}
 		</a>
 	) : (
-		<button class='zone zone--state' data-zone-type={zone.interaction.type} style={style} data-parallax-speed={zone.parallaxSpeed}>
+		<button class='zone zone--state' data-zone-type={zone.interaction.type} style={style} data-parallax-speed={zone.parallaxSpeed} data-parallax-depth={depth}>
 			{/* State toggling logic via JS */}
 		</button>
 	)

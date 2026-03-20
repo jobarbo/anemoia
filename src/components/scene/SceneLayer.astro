@@ -1,6 +1,7 @@
 ---
 const {layer, scenePath} = Astro.props;
 const {parentLayer} = Astro.props;
+const {layerDepth = 0.5} = Astro.props;
 
 const clipMaskPath = layer.clipped && parentLayer ? (parentLayer.file.startsWith("/") || parentLayer.file.startsWith("http") ? parentLayer.file : `${scenePath}/${parentLayer.file}`) : null;
 
@@ -62,7 +63,7 @@ const childStyle = isClipped
 
 {
 	isClipped ? (
-		<div class='clipped-wrapper' style={clipWrapperStyle} data-parallax-speed={layer.parallaxSpeed}>
+		<div class='clipped-wrapper' style={clipWrapperStyle} data-parallax-speed={layer.parallaxSpeed} data-parallax-depth={layerDepth}>
 			{layer.type === "video" ? (
 				<video src={imagePath} autoplay loop muted playsinline class='layer layer--video' style={childStyle} />
 			) : (
@@ -70,9 +71,9 @@ const childStyle = isClipped
 			)}
 		</div>
 	) : layer.type === "video" ? (
-		<video src={imagePath} autoplay loop muted playsinline class='layer layer--video' style={style} data-parallax-speed={layer.parallaxSpeed} />
+		<video src={imagePath} autoplay loop muted playsinline class='layer layer--video' style={style} data-parallax-speed={layer.parallaxSpeed} data-parallax-depth={layerDepth} />
 	) : (
-		<img src={imagePath} alt={layer.name} class='layer layer--image' style={style} data-parallax-speed={layer.parallaxSpeed} />
+		<img src={imagePath} alt={layer.name} class='layer layer--image' style={style} data-parallax-speed={layer.parallaxSpeed} data-parallax-depth={layerDepth} />
 	)
 }
 
