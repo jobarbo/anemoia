@@ -3,18 +3,22 @@ import SceneLayer from "./SceneLayer.astro";
 import InteractiveZone from "./InteractiveZone.astro";
 
 const {manifest, class: className, sceneSlug, viewportAspectRatio = false} = Astro.props;
+const layerMap = Object.fromEntries(manifest.layers.map((l: any) => [l.name, l]));
 ---
 
 <div class={`scene ${className ?? ""}`} data-scene-renderer data-viewport-aspect={viewportAspectRatio ? "true" : "false"} style={`aspect-ratio: ${manifest.canvas.width} / ${manifest.canvas.height}`}>
 	{
-		manifest.layers.map((layer: any) => (
-			<div class='scene__layer-container'>
-				<SceneLayer layer={layer} scenePath={`/assets/scenes/${sceneSlug}/layers`} />
+		manifest.layers.map((layer: any) => {
+			const parentLayer = layer.clipped && layer.clippedTo ? layerMap[layer.clippedTo] : null;
+			return (
+				<div class='scene__layer-container'>
+					<SceneLayer layer={layer} parentLayer={parentLayer} scenePath={`/assets/scenes/${sceneSlug}/layers`} />
 
-				{layer.interactive && layer.interaction && <InteractiveZone zone={layer} />}
-				<div class='scene__layer-slot-outlet' data-slot-outlet={layer.name} />
-			</div>
-		))
+					{layer.interactive && layer.interaction && <InteractiveZone zone={layer} />}
+					<div class='scene__layer-slot-outlet' data-slot-outlet={layer.name} />
+				</div>
+			);
+		})
 	}
 	<div class='scene__slotted' data-scene-slotted>
 		<slot />
