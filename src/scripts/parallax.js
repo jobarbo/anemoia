@@ -23,8 +23,8 @@ export function initMouseParallax(layers) {
 			const speed = baseSpeed * depthMultiplier;
 
 			gsap.to(layer, {
-				x: xPercent * speed * BASE_TRANSLATE_DISTANCE,
-				y: yPercent * speed * BASE_TRANSLATE_DISTANCE,
+				"--parallax-x": `${xPercent * speed * BASE_TRANSLATE_DISTANCE}px`,
+				"--parallax-y": `${yPercent * speed * BASE_TRANSLATE_DISTANCE}px`,
 				duration: 0.6,
 				ease: "power2.out",
 			});

@@ -71,7 +71,7 @@ const totalLayers = manifest.layers.length;
 		position: absolute;
 		left: var(--layer-center-left);
 		top: var(--layer-center-top);
-		transform: translate(-50%, -50%);
+		transform: translate(calc(-50% + var(--parallax-x, 0px)), calc(-50% + var(--parallax-y, 0px)));
 		width: var(--layer-width);
 		height: var(--layer-height);
 		z-index: var(--layer-z);
