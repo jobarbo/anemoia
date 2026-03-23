@@ -3,7 +3,7 @@ import gsap from "gsap";
 const DEFAULT_SPEED = 0.1;
 const BASE_TRANSLATE_DISTANCE = 50;
 const MIN_DEPTH_MULTIPLIER = 0.12;
-const MAX_DEPTH_MULTIPLIER = 3;
+const MAX_DEPTH_MULTIPLIER = 1;
 
 function clamp(value, min, max) {
 	return Math.min(Math.max(value, min), max);

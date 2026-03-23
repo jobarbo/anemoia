@@ -68,21 +68,21 @@ Le code applicatif est en **JavaScript vanilla** (pas de TypeScript) pour rester
 
 ## Commandes
 
-| Commande          | Action                                           |
-| ----------------- | ------------------------------------------------ |
-| `npm install`     | Installer les dépendances                        |
-| `npm run dev`     | Démarrer le serveur de dev sur `localhost:4321`  |
-| `npm run build`   | Construire le site en production dans `./dist/`  |
-| `npm run preview` | Prévisualiser le build en local                  |
+| Commande          | Action                                          |
+| ----------------- | ----------------------------------------------- |
+| `npm install`     | Installer les dépendances                       |
+| `npm run dev`     | Démarrer le serveur de dev sur `localhost:4321` |
+| `npm run build`   | Construire le site en production dans `./dist/` |
+| `npm run preview` | Prévisualiser le build en local                 |
 
 ---
 
 ## Ajouter un nouveau quartier
 
-1. **Créer le dossier de scène**  
+1. **Créer le dossier de scène**
    `public/assets/scenes/<slug>/` (ex. `public/assets/scenes/saint-roch/`).
 
-2. **Exporter le PSD** (voir « Export des calques PSD » plus bas) dans ce dossier pour obtenir `manifest.json` et `layers/*.png`.  
+2. **Exporter le PSD** (voir « Export des calques PSD » plus bas) dans ce dossier pour obtenir `manifest.json` et `layers/*.png`.
    Si vous ne le faites pas, l’app utilisera un manifest par défaut (calques de remplacement) jusqu’à l’ajout des vrais fichiers.
 
 3. **Optionnel :** ajouter `ambient.mp3` dans le même dossier.
@@ -91,14 +91,14 @@ Le code applicatif est en **JavaScript vanilla** (pas de TypeScript) pour rester
 
 ```json
 {
-  "id": "my-neighborhood",
-  "name": "Mon quartier",
-  "slug": "my-neighborhood",
-  "description": "Courte description.",
-  "scenePath": "/assets/scenes/my-neighborhood/manifest.json",
-  "audioSrc": "/assets/scenes/my-neighborhood/ambient.mp3",
-  "stories": ["my-story"],
-  "position": { "x": 50, "y": 40 }
+	"id": "my-neighborhood",
+	"name": "Mon quartier",
+	"slug": "my-neighborhood",
+	"description": "Courte description.",
+	"scenePath": "/assets/scenes/my-neighborhood/manifest.json",
+	"audioSrc": "/assets/scenes/my-neighborhood/ambient.mp3",
+	"stories": ["my-story"],
+	"position": {"x": 50, "y": 40}
 }
 ```
 
@@ -158,8 +158,8 @@ Vous pouvez ensuite éditer `manifest.json` pour mettre `interactive: true` et a
 
 ```ts
 const sketchLoaders = {
-  snow: () => import("./snow"),
-  rain: () => import("./rain"),
+	snow: () => import("./snow"),
+	rain: () => import("./rain"),
 };
 ```
 
