@@ -14,7 +14,7 @@
         "width": 108.38541666666666,
         "height": 100
       },
-      "parallaxSpeed": 0.1,
+      "parallaxSpeed": 0.035,
       "interactive": false,
       "blendMode": "normal",
       "opacity": 1,
@@ -30,7 +30,7 @@
         "width": 61.71875,
         "height": 18.614285714285714
       },
-      "parallaxSpeed": 0.1,
+      "parallaxSpeed": 0.04054130990919055,
       "interactive": false,
       "blendMode": "normal",
       "opacity": 1,
@@ -46,7 +46,7 @@
         "width": 50.416666666666664,
         "height": 12.957142857142856
       },
-      "parallaxSpeed": 0.1,
+      "parallaxSpeed": 0.051798110459056676,
       "interactive": false,
       "blendMode": "normal",
       "opacity": 1,
@@ -62,7 +62,7 @@
         "width": 44.739583333333336,
         "height": 13.47142857142857
       },
-      "parallaxSpeed": 0.1,
+      "parallaxSpeed": 0.06713708246554885,
       "interactive": false,
       "blendMode": "normal",
       "opacity": 1,
@@ -78,7 +78,7 @@
         "width": 37.135416666666664,
         "height": 11.771428571428572
       },
-      "parallaxSpeed": 0.1,
+      "parallaxSpeed": 0.08592234861772757,
       "interactive": false,
       "blendMode": "normal",
       "opacity": 1,
@@ -94,7 +94,7 @@
         "width": 44.739583333333336,
         "height": 13.47142857142857
       },
-      "parallaxSpeed": 0.1,
+      "parallaxSpeed": 0.10777202274653541,
       "interactive": false,
       "blendMode": "normal",
       "opacity": 1,
@@ -110,7 +110,7 @@
         "width": 51.354166666666664,
         "height": 17.542857142857144
       },
-      "parallaxSpeed": 0.1,
+      "parallaxSpeed": 0.13242141658468642,
       "interactive": false,
       "blendMode": "normal",
       "opacity": 1,
@@ -126,7 +126,7 @@
         "width": 44.739583333333336,
         "height": 13.47142857142857
       },
-      "parallaxSpeed": 0.1,
+      "parallaxSpeed": 0.15967210826783784,
       "interactive": false,
       "blendMode": "normal",
       "opacity": 1,
@@ -142,7 +142,7 @@
         "width": 53.28125,
         "height": 15.228571428571428
       },
-      "parallaxSpeed": 0.1,
+      "parallaxSpeed": 0.18936769481101515,
       "interactive": false,
       "blendMode": "normal",
       "opacity": 1,
@@ -158,7 +158,7 @@
         "width": 52.5,
         "height": 12.671428571428573
       },
-      "parallaxSpeed": 0.1,
+      "parallaxSpeed": 0.2213804923966713,
       "interactive": false,
       "blendMode": "normal",
       "opacity": 1,
@@ -174,7 +174,7 @@
         "width": 54.947916666666664,
         "height": 16.54285714285714
       },
-      "parallaxSpeed": 0.1,
+      "parallaxSpeed": 0.2556035209107905,
       "interactive": false,
       "blendMode": "normal",
       "opacity": 1,
@@ -190,7 +190,7 @@
         "width": 72.39583333333334,
         "height": 15.271428571428572
       },
-      "parallaxSpeed": 0.1,
+      "parallaxSpeed": 0.2919453342290792,
       "interactive": false,
       "blendMode": "normal",
       "opacity": 1,
@@ -206,7 +206,7 @@
         "width": 68.64583333333333,
         "height": 15.014285714285712
       },
-      "parallaxSpeed": 0.1,
+      "parallaxSpeed": 0.3303265101006402,
       "interactive": false,
       "blendMode": "normal",
       "opacity": 1,
@@ -222,7 +222,7 @@
         "width": 73.07291666666667,
         "height": 16.34285714285714
       },
-      "parallaxSpeed": 0.1,
+      "parallaxSpeed": 0.370677168632746,
       "interactive": false,
       "blendMode": "normal",
       "opacity": 1,
@@ -238,7 +238,7 @@
         "width": 64.0625,
         "height": 12.1
       },
-      "parallaxSpeed": 0.1,
+      "parallaxSpeed": 0.4129351597666796,
       "interactive": false,
       "blendMode": "normal",
       "opacity": 1,
@@ -254,7 +254,7 @@
         "width": 63.59375000000001,
         "height": 13.414285714285715
       },
-      "parallaxSpeed": 0.1,
+      "parallaxSpeed": 0.4570447032409042,
       "interactive": false,
       "blendMode": "normal",
       "opacity": 1,
@@ -270,7 +270,7 @@
         "width": 54.895833333333336,
         "height": 14.757142857142858
       },
-      "parallaxSpeed": 0.1,
+      "parallaxSpeed": 0.5029553447181537,
       "interactive": false,
       "blendMode": "normal",
       "opacity": 1,
@@ -286,7 +286,7 @@
         "width": 122.60416666666667,
         "height": 34.957142857142856
       },
-      "parallaxSpeed": 0.1,
+      "parallaxSpeed": 0.5506211389698943,
       "interactive": false,
       "blendMode": "normal",
       "opacity": 1,
@@ -302,7 +302,7 @@
         "width": 112.65624999999999,
         "height": 15.285714285714286
       },
-      "parallaxSpeed": 0.1,
+      "parallaxSpeed": 0.6,
       "interactive": false,
       "blendMode": "normal",
       "opacity": 1,

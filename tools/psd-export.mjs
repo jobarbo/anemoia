@@ -4,6 +4,18 @@ import PSD from "psd";
 
 const PSD_PATH = process.argv[2];
 const OUTPUT_DIR = process.argv[3] || path.dirname(PSD_PATH);
+const MIN_PARALLAX_SPEED = 0.035;
+const MAX_PARALLAX_SPEED = 0.6;
+const PARALLAX_SPEED_CURVE = 1.6;
+
+function clamp(value, min, max) {
+	return Math.min(Math.max(value, min), max);
+}
+
+function getParallaxSpeedForDepth(depth) {
+	const normalizedDepth = clamp(depth, 0, 1);
+	return MIN_PARALLAX_SPEED + Math.pow(normalizedDepth, PARALLAX_SPEED_CURVE) * (MAX_PARALLAX_SPEED - MIN_PARALLAX_SPEED);
+}
 
 if (!PSD_PATH) {
 	console.error("Usage: node tools/psd-export.mjs <path-to-psd> [output-dir]");
@@ -105,6 +117,12 @@ const main = async () => {
 		// bottom-up for zIndex
 		await processNode(node, state);
 	}
+
+	const maxZIndex = Math.max(manifest.layers.length - 1, 1);
+	manifest.layers = manifest.layers.map((layer) => ({
+		...layer,
+		parallaxSpeed: getParallaxSpeedForDepth(layer.zIndex / maxZIndex),
+	}));
 
 	const manifestPath = path.join(OUTPUT_DIR, "manifest.json");
 	fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));

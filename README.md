@@ -144,6 +144,7 @@ Cela va :
 
 - Créer `dossier-sortie/layers/` et exporter chaque calque visible en PNG.
 - Écrire `dossier-sortie/manifest.json` avec la taille du canvas et les données par calque : `name`, `file`, `zIndex`, `position` (pourcent), `parallaxSpeed`, `interactive`.
+- Générer automatiquement `parallaxSpeed` à partir du `zIndex` : les calques proches bougent plus, les calques lointains restent plus stables.
 
 Vous pouvez ensuite éditer `manifest.json` pour mettre `interactive: true` et ajouter `interaction` (ex. `type: "navigate"`, `target: "/story/my-story"`, optionnel `hoverImage`) pour les zones cliquables.
 
