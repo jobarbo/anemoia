@@ -25,7 +25,7 @@ const manifest = await loadManifest(neighborhood.scenePath, {
 	<main class='neighborhood-container' transition:name={`neighborhood-${neighborhood.slug}`} transition:animate={pageSlideFromBottom}>
 		<BackButton href='/overworld' label='Retour à la carte' />
 
-		<SceneRenderer manifest={manifest} sceneSlug={neighborhood.slug} class='neighborhood-scene' viewportAspectRatio>
+		<SceneRenderer manifest={manifest} sceneSlug={neighborhood.slug} class='neighborhood-scene' viewportAspectRatio enableHeadTracking>
 			<SketchCanvas slotTarget='foreground' sketch='snow' />
 		</SceneRenderer>
 	</main>

@@ -1,9 +1,9 @@
-import { defineConfig } from "astro/config";
+import {defineConfig} from "astro/config";
 
 export default defineConfig({
 	vite: {
 		optimizeDeps: {
-			include: ["locomotive-scroll", "gsap", "gsap/ScrollTrigger", "p5"]
+			include: ["locomotive-scroll", "gsap", "gsap/ScrollTrigger", "p5", "ml5"],
 		},
 		css: {
 			preprocessorOptions: {

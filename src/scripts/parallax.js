@@ -2,8 +2,8 @@ import gsap from "gsap";
 
 const DEFAULT_SPEED = 0.1;
 const BASE_TRANSLATE_DISTANCE = 50;
-const MIN_DEPTH_MULTIPLIER = 0.12;
-const MAX_DEPTH_MULTIPLIER = 1;
+const MIN_DEPTH_MULTIPLIER = 1.12;
+const MAX_DEPTH_MULTIPLIER = 8;
 
 function clamp(value, min, max) {
 	return Math.min(Math.max(value, min), max);
@@ -27,10 +27,25 @@ function parseNumericAttr(element, name) {
 	return Number.isFinite(value) ? value : null;
 }
 
-export function initMouseParallax(layers) {
-	const handleMouseMove = (e) => {
-		const xPercent = (e.clientX / window.innerWidth - 0.5) * 2;
-		const yPercent = (e.clientY / window.innerHeight - 0.5) * 2;
+function toFiniteNumber(value, fallback = 0) {
+	if (typeof value === "number") {
+		return Number.isFinite(value) ? value : fallback;
+	}
+	if (typeof value === "string") {
+		const parsed = parseFloat(value);
+		return Number.isFinite(parsed) ? parsed : fallback;
+	}
+	return fallback;
+}
+
+function toPixelValue(value) {
+	return `${toFiniteNumber(value)}px`;
+}
+
+export function createParallaxUpdater(layers) {
+	return (xPercent, yPercent) => {
+		const normalizedX = clamp(toFiniteNumber(xPercent, 0), -1, 1);
+		const normalizedY = clamp(toFiniteNumber(yPercent, 0), -1, 1);
 
 		layers.forEach((layer) => {
 			const baseSpeed = parseNumericAttr(layer, "data-parallax-speed") ?? DEFAULT_SPEED;
@@ -38,19 +53,47 @@ export function initMouseParallax(layers) {
 			const depth = parseNumericAttr(layer, "data-parallax-depth") ?? 0.5;
 			const depthMultiplier = getDepthMultiplier(depth);
 			const speed = baseSpeed * depthMultiplier;
+			const targetX = normalizedX * speed * BASE_TRANSLATE_DISTANCE;
+			const targetY = normalizedY * speed * BASE_TRANSLATE_DISTANCE;
 
 			gsap.to(layer, {
-				"--parallax-x": `${xPercent * speed * BASE_TRANSLATE_DISTANCE}px`,
-				"--parallax-y": `${yPercent * speed * BASE_TRANSLATE_DISTANCE}px`,
+				"--parallax-x": targetX,
+				"--parallax-y": targetY,
 				duration: getLayerDuration(depth),
 				ease: "power2.out",
+				overwrite: "auto",
+				modifiers: {
+					"--parallax-x": toPixelValue,
+					"--parallax-y": toPixelValue,
+				},
 			});
 		});
 	};
+}
 
-	document.addEventListener("mousemove", handleMouseMove);
+export function initParallaxFromInput(layers, subscribeInput) {
+	const updateParallax = createParallaxUpdater(layers);
+	const unsubscribe = subscribeInput(updateParallax);
 
 	return () => {
-		document.removeEventListener("mousemove", handleMouseMove);
+		if (typeof unsubscribe === "function") {
+			unsubscribe();
+		}
 	};
+}
+
+export function initMouseParallax(layers) {
+	return initParallaxFromInput(layers, (updateParallax) => {
+		const handleMouseMove = (e) => {
+			const xPercent = (e.clientX / window.innerWidth - 0.5) * 2;
+			const yPercent = (e.clientY / window.innerHeight - 0.5) * 2;
+			updateParallax(xPercent, yPercent);
+		};
+
+		document.addEventListener("mousemove", handleMouseMove);
+
+		return () => {
+			document.removeEventListener("mousemove", handleMouseMove);
+		};
+	});
 }
