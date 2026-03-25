@@ -18,37 +18,44 @@ const {title = "Anemoia", audioSrc} = Astro.props;
 		<canvas id='ht-debug' style='display:none;position:fixed;top:1rem;right:1rem;z-index:9999;border:2px solid #0f0;border-radius:4px;box-shadow:0 0 12px rgba(0,255,0,.4)'></canvas>
 		<script is:inline>
 			(function () {
-				const canvas = document.getElementById('ht-debug');
-				const ctx = canvas.getContext('2d');
+				const canvas = document.getElementById("ht-debug");
+				const ctx = canvas.getContext("2d");
 				window.__htDebug = function (video, x, y) {
-					canvas.style.display = 'block';
+					canvas.style.display = "block";
 					const vw = video.videoWidth || 640;
 					const vh = video.videoHeight || 480;
 					const w = 200;
-					const h = Math.round(w * vh / vw);
-					if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+					const h = Math.round((w * vh) / vw);
+					if (canvas.width !== w || canvas.height !== h) {
+						canvas.width = w;
+						canvas.height = h;
+					}
 					ctx.drawImage(video, 0, 0, w, h);
-					const dx = (x + 1) / 2 * w;
-					const dy = (y + 1) / 2 * h;
-					ctx.strokeStyle = 'rgba(0,255,0,0.4)';
+					const dx = ((x + 1) / 2) * w;
+					const dy = ((y + 1) / 2) * h;
+					ctx.strokeStyle = "rgba(0,255,0,0.4)";
 					ctx.lineWidth = 1;
 					ctx.beginPath();
-					ctx.moveTo(dx, 0); ctx.lineTo(dx, h);
-					ctx.moveTo(0, dy); ctx.lineTo(w, dy);
+					ctx.moveTo(dx, 0);
+					ctx.lineTo(dx, h);
+					ctx.moveTo(0, dy);
+					ctx.lineTo(w, dy);
 					ctx.stroke();
-					ctx.fillStyle = '#0f0';
+					ctx.fillStyle = "#0f0";
 					ctx.beginPath();
 					ctx.arc(dx, dy, 5, 0, Math.PI * 2);
 					ctx.fill();
 				};
-			}());
+			})();
 		</script>
 		<slot />
-		{audioSrc && (
-			<>
-				<audio id='global-audio' src={audioSrc} loop transition:persist={audioSrc} />
-				<AudioPlayer />
-			</>
-		)}
+		{
+			audioSrc && (
+				<>
+					<audio id='global-audio' src={audioSrc} loop transition:persist={audioSrc} />
+					<AudioPlayer />
+				</>
+			)
+		}
 	</body>
 </html>
