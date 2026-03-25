@@ -264,11 +264,15 @@ async function initMl5Source(onMove) {
 		throw new Error("ml5 face mesh API is unavailable.");
 	}
 
-	let model = createFaceMesh(video, {
+	const faceMeshOptions = {
 		maxFaces: 1,
 		refineLandmarks: true,
-		flipHorizontal: true,
-	});
+		flipHorizontal: false,
+		debug: true,
+	};
+	const {debug: enableDebugCanvas, ...modelOptions} = faceMeshOptions;
+
+	let model = createFaceMesh(video, modelOptions);
 
 	if (model && typeof model.then === "function") {
 		model = await model;
@@ -302,6 +306,9 @@ async function initMl5Source(onMove) {
 			lastPose = smoothPose(lastPose, nextPose);
 			if (lastPose) {
 				onMove(lastPose.x, lastPose.y);
+				if (enableDebugCanvas) {
+					window.__htDebug?.(video, lastPose.x, lastPose.y);
+				}
 			}
 		} catch {
 			// Ignore transient inference payload errors and keep the tracker alive.
