@@ -1,6 +1,13 @@
 ---
-const {zone} = Astro.props;
-const {depth = 0.5} = Astro.props;
+import type {SceneLayer} from "../../types/manifest";
+
+interface Props {
+	zone: SceneLayer;
+	depth?: number;
+}
+
+const {zone} = Astro.props as Props;
+const {depth = 0.5} = Astro.props as Props;
 
 const style = `
   --layer-center-left: ${zone.position.centerLeft}%;

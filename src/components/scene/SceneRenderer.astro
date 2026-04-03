@@ -1,8 +1,17 @@
 ---
-import SceneLayer from "./SceneLayer.astro";
+import type {SceneManifest, SceneLayer} from "../../types/manifest";
+import SceneLayerComponent from "./SceneLayer.astro";
 import InteractiveZone from "./InteractiveZone.astro";
 
-const {manifest, class: className, sceneSlug, viewportAspectRatio = false, enableHeadTracking = false} = Astro.props;
+interface Props {
+	manifest: SceneManifest;
+	class?: string;
+	sceneSlug: string;
+	viewportAspectRatio?: boolean;
+	enableHeadTracking?: boolean;
+}
+
+const {manifest, class: className, sceneSlug, viewportAspectRatio = false, enableHeadTracking = false} = Astro.props as Props;
 const layerMap = Object.fromEntries(manifest.layers.map((l: any) => [l.name, l]));
 const totalLayers = manifest.layers.length;
 ---
@@ -14,12 +23,12 @@ const totalLayers = manifest.layers.length;
 	data-head-tracking={enableHeadTracking ? "true" : "false"}
 	style={`aspect-ratio: ${manifest.canvas.width} / ${manifest.canvas.height}`}>
 	{
-		manifest.layers.map((layer: any, index: number) => {
+		manifest.layers.map((layer: SceneLayer, index: number) => {
 			const parentLayer = layer.clipped && layer.clippedTo ? layerMap[layer.clippedTo] : null;
 			const layerDepth = totalLayers > 1 ? index / (totalLayers - 1) : 0.5;
 			return (
 				<div class='scene__layer-container'>
-					<SceneLayer layer={layer} parentLayer={parentLayer} scenePath={`/assets/scenes/${sceneSlug}/layers`} layerDepth={layerDepth} />
+					<SceneLayerComponent layer={layer} parentLayer={parentLayer} scenePath={`/assets/scenes/${sceneSlug}/layers`} layerDepth={layerDepth} />
 
 					{layer.interactive && layer.interaction && <InteractiveZone zone={layer} depth={layerDepth} />}
 					<div class='scene__layer-slot-outlet' data-slot-outlet={layer.name} />
@@ -97,7 +106,7 @@ const totalLayers = manifest.layers.length;
 </style>
 
 <script>
-	import {initMouseParallax, initScrollParallax} from "../../scripts/parallax.js";
+	import {DEBUG_DISABLE_PARALLAX, initMouseParallax, initScrollParallax} from "../../scripts/parallax.js";
 	import {initHeadTrackingParallax} from "../../scripts/head-tracking.js";
 
 	const parallaxCleanupByScene = new WeakMap();
@@ -148,6 +157,11 @@ const totalLayers = manifest.layers.length;
 
 	function initializeParallax(scene: Element, layers: NodeListOf<Element>) {
 		cleanupParallax(scene);
+
+		if (DEBUG_DISABLE_PARALLAX) {
+			parallaxCleanupByScene.set(scene, () => {});
+			return;
+		}
 
 		const initToken = Symbol("parallax-init");
 		initTokenByScene.set(scene, initToken);

@@ -1,7 +1,16 @@
 ---
-const {layer, scenePath} = Astro.props;
-const {parentLayer} = Astro.props;
-const {layerDepth = 0.5} = Astro.props;
+import type {SceneLayer as SceneLayerType} from "../../types/manifest";
+
+interface Props {
+	layer: SceneLayerType;
+	parentLayer?: SceneLayerType | null;
+	scenePath: string;
+	layerDepth?: number;
+}
+
+const {layer, scenePath} = Astro.props as Props;
+const {parentLayer} = Astro.props as Props;
+const {layerDepth = 0.5} = Astro.props as Props;
 
 const clipMaskPath = layer.clipped && parentLayer ? (parentLayer.file.startsWith("/") || parentLayer.file.startsWith("http") ? parentLayer.file : `${scenePath}/${parentLayer.file}`) : null;
 
@@ -100,6 +109,7 @@ const childStyle = isClipped
 		object-fit: cover;
 		opacity: var(--layer-opacity);
 		mix-blend-mode: var(--layer-blend);
+		overflow: visible;
 	}
 
 	.clipped-wrapper {

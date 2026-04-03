@@ -1,6 +1,32 @@
 import fs from "node:fs";
 import path from "node:path";
 
+/** Percents above this are treated as mistaken pixel values (e.g. 1238px written as width). */
+const MAX_REASONABLE_PERCENT_DIM = 500;
+
+/**
+ * position.width / height are always CSS % of the scene. Fix PSD exports that
+ * drop raw pixel widths into the manifest (e.g. skybox width 1238 → should be ~64.5%).
+ */
+function normalizeManifestPositions(manifest) {
+	const cw = manifest.canvas?.width;
+	const ch = manifest.canvas?.height;
+	if (!cw || !ch || !Array.isArray(manifest.layers)) return manifest;
+
+	for (const layer of manifest.layers) {
+		const p = layer.position;
+		if (!p || typeof p.width !== "number" || typeof p.height !== "number") continue;
+
+		if (p.width > MAX_REASONABLE_PERCENT_DIM) {
+			p.width = (p.width / cw) * 100;
+		}
+		if (p.height > MAX_REASONABLE_PERCENT_DIM) {
+			p.height = (p.height / ch) * 100;
+		}
+	}
+	return manifest;
+}
+
 /**
  * Load scene manifest from public folder at build time.
  * Falls back to a default manifest when the file does not exist (e.g. before PSD export).
@@ -10,7 +36,8 @@ export async function loadManifest(scenePath, options = {}) {
 	const fsPath = path.join(publicDir, scenePath.replace(/^\//, ""));
 	try {
 		const raw = fs.readFileSync(fsPath, "utf-8");
-		return JSON.parse(raw);
+		const manifest = JSON.parse(raw);
+		return normalizeManifestPositions(manifest);
 	} catch {
 		const slug = scenePath.split("/").filter(Boolean).slice(-2)[0] ?? "default";
 		return getDefaultManifest(slug, options.firstStorySlug);

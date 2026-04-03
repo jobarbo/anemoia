@@ -1,13 +1,13 @@
 import gsap from "gsap";
+import {clamp} from "../lib/utils.js";
+
+/** Set `true` to skip mouse, head, and scroll-driven layer offsets (layout / PSD alignment tests). */
+export const DEBUG_DISABLE_PARALLAX = true;
 
 const DEFAULT_SPEED = 0.1;
 const BASE_TRANSLATE_DISTANCE = 50;
 const MIN_DEPTH_MULTIPLIER = 1.12;
 const MAX_DEPTH_MULTIPLIER = 8;
-
-function clamp(value, min, max) {
-	return Math.min(Math.max(value, min), max);
-}
 
 function getDepthMultiplier(depth) {
 	const normalizedDepth = clamp(depth, 0, 1);
