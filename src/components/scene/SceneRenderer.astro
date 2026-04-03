@@ -76,7 +76,7 @@ const totalLayers = manifest.layers.length;
 		position: absolute;
 		left: var(--layer-center-left);
 		top: var(--layer-center-top);
-		transform: translate(calc(-50% + var(--parallax-x, 0px)), calc(-50% + var(--parallax-y, 0px)));
+		transform: translate(calc(-50% + var(--parallax-x, 0px)), calc(-50% + var(--parallax-y, 0px) + var(--parallax-scroll-y, 0px)));
 		width: var(--layer-width);
 		height: var(--layer-height);
 		z-index: var(--layer-z);
@@ -97,7 +97,7 @@ const totalLayers = manifest.layers.length;
 </style>
 
 <script>
-	import {initMouseParallax} from "../../scripts/parallax.js";
+	import {initMouseParallax, initScrollParallax} from "../../scripts/parallax.js";
 	import {initHeadTrackingParallax} from "../../scripts/head-tracking.js";
 
 	const parallaxCleanupByScene = new WeakMap();
@@ -127,34 +127,58 @@ const totalLayers = manifest.layers.length;
 		parallaxCleanupByScene.delete(scene);
 	}
 
+	function attachScrollParallaxIfNeeded(scene: Element, layers: NodeListOf<Element>) {
+		if (scene.getAttribute("data-viewport-aspect") !== "true") {
+			return () => {};
+		}
+		const container = scene.parentElement;
+		if (!container) {
+			return () => {};
+		}
+		return initScrollParallax(layers, container);
+	}
+
+	function combineCleanups(...cleanups: Array<(() => void) | undefined>) {
+		return () => {
+			for (const fn of cleanups) {
+				if (typeof fn === "function") fn();
+			}
+		};
+	}
+
 	function initializeParallax(scene: Element, layers: NodeListOf<Element>) {
 		cleanupParallax(scene);
 
 		const initToken = Symbol("parallax-init");
 		initTokenByScene.set(scene, initToken);
 		const useHeadTracking = scene.getAttribute("data-head-tracking") === "true";
+		const scrollCleanup = attachScrollParallaxIfNeeded(scene, layers);
+		const headScrollContainer =
+			scene.getAttribute("data-viewport-aspect") === "true" ? scene.parentElement : null;
 
 		if (!useHeadTracking) {
-			parallaxCleanupByScene.set(scene, initMouseParallax(layers));
+			parallaxCleanupByScene.set(scene, combineCleanups(initMouseParallax(layers), scrollCleanup));
 			return;
 		}
 
 		initHeadTrackingParallax(layers, {
 			allowDeviceOrientationFallback: true,
 			allowMouseFallback: true,
+			scrollContainer: headScrollContainer,
 		})
 			.then((cleanup) => {
 				if (initTokenByScene.get(scene) !== initToken || !document.contains(scene)) {
 					if (typeof cleanup === "function") cleanup();
+					scrollCleanup();
 					return;
 				}
-				parallaxCleanupByScene.set(scene, cleanup);
+				parallaxCleanupByScene.set(scene, combineCleanups(cleanup, scrollCleanup));
 			})
 			.catch(() => {
 				if (initTokenByScene.get(scene) !== initToken || !document.contains(scene)) {
 					return;
 				}
-				parallaxCleanupByScene.set(scene, initMouseParallax(layers));
+				parallaxCleanupByScene.set(scene, combineCleanups(initMouseParallax(layers), scrollCleanup));
 			});
 	}
 

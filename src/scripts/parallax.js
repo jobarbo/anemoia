@@ -42,6 +42,19 @@ function toPixelValue(value) {
 	return `${toFiniteNumber(value)}px`;
 }
 
+function parallaxYPixels(normalizedY, speed) {
+	const ny = clamp(toFiniteNumber(normalizedY, 0), -1, 1);
+	return ny * speed * BASE_TRANSLATE_DISTANCE;
+}
+
+/** Same vertical offset scale as mouse/head tracking Y (per layer speed and depth). */
+function computeLayerParallaxOffsetY(layer, normalizedY) {
+	const baseSpeed = parseNumericAttr(layer, "data-parallax-speed") ?? DEFAULT_SPEED;
+	const depth = parseNumericAttr(layer, "data-parallax-depth") ?? 0.5;
+	const speed = baseSpeed * getDepthMultiplier(depth);
+	return parallaxYPixels(normalizedY, speed);
+}
+
 export function createParallaxUpdater(layers) {
 	return (xPercent, yPercent) => {
 		const normalizedX = clamp(toFiniteNumber(xPercent, 0), -1, 1);
@@ -54,7 +67,7 @@ export function createParallaxUpdater(layers) {
 			const depthMultiplier = getDepthMultiplier(depth);
 			const speed = baseSpeed * depthMultiplier;
 			const targetX = normalizedX * speed * BASE_TRANSLATE_DISTANCE;
-			const targetY = normalizedY * speed * BASE_TRANSLATE_DISTANCE;
+			const targetY = parallaxYPixels(normalizedY, speed);
 
 			gsap.to(layer, {
 				"--parallax-x": targetX,
@@ -96,4 +109,41 @@ export function initMouseParallax(layers) {
 			document.removeEventListener("mousemove", handleMouseMove);
 		};
 	});
+}
+
+/**
+ * Vertical scroll parallax for tall scenes (e.g. neighborhood). Uses --parallax-scroll-y so it stacks
+ * with mouse/head offsets on --parallax-x / --parallax-y.
+ */
+export function initScrollParallax(layers, scrollContainer) {
+	const applyScrollOffsets = () => {
+		const maxScroll = Math.max(0, scrollContainer.scrollHeight - scrollContainer.clientHeight);
+		// Map scroll range to [-1, 1] like vertical head/mouse input so layer motion matches tracking intensity.
+		const scrollNormalizedY = maxScroll <= 0 ? 0 : (scrollContainer.scrollTop / maxScroll - 0.5) * 2;
+
+		layers.forEach((layer) => {
+			const offsetY = computeLayerParallaxOffsetY(layer, scrollNormalizedY);
+			gsap.set(layer, {"--parallax-scroll-y": `${offsetY}px`});
+		});
+	};
+
+	scrollContainer.addEventListener("scroll", applyScrollOffsets, {passive: true});
+	window.addEventListener("resize", applyScrollOffsets, {passive: true});
+
+	let resizeObserver = null;
+	if (typeof ResizeObserver !== "undefined") {
+		resizeObserver = new ResizeObserver(applyScrollOffsets);
+		resizeObserver.observe(scrollContainer);
+	}
+
+	applyScrollOffsets();
+
+	return () => {
+		scrollContainer.removeEventListener("scroll", applyScrollOffsets);
+		window.removeEventListener("resize", applyScrollOffsets);
+		resizeObserver?.disconnect();
+		layers.forEach((layer) => {
+			gsap.set(layer, {"--parallax-scroll-y": "0px"});
+		});
+	};
 }

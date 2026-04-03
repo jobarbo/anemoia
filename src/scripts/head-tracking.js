@@ -7,6 +7,10 @@ const DEADZONE = 0.04;
 const TRACKING_STALL_TIMEOUT_MS = 2200;
 const TRACKING_WATCHDOG_INTERVAL_MS = 900;
 const INVERT_HEAD_TRACKING_Y = true;
+/** Pixels per second at full vertical deflection (|drive| ≈ 1). */
+const HEAD_SCROLL_SPEED_PX_PER_SEC = 95;
+/** Lerp/sec toward latest head Y so motion stays fluid without jitter (higher = tighter to pose). */
+const HEAD_SCROLL_DRIVE_SMOOTHING = 18;
 
 function clamp(value, min, max) {
 	return Math.min(Math.max(value, min), max);
@@ -359,7 +363,63 @@ async function initMl5Source(onMove) {
 	};
 }
 
-async function initMl5Parallax(layers, onModeChange) {
+/**
+ * Smooth continuous scroll from sustained gaze: velocity ∝ vertical parallax drive (~−1..1).
+ * “Look up / sky” keeps scrolling until you return to neutral.
+ */
+function createHeadScrollLoop(scrollContainer) {
+	let targetDrive = 0;
+	let smoothedDrive = 0;
+	let rafId = null;
+	let lastTs = 0;
+	let running = false;
+
+	const tick = (now) => {
+		if (!running) return;
+
+		if (!lastTs) lastTs = now;
+		const rawDt = (now - lastTs) / 1000;
+		lastTs = now;
+		// Cap step after tab backgrounding so scroll doesn’t jump.
+		const dt = Math.min(0.064, rawDt);
+
+		const t = Math.min(1, HEAD_SCROLL_DRIVE_SMOOTHING * dt);
+		smoothedDrive += (targetDrive - smoothedDrive) * t;
+
+		const maxScroll = Math.max(0, scrollContainer.scrollHeight - scrollContainer.clientHeight);
+		if (maxScroll > 0 && Math.abs(smoothedDrive) > 1e-6) {
+			// Negated so “look up” (positive parallaxNormY after invert) decreases scrollTop.
+			const delta = -smoothedDrive * HEAD_SCROLL_SPEED_PX_PER_SEC * dt;
+			scrollContainer.scrollTop = clamp(scrollContainer.scrollTop + delta, 0, maxScroll);
+		}
+
+		rafId = requestAnimationFrame(tick);
+	};
+
+	return {
+		setDrive(parallaxNormY) {
+			targetDrive = clamp(parallaxNormY, -1, 1);
+		},
+		start() {
+			if (running) return;
+			running = true;
+			lastTs = 0;
+			rafId = requestAnimationFrame(tick);
+		},
+		stop() {
+			running = false;
+			if (rafId !== null) {
+				cancelAnimationFrame(rafId);
+				rafId = null;
+			}
+			lastTs = 0;
+			targetDrive = 0;
+			smoothedDrive = 0;
+		},
+	};
+}
+
+async function initMl5Parallax(layers, onModeChange, scrollDriver) {
 	const updateParallax = createParallaxUpdater(layers);
 	let stopped = false;
 	let sourceCleanup = () => {};
@@ -369,7 +429,9 @@ async function initMl5Parallax(layers, onModeChange) {
 
 	const onMove = (x, y) => {
 		lastPoseAt = performance.now();
-		updateParallax(x, INVERT_HEAD_TRACKING_Y ? -y : y);
+		const parallaxNormY = INVERT_HEAD_TRACKING_Y ? -y : y;
+		updateParallax(x, parallaxNormY);
+		scrollDriver?.setDrive(parallaxNormY);
 	};
 
 	const startSource = async () => {
@@ -447,30 +509,47 @@ function initDeviceOrientationSource(onMove) {
 }
 
 export async function initHeadTrackingParallax(layers, options = {}) {
-	const {allowDeviceOrientationFallback = true, allowMouseFallback = true, onModeChange} = options;
+	const {allowDeviceOrientationFallback = true, allowMouseFallback = true, onModeChange, scrollContainer = null} = options;
 
 	if (!readHeadTrackingPreference()) {
 		onModeChange?.("disabled");
 		return allowMouseFallback ? initMouseParallax(layers) : () => {};
 	}
 
+	const scrollDriver = scrollContainer ? createHeadScrollLoop(scrollContainer) : null;
+	scrollDriver?.start();
+
 	try {
-		return await initMl5Parallax(layers, onModeChange);
+		const innerCleanup = await initMl5Parallax(layers, onModeChange, scrollDriver);
+		return () => {
+			innerCleanup();
+			scrollDriver?.stop();
+		};
 	} catch {
 		// Continue to fallbacks below.
 	}
 
 	if (allowDeviceOrientationFallback && isCoarsePointerDevice()) {
-		const cleanup = initParallaxFromInput(layers, (onMove) => initDeviceOrientationSource(onMove));
+		const cleanup = initParallaxFromInput(layers, (updateParallax) =>
+			initDeviceOrientationSource((x, y) => {
+				updateParallax(x, y);
+				scrollDriver?.setDrive(y);
+			}),
+		);
 		onModeChange?.("orientation");
-		return cleanup;
+		return () => {
+			if (typeof cleanup === "function") cleanup();
+			scrollDriver?.stop();
+		};
 	}
 
 	if (allowMouseFallback) {
 		onModeChange?.("mouse");
+		scrollDriver?.stop();
 		return initMouseParallax(layers);
 	}
 
+	scrollDriver?.stop();
 	onModeChange?.("none");
 	return () => {};
 }

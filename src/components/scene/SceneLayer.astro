@@ -92,7 +92,7 @@ const childStyle = isClipped
 		position: absolute;
 		left: var(--layer-center-left);
 		top: var(--layer-center-top);
-		transform: translate(calc(-50% + var(--parallax-x, 0px)), calc(-50% + var(--parallax-y, 0px)));
+		transform: translate(calc(-50% + var(--parallax-x, 0px)), calc(-50% + var(--parallax-y, 0px) + var(--parallax-scroll-y, 0px)));
 		width: var(--layer-width);
 		height: var(--layer-height);
 		z-index: var(--layer-z);
@@ -105,7 +105,7 @@ const childStyle = isClipped
 	.clipped-wrapper {
 		position: absolute;
 		overflow: hidden;
-		transform: translate(var(--parallax-x, 0px), var(--parallax-y, 0px));
+		transform: translate(var(--parallax-x, 0px), calc(var(--parallax-y, 0px) + var(--parallax-scroll-y, 0px)));
 		will-change: transform;
 	}
 </style>
