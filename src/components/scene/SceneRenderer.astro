@@ -27,7 +27,7 @@ const totalLayers = manifest.layers.length;
 			const parentLayer = layer.clipped && layer.clippedTo ? layerMap[layer.clippedTo] : null;
 			const layerDepth = totalLayers > 1 ? index / (totalLayers - 1) : 0.5;
 			return (
-				<div class='scene__layer-container'>
+				<div class='scene__layer-container' data-parallax-speed={layer.parallaxSpeed} data-parallax-depth={layerDepth}>
 					<SceneLayerComponent layer={layer} parentLayer={parentLayer} scenePath={`/assets/scenes/${sceneSlug}/layers`} layerDepth={layerDepth} />
 
 					{layer.interactive && layer.interaction && <InteractiveZone zone={layer} depth={layerDepth} />}
@@ -64,6 +64,8 @@ const totalLayers = manifest.layers.length;
 		top: 0;
 		width: 100%;
 		height: 100%;
+		transform: translate(var(--parallax-x, 0px), calc(var(--parallax-y, 0px) + var(--parallax-scroll-y, 0px)));
+		will-change: transform;
 	}
 
 	.scene__layer-slot-outlet {
@@ -85,7 +87,7 @@ const totalLayers = manifest.layers.length;
 		position: absolute;
 		left: var(--layer-center-left);
 		top: var(--layer-center-top);
-		transform: translate(calc(-50% + var(--parallax-x, 0px)), calc(-50% + var(--parallax-y, 0px) + var(--parallax-scroll-y, 0px)));
+		transform: translate(-50%, -50%);
 		width: var(--layer-width);
 		height: var(--layer-height);
 		z-index: var(--layer-z);
@@ -205,7 +207,7 @@ const totalLayers = manifest.layers.length;
 	document.addEventListener("astro:page-load", () => {
 		document.querySelectorAll("[data-scene-renderer]").forEach((scene) => {
 			distributeSlottedContent(scene);
-			const layers = scene.querySelectorAll(".layer, .zone");
+			const layers = scene.querySelectorAll(".scene__layer-container");
 			if (layers.length > 0) {
 				initializeParallax(scene, layers as NodeListOf<Element>);
 			} else {

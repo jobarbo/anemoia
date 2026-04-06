@@ -22,11 +22,11 @@ const isNavigation = zone.interaction.type === "navigate";
 
 {
 	isNavigation ? (
-		<a href={zone.interaction.target} class='zone zone--navigate' data-zone-type={zone.interaction.type} style={style} data-parallax-speed={zone.parallaxSpeed} data-parallax-depth={depth}>
+		<a href={zone.interaction.target} class='zone zone--navigate' data-zone-type={zone.interaction.type} style={style}>
 			{zone.interaction.hoverImage && <img src={zone.interaction.hoverImage} class='zone__hover' alt={`Go to ${zone.interaction.target}`} />}
 		</a>
 	) : (
-		<button class='zone zone--state' data-zone-type={zone.interaction.type} style={style} data-parallax-speed={zone.parallaxSpeed} data-parallax-depth={depth}>
+		<button class='zone zone--state' data-zone-type={zone.interaction.type} style={style}>
 			{/* State toggling logic via JS */}
 		</button>
 	)
@@ -37,7 +37,7 @@ const isNavigation = zone.interaction.type === "navigate";
 		position: absolute;
 		left: var(--layer-center-left);
 		top: var(--layer-center-top);
-		transform: translate(calc(-50% + var(--parallax-x, 0px)), calc(-50% + var(--parallax-y, 0px) + var(--parallax-scroll-y, 0px)));
+		transform: translate(-50%, -50%);
 		width: var(--layer-width);
 		height: var(--layer-height);
 		z-index: var(--layer-z);

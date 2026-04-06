@@ -81,7 +81,7 @@ const childStyle = isClipped
 
 {
 	isClipped ? (
-		<div class='clipped-wrapper' style={clipWrapperStyle} data-parallax-speed={layer.parallaxSpeed} data-parallax-depth={layerDepth}>
+		<div class='clipped-wrapper' style={clipWrapperStyle}>
 			{layer.type === "video" ? (
 				<video src={imagePath} autoplay loop muted playsinline class='layer layer--video' style={childStyle} />
 			) : (
@@ -89,9 +89,9 @@ const childStyle = isClipped
 			)}
 		</div>
 	) : layer.type === "video" ? (
-		<video src={imagePath} autoplay loop muted playsinline class='layer layer--video' style={style} data-parallax-speed={layer.parallaxSpeed} data-parallax-depth={layerDepth} />
+		<video src={imagePath} autoplay loop muted playsinline class='layer layer--video' style={style} />
 	) : (
-		<img src={imagePath} alt={layer.name} class='layer layer--image' style={style} data-parallax-speed={layer.parallaxSpeed} data-parallax-depth={layerDepth} />
+		<img src={imagePath} alt={layer.name} class='layer layer--image' style={style} />
 	)
 }
 
@@ -101,7 +101,7 @@ const childStyle = isClipped
 		position: absolute;
 		left: var(--layer-center-left);
 		top: var(--layer-center-top);
-		transform: translate(calc(-50% + var(--parallax-x, 0px)), calc(-50% + var(--parallax-y, 0px) + var(--parallax-scroll-y, 0px)));
+		transform: translate(-50%, -50%);
 		width: var(--layer-width);
 		height: var(--layer-height);
 		z-index: var(--layer-z);
@@ -115,7 +115,5 @@ const childStyle = isClipped
 	.clipped-wrapper {
 		position: absolute;
 		overflow: hidden;
-		transform: translate(var(--parallax-x, 0px), calc(var(--parallax-y, 0px) + var(--parallax-scroll-y, 0px)));
-		will-change: transform;
 	}
 </style>
