@@ -1,0 +1,18 @@
+/* Block: layer (réservé à SceneLayer) — styles propres au bloc */
+.layer {
+	position: absolute;
+	left: var(--layer-center-left);
+	top: var(--layer-center-top);
+	transform: translate(-50%, -50%);
+	width: var(--layer-width);
+	height: var(--layer-height);
+	object-fit: cover;
+	opacity: var(--layer-opacity);
+	mix-blend-mode: var(--layer-blend);
+	overflow: visible;
+}
+
+.clipped-wrapper {
+	position: absolute;
+	overflow: hidden;
+}

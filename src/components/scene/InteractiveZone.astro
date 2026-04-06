@@ -33,28 +33,5 @@ const isNavigation = zone.interaction.type === "navigate";
 }
 
 <style lang='scss'>
-	.zone {
-		position: absolute;
-		left: var(--layer-center-left);
-		top: var(--layer-center-top);
-		transform: translate(-50%, -50%);
-		width: var(--layer-width);
-		height: var(--layer-height);
-		z-index: var(--layer-z);
-		display: block;
-		cursor: pointer;
-
-		&--navigate {
-			.zone__hover {
-				opacity: 0;
-				transition: opacity 0.3s ease;
-				@include absolute-fill;
-				object-fit: cover;
-			}
-
-			&:hover .zone__hover {
-				opacity: 1;
-			}
-		}
-	}
+	@use "../../styles/component/interactive-zone";
 </style>

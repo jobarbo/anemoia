@@ -1,0 +1,63 @@
+@use "../base/mixins" as *;
+
+/* Block: scene (réservé à SceneRenderer) */
+.scene {
+	position: relative;
+	width: 100%;
+	max-width: 100vw;
+	overflow: hidden;
+
+	&.neighborhood-scene {
+		aspect-ratio: unset;
+		width: 100%;
+		height: auto;
+	}
+}
+
+.scene__layer-container {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	transform: translate(var(--parallax-x, 0px), calc(var(--parallax-y, 0px) + var(--parallax-scroll-y, 0px)));
+	will-change: transform;
+}
+
+.scene__layer-slot-outlet {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+}
+
+.scene__slotted {
+	position: absolute;
+	width: 0;
+	height: 0;
+	overflow: hidden;
+}
+
+/* Layout des blocs enfants (layer, zone) — positionnement par le parent */
+
+.scene .zone {
+	position: absolute;
+	left: var(--layer-center-left);
+	top: var(--layer-center-top);
+	transform: translate(-50%, -50%);
+	width: var(--layer-width);
+	height: var(--layer-height);
+	z-index: var(--layer-z);
+	display: block;
+	cursor: pointer;
+
+	&--navigate .zone__hover {
+		opacity: 0;
+		transition: opacity 0.3s ease;
+		@include absolute-fill;
+		object-fit: cover;
+	}
+
+	&--navigate:hover .zone__hover {
+		opacity: 1;
+	}
+}
