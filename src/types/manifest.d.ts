@@ -36,4 +36,10 @@ export interface SceneManifest {
 	 * Omit or null → falls back to the built-in power curve (Math.pow(depth, 2.2)).
 	 */
 	depthCurve?: SpeedCurve | null;
+	/**
+	 * Independent depth curve for vertical scroll parallax.
+	 * Falls back to depthCurve if not set.
+	 * Use to give scroll a different feel from head/mouse tracking (e.g. height and scale).
+	 */
+	scrollDepthCurve?: SpeedCurve | null;
 }

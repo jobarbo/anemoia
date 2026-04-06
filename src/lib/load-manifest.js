@@ -39,6 +39,9 @@ function mergeParallaxConfig(manifest, manifestFsPath) {
 		if (Array.isArray(config.depthCurve) && config.depthCurve.length === 4) {
 			manifest.depthCurve = config.depthCurve;
 		}
+		if (Array.isArray(config.scrollDepthCurve) && config.scrollDepthCurve.length === 4) {
+			manifest.scrollDepthCurve = config.scrollDepthCurve;
+		}
 	} catch {
 		// File absent or invalid — silently ignore, curve stays undefined
 	}

@@ -22,6 +22,7 @@ const totalLayers = manifest.layers.length;
 	data-viewport-aspect={viewportAspectRatio ? "true" : "false"}
 	data-head-tracking={enableHeadTracking ? "true" : "false"}
 	data-depth-curve={manifest.depthCurve ? JSON.stringify(manifest.depthCurve) : undefined}
+	data-scroll-depth-curve={manifest.scrollDepthCurve ? JSON.stringify(manifest.scrollDepthCurve) : undefined}
 	style={`aspect-ratio: ${manifest.canvas.width} / ${manifest.canvas.height}`}>
 	{
 		manifest.layers.map((layer: SceneLayer, index: number) => {

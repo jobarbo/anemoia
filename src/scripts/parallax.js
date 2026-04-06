@@ -5,19 +5,26 @@ import {clamp, evaluateCubicBezier} from "../lib/utils.js";
 export const DEBUG_DISABLE_PARALLAX = false;
 
 const DEFAULT_SPEED = 0.1;
-const BASE_TRANSLATE_DISTANCE = 50;
-const MIN_DEPTH_MULTIPLIER = 1.0;
-const MAX_DEPTH_MULTIPLIER = 8;
+
+// Head / mouse tracking
+const TRACKING_TRANSLATE_DISTANCE = 50;
+const TRACKING_MIN_DEPTH_MULTIPLIER = 1.0;
+const TRACKING_MAX_DEPTH_MULTIPLIER = 8;
+
+// Vertical scroll parallax
+const SCROLL_TRANSLATE_DISTANCE = 50;
+const SCROLL_MIN_DEPTH_MULTIPLIER = 68;
+const SCROLL_MAX_DEPTH_MULTIPLIER = 1.0;
 
 /**
  * Maps normalised depth [0..1] to a speed multiplier [MIN..MAX].
  * When a depthCurve is provided (cubic-bezier [x1,y1,x2,y2] from parallax-config.json),
  * it replaces the built-in power curve so the distribution can be tuned per scene.
  */
-function getDepthMultiplier(depth, depthCurve = null) {
+function getDepthMultiplier(depth, depthCurve, minMultiplier, maxMultiplier) {
 	const normalizedDepth = clamp(depth, 0, 1);
 	const shaped = depthCurve ? evaluateCubicBezier(normalizedDepth, depthCurve) : Math.pow(normalizedDepth, 2.2);
-	return MIN_DEPTH_MULTIPLIER + shaped * (MAX_DEPTH_MULTIPLIER - MIN_DEPTH_MULTIPLIER);
+	return minMultiplier + shaped * (maxMultiplier - minMultiplier);
 }
 
 function getLayerDuration(depth) {
@@ -47,16 +54,16 @@ function toPixelValue(value) {
 	return `${toFiniteNumber(value)}px`;
 }
 
-function parallaxYPixels(normalizedY, speed) {
+function parallaxYPixels(normalizedY, speed, translateDistance) {
 	const ny = clamp(toFiniteNumber(normalizedY, 0), -1, 1);
-	return ny * speed * BASE_TRANSLATE_DISTANCE;
+	return ny * speed * translateDistance;
 }
 
-/** Read the scene-level depth curve from the nearest [data-scene-renderer] ancestor. */
-function readSceneDepthCurve(layers) {
+/** Read a JSON curve attribute from the nearest [data-scene-renderer] ancestor. */
+function readSceneCurveAttr(layers, attrName) {
 	const scene = layers[0]?.closest("[data-scene-renderer]");
 	if (!scene) return null;
-	const raw = scene.getAttribute("data-depth-curve");
+	const raw = scene.getAttribute(attrName);
 	if (!raw) return null;
 	try {
 		const parsed = JSON.parse(raw);
@@ -66,12 +73,21 @@ function readSceneDepthCurve(layers) {
 	}
 }
 
-/** Same vertical offset scale as mouse/head tracking Y (per layer speed and depth). */
-function computeLayerParallaxOffsetY(layer, normalizedY, depthCurve) {
+/** Depth curve for head/mouse parallax. */
+function readSceneDepthCurve(layers) {
+	return readSceneCurveAttr(layers, "data-depth-curve");
+}
+
+/** Depth curve for scroll parallax — falls back to the head/mouse curve if not set. */
+function readSceneScrollDepthCurve(layers) {
+	return readSceneCurveAttr(layers, "data-scroll-depth-curve") ?? readSceneDepthCurve(layers);
+}
+
+function computeScrollLayerOffsetY(layer, normalizedY, depthCurve) {
 	const baseSpeed = parseNumericAttr(layer, "data-parallax-speed") ?? DEFAULT_SPEED;
 	const depth = parseNumericAttr(layer, "data-parallax-depth") ?? 0.5;
-	const speed = baseSpeed * getDepthMultiplier(depth, depthCurve);
-	return parallaxYPixels(normalizedY, speed);
+	const speed = baseSpeed * getDepthMultiplier(depth, depthCurve, SCROLL_MIN_DEPTH_MULTIPLIER, SCROLL_MAX_DEPTH_MULTIPLIER);
+	return parallaxYPixels(normalizedY, speed, SCROLL_TRANSLATE_DISTANCE);
 }
 
 export function createParallaxUpdater(layers) {
@@ -85,9 +101,9 @@ export function createParallaxUpdater(layers) {
 			const baseSpeed = parseNumericAttr(layer, "data-parallax-speed") ?? DEFAULT_SPEED;
 			// Depth ranges 0..1 where 0 = far background and 1 = near foreground.
 			const depth = parseNumericAttr(layer, "data-parallax-depth") ?? 0.5;
-			const speed = baseSpeed * getDepthMultiplier(depth, depthCurve);
-			const targetX = normalizedX * speed * BASE_TRANSLATE_DISTANCE;
-			const targetY = parallaxYPixels(normalizedY, speed);
+			const speed = baseSpeed * getDepthMultiplier(depth, depthCurve, TRACKING_MIN_DEPTH_MULTIPLIER, TRACKING_MAX_DEPTH_MULTIPLIER);
+			const targetX = normalizedX * speed * TRACKING_TRANSLATE_DISTANCE;
+			const targetY = parallaxYPixels(normalizedY, speed, TRACKING_TRANSLATE_DISTANCE);
 
 			gsap.to(layer, {
 				"--parallax-x": targetX,
@@ -136,7 +152,7 @@ export function initMouseParallax(layers) {
  * with mouse/head offsets on --parallax-x / --parallax-y.
  */
 export function initScrollParallax(layers, scrollContainer) {
-	const depthCurve = readSceneDepthCurve(layers);
+	const depthCurve = readSceneScrollDepthCurve(layers);
 
 	const applyScrollOffsets = () => {
 		const maxScroll = Math.max(0, scrollContainer.scrollHeight - scrollContainer.clientHeight);
@@ -144,7 +160,7 @@ export function initScrollParallax(layers, scrollContainer) {
 		const scrollNormalizedY = maxScroll <= 0 ? 0 : (scrollContainer.scrollTop / maxScroll - 0.5) * 2;
 
 		layers.forEach((layer) => {
-			const offsetY = computeLayerParallaxOffsetY(layer, scrollNormalizedY, depthCurve);
+			const offsetY = computeScrollLayerOffsetY(layer, scrollNormalizedY, depthCurve);
 			gsap.set(layer, {"--parallax-scroll-y": `${offsetY}px`});
 		});
 	};
