@@ -1,20 +1,20 @@
 ---
 import GameLayout from "../layouts/GameLayout.astro";
-import {pageFade} from "../lib/transitions.js";
+import SketchCanvas from "../components/effects/SketchCanvas.astro";
 
-// Fichier audio de la scène splash (dans public/). Mettre à null pour désactiver.
 const audioSrc = "/assets/scenes/splash/ambient.mp3";
 ---
 
-<GameLayout title="Anemoia - Start" audioSrc={audioSrc}>
-	<main class='splash-container' transition:animate={pageFade}>
-		<div class='splash-content'>
-			<h1>Anémoia</h1>
-			<p>Un projet d'art par Olivier Laforest et Jonathan Barbeau</p>
-			<a href='/overworld' class='start-btn'>Commencer</a>
-		</div>
+<GameLayout title="Anemoia" audioSrc={audioSrc}>
+	<main class='splash-container'>
+		<SketchCanvas sketch='splash' class='splash-canvas' />
 	</main>
 </GameLayout>
+
+<script>
+	import {navigate} from "astro:transitions/client";
+	document.addEventListener("splash:complete", () => navigate("/overworld"), {once: true});
+</script>
 
 <style lang='scss'>
 	@use "../styles/component/index-page";

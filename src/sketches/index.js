@@ -3,6 +3,7 @@
  * Add new sketches here; then use <SketchCanvas sketch="your-name" />.
  */
 const sketchLoaders = {
+	splash: () => import("./splash.js"),
 	snow: () => import("./snow.js"),
 	rain: () => import("./rain.js"),
 };
