@@ -27,7 +27,7 @@ const totalLayers = manifest.layers.length;
 			const parentLayer = layer.clipped && layer.clippedTo ? layerMap[layer.clippedTo] : null;
 			const layerDepth = totalLayers > 1 ? index / (totalLayers - 1) : 0.5;
 			return (
-				<div class='scene__layer-container' data-parallax-speed={layer.parallaxSpeed} data-parallax-depth={layerDepth}>
+				<div class='scene__layer-container' style={`z-index: ${layer.zIndex}`} data-parallax-speed={layer.parallaxSpeed} data-parallax-depth={layerDepth}>
 					<SceneLayerComponent layer={layer} parentLayer={parentLayer} scenePath={`/assets/scenes/${sceneSlug}/layers`} layerDepth={layerDepth} />
 
 					{layer.interactive && layer.interaction && <InteractiveZone zone={layer} depth={layerDepth} />}

@@ -19,7 +19,6 @@ const style = `
 	--layer-center-top: ${layer.position.centerTop}%;
 	--layer-width: ${layer.position.width}%;
 	--layer-height: ${layer.position.height}%;
-	--layer-z: ${layer.zIndex};
 	--layer-opacity: ${typeof layer.opacity === "number" ? layer.opacity : 1};
 	--layer-blend: ${layer.blendMode ?? "normal"};
 `;
@@ -49,7 +48,6 @@ const clipWrapperStyle = isClipped
 	top: ${parentTopCorner}%;
 	width: ${parentLayer.position.width}%;
 	height: ${parentLayer.position.height}%;
-	z-index: ${layer.zIndex};
 	overflow: hidden;
 	-webkit-mask-image: url(${clipMaskPath});
 	mask-image: url(${clipMaskPath});
@@ -72,7 +70,6 @@ const childStyle = isClipped
 	transform: translate(-50%, -50%);
 	width: ${childRelWidth}%;
 	height: ${childRelHeight}%;
-	z-index: ${layer.zIndex};
 	opacity: ${typeof layer.opacity === "number" ? layer.opacity : 1};
 	mix-blend-mode: ${layer.blendMode ?? "normal"};
 `
@@ -104,8 +101,6 @@ const childStyle = isClipped
 		transform: translate(-50%, -50%);
 		width: var(--layer-width);
 		height: var(--layer-height);
-		z-index: var(--layer-z);
-		will-change: transform;
 		object-fit: cover;
 		opacity: var(--layer-opacity);
 		mix-blend-mode: var(--layer-blend);
