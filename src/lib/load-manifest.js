@@ -28,6 +28,24 @@ function normalizeManifestPositions(manifest) {
 }
 
 /**
+ * Merge hand-authored parallax-config.json (if present) into the manifest.
+ * The config file is never overwritten by psd-export, so it survives re-exports.
+ */
+function mergeParallaxConfig(manifest, manifestFsPath) {
+	const configPath = manifestFsPath.replace(/manifest\.json$/, "parallax-config.json");
+	try {
+		const raw = fs.readFileSync(configPath, "utf-8");
+		const config = JSON.parse(raw);
+		if (Array.isArray(config.depthCurve) && config.depthCurve.length === 4) {
+			manifest.depthCurve = config.depthCurve;
+		}
+	} catch {
+		// File absent or invalid — silently ignore, curve stays undefined
+	}
+	return manifest;
+}
+
+/**
  * Load scene manifest from public folder at build time.
  * Falls back to a default manifest when the file does not exist (e.g. before PSD export).
  */
@@ -37,7 +55,8 @@ export async function loadManifest(scenePath, options = {}) {
 	try {
 		const raw = fs.readFileSync(fsPath, "utf-8");
 		const manifest = JSON.parse(raw);
-		return normalizeManifestPositions(manifest);
+		normalizeManifestPositions(manifest);
+		return mergeParallaxConfig(manifest, fsPath);
 	} catch {
 		const slug = scenePath.split("/").filter(Boolean).slice(-2)[0] ?? "default";
 		return getDefaultManifest(slug, options.firstStorySlug);

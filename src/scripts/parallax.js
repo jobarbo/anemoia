@@ -1,18 +1,23 @@
 import gsap from "gsap";
-import {clamp} from "../lib/utils.js";
+import {clamp, evaluateCubicBezier} from "../lib/utils.js";
 
 /** Set `true` to skip mouse, head, and scroll-driven layer offsets (layout / PSD alignment tests). */
 export const DEBUG_DISABLE_PARALLAX = false;
 
 const DEFAULT_SPEED = 0.1;
 const BASE_TRANSLATE_DISTANCE = 50;
-const MIN_DEPTH_MULTIPLIER = 1.12;
+const MIN_DEPTH_MULTIPLIER = 1.0;
 const MAX_DEPTH_MULTIPLIER = 8;
 
-function getDepthMultiplier(depth) {
+/**
+ * Maps normalised depth [0..1] to a speed multiplier [MIN..MAX].
+ * When a depthCurve is provided (cubic-bezier [x1,y1,x2,y2] from parallax-config.json),
+ * it replaces the built-in power curve so the distribution can be tuned per scene.
+ */
+function getDepthMultiplier(depth, depthCurve = null) {
 	const normalizedDepth = clamp(depth, 0, 1);
-	// Compress distant layers and expand foreground separation for a more natural parallax falloff.
-	return MIN_DEPTH_MULTIPLIER + Math.pow(normalizedDepth, 2.2) * (MAX_DEPTH_MULTIPLIER - MIN_DEPTH_MULTIPLIER);
+	const shaped = depthCurve ? evaluateCubicBezier(normalizedDepth, depthCurve) : Math.pow(normalizedDepth, 2.2);
+	return MIN_DEPTH_MULTIPLIER + shaped * (MAX_DEPTH_MULTIPLIER - MIN_DEPTH_MULTIPLIER);
 }
 
 function getLayerDuration(depth) {
@@ -47,15 +52,31 @@ function parallaxYPixels(normalizedY, speed) {
 	return ny * speed * BASE_TRANSLATE_DISTANCE;
 }
 
+/** Read the scene-level depth curve from the nearest [data-scene-renderer] ancestor. */
+function readSceneDepthCurve(layers) {
+	const scene = layers[0]?.closest("[data-scene-renderer]");
+	if (!scene) return null;
+	const raw = scene.getAttribute("data-depth-curve");
+	if (!raw) return null;
+	try {
+		const parsed = JSON.parse(raw);
+		return Array.isArray(parsed) && parsed.length === 4 ? parsed : null;
+	} catch {
+		return null;
+	}
+}
+
 /** Same vertical offset scale as mouse/head tracking Y (per layer speed and depth). */
-function computeLayerParallaxOffsetY(layer, normalizedY) {
+function computeLayerParallaxOffsetY(layer, normalizedY, depthCurve) {
 	const baseSpeed = parseNumericAttr(layer, "data-parallax-speed") ?? DEFAULT_SPEED;
 	const depth = parseNumericAttr(layer, "data-parallax-depth") ?? 0.5;
-	const speed = baseSpeed * getDepthMultiplier(depth);
+	const speed = baseSpeed * getDepthMultiplier(depth, depthCurve);
 	return parallaxYPixels(normalizedY, speed);
 }
 
 export function createParallaxUpdater(layers) {
+	const depthCurve = readSceneDepthCurve(layers);
+
 	return (xPercent, yPercent) => {
 		const normalizedX = clamp(toFiniteNumber(xPercent, 0), -1, 1);
 		const normalizedY = clamp(toFiniteNumber(yPercent, 0), -1, 1);
@@ -64,8 +85,7 @@ export function createParallaxUpdater(layers) {
 			const baseSpeed = parseNumericAttr(layer, "data-parallax-speed") ?? DEFAULT_SPEED;
 			// Depth ranges 0..1 where 0 = far background and 1 = near foreground.
 			const depth = parseNumericAttr(layer, "data-parallax-depth") ?? 0.5;
-			const depthMultiplier = getDepthMultiplier(depth);
-			const speed = baseSpeed * depthMultiplier;
+			const speed = baseSpeed * getDepthMultiplier(depth, depthCurve);
 			const targetX = normalizedX * speed * BASE_TRANSLATE_DISTANCE;
 			const targetY = parallaxYPixels(normalizedY, speed);
 
@@ -116,13 +136,15 @@ export function initMouseParallax(layers) {
  * with mouse/head offsets on --parallax-x / --parallax-y.
  */
 export function initScrollParallax(layers, scrollContainer) {
+	const depthCurve = readSceneDepthCurve(layers);
+
 	const applyScrollOffsets = () => {
 		const maxScroll = Math.max(0, scrollContainer.scrollHeight - scrollContainer.clientHeight);
 		// Map scroll range to [-1, 1] like vertical head/mouse input so layer motion matches tracking intensity.
 		const scrollNormalizedY = maxScroll <= 0 ? 0 : (scrollContainer.scrollTop / maxScroll - 0.5) * 2;
 
 		layers.forEach((layer) => {
-			const offsetY = computeLayerParallaxOffsetY(layer, scrollNormalizedY);
+			const offsetY = computeLayerParallaxOffsetY(layer, scrollNormalizedY, depthCurve);
 			gsap.set(layer, {"--parallax-scroll-y": `${offsetY}px`});
 		});
 	};

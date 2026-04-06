@@ -4,7 +4,7 @@ import PSD from "psd";
 
 const PSD_PATH = process.argv[2];
 const OUTPUT_DIR = process.argv[3] || path.dirname(PSD_PATH);
-const MIN_PARALLAX_SPEED = 0.035;
+const MIN_PARALLAX_SPEED = 0.0;
 const MAX_PARALLAX_SPEED = 0.6;
 const PARALLAX_SPEED_CURVE = 1.6;
 

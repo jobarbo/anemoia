@@ -28,4 +28,12 @@ export interface SceneLayer {
 export interface SceneManifest {
 	canvas: { width: number; height: number };
 	layers: SceneLayer[];
+	/**
+	 * Optional scene-level depth curve controlling how parallax speed is distributed
+	 * across the layer stack (background → foreground).
+	 * CSS cubic-bezier control points [x1, y1, x2, y2].
+	 * Defined in parallax-config.json alongside manifest.json — survives PSD re-exports.
+	 * Omit or null → falls back to the built-in power curve (Math.pow(depth, 2.2)).
+	 */
+	depthCurve?: SpeedCurve | null;
 }
