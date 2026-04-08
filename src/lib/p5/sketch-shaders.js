@@ -11,19 +11,51 @@
  * - Seamless integration with ShaderManager and ShaderPipeline
  * - Reusable across projects with minimal setup
  *
- * Usage:
- * 1. In preload(): shaderEffects.preload(this)
- * 2. In setup(): shaderEffects.setup(width, height, mainCanvas, shaderCanvas)
- * 3. To apply shaders: shaderEffects.apply()
- * 4. To update time: shaderEffects.updateTime()
+ * Usage (p5.js 2.x — no preload):
+ * 1. async setup() { await shaderEffects.loadShaders(sketch); … }
+ * 2. shaderEffects.setup(width, height, mainCanvas, webglP5Instance)
+ * 3. In draw: shaderEffects.updateTime / apply as needed
  *
  * ES modules: import { ShaderEffects } from "../lib/p5/sketch-shaders.js"
+ *
+ * Per-sketch filters (only this file’s defaults are merged):
+ *   new ShaderEffects({
+ *     effects: { crtWarp: { enabled: true, warpAmount: 0.5 }, grain: { enabled: true, amount: 0.04 } },
+ *   });
+ * Or call applyEffectsConfig({ pixelSort: { enabled: true } }) after changing presets at runtime.
  */
-import { ShaderManager } from "./shaderManager.js";
-import { ShaderPipeline } from "./shaderPipeline.js";
+import {ShaderManager} from "./shaderManager.js";
+import {ShaderPipeline} from "./shaderPipeline.js";
+
+/**
+ * @param {Record<string, object>} target
+ * @param {Record<string, object>} patch
+ */
+function mergeEffectsConfig(target, patch) {
+	if (!patch || typeof patch !== "object") return;
+	for (const name of Object.keys(patch)) {
+		const delta = patch[name];
+		if (!delta || typeof delta !== "object") continue;
+		if (!target[name]) {
+			console.warn(`[ShaderEffects] Unknown effect "${name}" — use a built-in name or addEffect()`);
+			continue;
+		}
+		const existing = target[name];
+		for (const [k, v] of Object.entries(delta)) {
+			if (k === "uniforms" && v && typeof v === "object" && !Array.isArray(v)) {
+				existing.uniforms = {...existing.uniforms, ...v};
+			} else if (v !== undefined) {
+				existing[k] = v;
+			}
+		}
+	}
+}
 
 export class ShaderEffects {
-	constructor() {
+	/**
+	 * @param {{ effects?: Record<string, object>; effectsConfig?: Record<string, object> }} [options] effectsConfig is an alias of effects
+	 */
+	constructor(options = {}) {
 		// Shader animation control
 		this.continueShadersAfterCompletion = true; // Set to false to stop shaders when sketch is done
 		this.applyShadersDuringSketch = true; // Set to true to apply shaders while sketching
@@ -336,6 +368,8 @@ export class ShaderEffects {
 			},
 		};
 
+		mergeEffectsConfig(this.effectsConfig, options.effects ?? options.effectsConfig ?? {});
+
 		// Cache for last enabled effects (to detect changes)
 		this.lastEnabledEffects = null;
 
@@ -348,30 +382,30 @@ export class ShaderEffects {
 	}
 
 	/**
-	 * Preload shaders - call this in p5 preload()
-	 * Customize the shaders you load for your sketch
-	 * @param {p5} p5Instance - The p5 instance
+	 * Load all GLSL programs (p5.js 2.x — call from async setup with await).
+	 * @param {import("p5")} p5Instance
 	 */
-	preload(p5Instance) {
+	async loadShaders(p5Instance) {
 		this.p5Instance = p5Instance;
 		this.shaderManager = new ShaderManager();
 		this.shaderManager.init(p5Instance, "/library/shaders/");
-
 		this.shaderManager.setDefaultVertex("chromatic-aberration/vertex.vert");
 
-		this.shaderManager.loadShader("copy", "copy/fragment.frag", "copy/vertex.vert");
-		this.shaderManager.loadShader("deform", "deform/fragment.frag", "deform/vertex.vert");
-		this.shaderManager.loadShader("chromatic", "chromatic-aberration/fragment.frag", "chromatic-aberration/vertex.vert");
-		this.shaderManager.loadShader("grain", "grain/fragment.frag", "grain/vertex.vert");
-		this.shaderManager.loadShader("collage", "collage-rotate/fragment.frag", "collage-rotate/vertex.vert");
-		this.shaderManager.loadShader("pixelSort", "pixel-sort/fragment.frag", "pixel-sort/vertex.vert");
-		this.shaderManager.loadShader("crtDisplay", "pixel-checker/fragment.frag", "pixel-checker/vertex.vert");
-		this.shaderManager.loadShader("symmetry", "symmetry/fragment.frag", "symmetry/vertex.vert");
-		this.shaderManager.loadShader("symmetry2", "symmetry/fragment.frag", "symmetry/vertex.vert");
-		this.shaderManager.loadShader("pixelGrid", "pixel-grid/fragment.frag", "pixel-grid/vertex.vert");
-		this.shaderManager.loadShader("blur", "blur/fragment.frag", "blur/vertex.vert");
-		this.shaderManager.loadShader("zoom", "zoom/fragment.frag", "zoom/vertex.vert");
-		this.shaderManager.loadShader("crtWarp", "crt-warp/fragment.frag", "crt-warp/vertex.vert");
+		await Promise.all([
+			this.shaderManager.loadShader("copy", "copy/fragment.frag", "copy/vertex.vert"),
+			this.shaderManager.loadShader("deform", "deform/fragment.frag", "deform/vertex.vert"),
+			this.shaderManager.loadShader("chromatic", "chromatic-aberration/fragment.frag", "chromatic-aberration/vertex.vert"),
+			this.shaderManager.loadShader("grain", "grain/fragment.frag", "grain/vertex.vert"),
+			this.shaderManager.loadShader("collage", "collage-rotate/fragment.frag", "collage-rotate/vertex.vert"),
+			this.shaderManager.loadShader("pixelSort", "pixel-sort/fragment.frag", "pixel-sort/vertex.vert"),
+			this.shaderManager.loadShader("crtDisplay", "pixel-checker/fragment.frag", "pixel-checker/vertex.vert"),
+			this.shaderManager.loadShader("symmetry", "symmetry/fragment.frag", "symmetry/vertex.vert"),
+			this.shaderManager.loadShader("symmetry2", "symmetry/fragment.frag", "symmetry/vertex.vert"),
+			this.shaderManager.loadShader("pixelGrid", "pixel-grid/fragment.frag", "pixel-grid/vertex.vert"),
+			this.shaderManager.loadShader("blur", "blur/fragment.frag", "blur/vertex.vert"),
+			this.shaderManager.loadShader("zoom", "zoom/fragment.frag", "zoom/vertex.vert"),
+			this.shaderManager.loadShader("crtWarp", "crt-warp/fragment.frag", "crt-warp/vertex.vert"),
+		]);
 
 		return this;
 	}
@@ -399,6 +433,19 @@ export class ShaderEffects {
 
 		this.shaderPipeline = new ShaderPipeline(this.shaderManager, this.p5Instance).init(width, height, enabledEffects);
 
+		return this;
+	}
+
+	/**
+	 * Merge preset toggles/params from a sketch file (or runtime). Rebuilds pipeline if already set up.
+	 * @param {Record<string, object>} patch - e.g. { crtWarp: { enabled: true, vignette: 0.6 } }
+	 */
+	applyEffectsConfig(patch) {
+		mergeEffectsConfig(this.effectsConfig, patch);
+		this.lastEnabledEffects = null;
+		if (this.shaderPipeline && this.shaderManager && this.mainCanvas) {
+			this.reinitializePipeline();
+		}
 		return this;
 	}
 
@@ -735,9 +782,9 @@ export class ShaderEffects {
 	 * @param {string} fragPath - Fragment shader path
 	 * @param {string} vertPath - Vertex shader path (optional)
 	 */
-	loadShader(name, fragPath, vertPath = null) {
+	async loadShader(name, fragPath, vertPath = null) {
 		if (this.shaderManager) {
-			this.shaderManager.loadShader(name, fragPath, vertPath);
+			await this.shaderManager.loadShader(name, fragPath, vertPath);
 			console.log(`Loaded shader: ${name}`);
 		}
 		return this;

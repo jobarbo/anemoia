@@ -24,7 +24,10 @@ export class ShaderManager {
 		return this;
 	}
 
-	loadShader(name, fragPath, vertPath = null) {
+	/**
+	 * p5.js 2.x: loadShader returns a Promise — use await (e.g. from async setup).
+	 */
+	async loadShader(name, fragPath, vertPath = null) {
 		const vertexPath = vertPath ? this.basePath + vertPath : this.defaultVertexPath;
 		const fragmentPath = this.basePath + fragPath;
 
@@ -33,7 +36,8 @@ export class ShaderManager {
 			return this;
 		}
 
-		this.shaders[name] = this.p5Instance.loadShader(vertexPath, fragmentPath);
+		const shader = await this.p5Instance.loadShader(vertexPath, fragmentPath);
+		this.shaders[name] = shader;
 		return this;
 	}
 

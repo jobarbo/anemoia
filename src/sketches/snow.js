@@ -5,14 +5,18 @@
 import { ShaderEffects } from "../lib/p5/sketch-shaders.js";
 
 export default function (container) {
-	const shaders = new ShaderEffects();
+	const shaders = new ShaderEffects({
+		effects: {
+			grain: {enabled: true, amount: 0.06},
+		},
+	});
 	const particles = [];
 	let mainCanvas;
 
 	return (sketch) => {
-		sketch.preload = () => shaders.preload(sketch);
+		sketch.setup = async () => {
+			await shaders.loadShaders(sketch);
 
-		sketch.setup = () => {
 			const w = window.innerWidth;
 			const h = window.innerHeight;
 
@@ -21,8 +25,6 @@ export default function (container) {
 			canvas.parent(container);
 
 			shaders.setup(w, h, mainCanvas, sketch);
-			shaders.setEffectEnabled("grain", true);
-			shaders.updateEffectParam("grain", "amount", 0.06);
 
 			particles.length = 0;
 			for (let i = 0; i < 200; i++) {

@@ -13,8 +13,26 @@
  * Sounds are synthesized via Web Audio API (no external dependency).
  * AudioContext is created on first user gesture (ATTRACT → LOADING) to satisfy
  * browser autoplay policy.
+ *
+ * Rendering: P2D offscreen buffer → ShaderEffects → visible WEBGL canvas (CRT-style post).
  */
+import {ShaderEffects} from "../lib/p5/sketch-shaders.js";
+
 export default function (container) {
+	/** P2D offscreen buffer — all 2D drawing (gradients, text, scan lines). */
+	let artBuffer;
+	/** WEBGL offscreen buffer — receives artBuffer as texture, fed into ShaderEffects. */
+	let mainCanvas;
+
+	const shaders = new ShaderEffects({
+		effects: {
+			pixelGrid: {enabled: true, gridCols: 640.0, gridRows: 440.0, cellRatio: 100.0, mode: 0.0, diffuse: 1.0, gapSize: 0.0, gapBrightness: 1.0},
+			crtDisplay: {enabled: true, brightness: 0.99, cellSize: 2.0, gapOpacity: 0.9, rgbOpacity: 0.9, dotRadius: 0.8, dotFalloff: 0.6, filterMode: 0.0},
+			crtWarp: {enabled: false, warpAmount: 0.32, vignette: 0.02},
+			chromatic: {enabled: true, amount: 0.0015, timeMultiplier: 1.2},
+		},
+	});
+
 	return (sketch) => {
 		// ── Config ────────────────────────────────────────────────────────────────
 
@@ -63,10 +81,17 @@ export default function (container) {
 
 		// ── Setup ─────────────────────────────────────────────────────────────────
 
-		sketch.setup = () => {
-			const canvas = sketch.createCanvas(window.innerWidth, window.innerHeight);
+		sketch.setup = async () => {
+			await shaders.loadShaders(sketch);
+
+			const w = window.innerWidth;
+			const h = window.innerHeight;
+			artBuffer = sketch.createGraphics(w, h); // P2D — 2D canvas APIs
+			mainCanvas = sketch.createGraphics(w, h, sketch.WEBGL); // WEBGL — shader input
+			const canvas = sketch.createCanvas(w, h, sketch.WEBGL);
 			canvas.parent(container);
-			sketch.noStroke();
+			shaders.setup(w, h, mainCanvas, sketch);
+			artBuffer.noStroke();
 			for (let i = 0; i < PARTICLE_COUNT; i++) particles.push(makeParticle(true));
 			phaseStart = sketch.millis();
 		};
@@ -92,6 +117,13 @@ export default function (container) {
 				default:
 					drawMain(elapsed, now);
 			}
+
+			// Blit P2D artBuffer onto WEBGL mainCanvas before shader pass
+			mainCanvas.clear();
+			mainCanvas.image(artBuffer, -mainCanvas.width / 2, -mainCanvas.height / 2, mainCanvas.width, mainCanvas.height);
+
+			shaders.updateTime(0.016);
+			shaders.apply();
 		};
 
 		// ── Input ─────────────────────────────────────────────────────────────────
@@ -100,7 +132,12 @@ export default function (container) {
 		sketch.keyPressed = () => onInput();
 
 		sketch.windowResized = () => {
-			sketch.resizeCanvas(window.innerWidth, window.innerHeight);
+			const w = window.innerWidth;
+			const h = window.innerHeight;
+			artBuffer.resizeCanvas(w, h);
+			mainCanvas.resizeCanvas(w, h);
+			sketch.resizeCanvas(w, h);
+			shaders.reinitializePipeline();
 		};
 
 		function onInput() {
@@ -138,14 +175,14 @@ export default function (container) {
 		// ── ATTRACT ───────────────────────────────────────────────────────────────
 
 		function drawAttract(now) {
-			sketch.background(...BG_COLOR);
+			artBuffer.background(...BG_COLOR);
 
 			// Sparse horizontal static streaks
 			for (let i = 0; i < 2320; i++) {
-				const x = sketch.random(sketch.width);
-				const y = sketch.random(sketch.height);
-				sketch.fill(200, 210, 230, sketch.random(8, 35));
-				sketch.rect(x, y, sketch.random(4, 40), 1);
+				const x = sketch.random(artBuffer.width);
+				const y = sketch.random(artBuffer.height);
+				artBuffer.fill(200, 210, 230, sketch.random(8, 35));
+				artBuffer.rect(x, y, sketch.random(4, 40), 1);
 			}
 
 			// Blinking prompt
@@ -154,12 +191,12 @@ export default function (container) {
 				lastBlink = now;
 			}
 			if (promptVisible) {
-				const sz = sketch.width * 0.019;
-				sketch.textAlign(sketch.CENTER, sketch.CENTER);
-				sketch.textSize(sz);
-				sketch.textFont("monospace");
-				sketch.fill(...PROMPT_COLOR, 190);
-				sketch.text("[ CLIQUER OU APPUYER POUR DÉMARRER ]", sketch.width / 2, sketch.height / 2);
+				const sz = artBuffer.width * 0.019;
+				artBuffer.textAlign(sketch.CENTER, sketch.CENTER);
+				artBuffer.textSize(sz);
+				artBuffer.textFont("monospace");
+				artBuffer.fill(...PROMPT_COLOR, 190);
+				artBuffer.text("[ CLIQUER OU APPUYER POUR DÉMARRER ]", artBuffer.width / 2, artBuffer.height / 2);
 			}
 
 			drawScanLines(now);
@@ -169,14 +206,14 @@ export default function (container) {
 		// ── LOADING ───────────────────────────────────────────────────────────────
 
 		function drawLoading(elapsed, now) {
-			sketch.background(0);
+			artBuffer.background(0);
 
 			const progress = sketch.constrain(elapsed / PHASE_DURATION[PHASE.LOADING], 0, 1);
-			const cx = sketch.width / 2;
-			const cy = sketch.height / 2;
-			const labelSz = sketch.width * 0.016;
-			const barW = sketch.width * 0.42;
-			const barH = Math.max(8, sketch.height * 0.018);
+			const cx = artBuffer.width / 2;
+			const cy = artBuffer.height / 2;
+			const labelSz = artBuffer.width * 0.016;
+			const barW = artBuffer.width * 0.42;
+			const barH = Math.max(8, artBuffer.height * 0.018);
 			const barX = cx - barW / 2;
 			const barY = cy - barH / 2;
 
@@ -188,28 +225,28 @@ export default function (container) {
 			}
 
 			// Status text
-			sketch.textAlign(sketch.LEFT, sketch.BASELINE);
-			sketch.textSize(labelSz);
-			sketch.textFont("monospace");
-			sketch.fill(...LOAD_GREEN);
-			sketch.text(LOADING_MESSAGES[loadMsgIdx], barX, barY - labelSz * 1.4);
+			artBuffer.textAlign(sketch.LEFT, sketch.BASELINE);
+			artBuffer.textSize(labelSz);
+			artBuffer.textFont("monospace");
+			artBuffer.fill(...LOAD_GREEN);
+			artBuffer.text(LOADING_MESSAGES[loadMsgIdx], barX, barY - labelSz * 1.4);
 
 			// Bar outline
-			sketch.stroke(...LOAD_GREEN, 140);
-			sketch.strokeWeight(1);
-			sketch.noFill();
-			sketch.rect(barX, barY, barW, barH);
-			sketch.noStroke();
+			artBuffer.stroke(...LOAD_GREEN, 140);
+			artBuffer.strokeWeight(1);
+			artBuffer.noFill();
+			artBuffer.rect(barX, barY, barW, barH);
+			artBuffer.noStroke();
 
 			// Bar fill
-			sketch.fill(...LOAD_GREEN);
-			sketch.rect(barX + 1, barY + 1, (barW - 2) * progress, barH - 2);
+			artBuffer.fill(...LOAD_GREEN);
+			artBuffer.rect(barX + 1, barY + 1, (barW - 2) * progress, barH - 2);
 
 			// Percentage
-			sketch.textAlign(sketch.RIGHT, sketch.TOP);
-			sketch.textSize(labelSz);
-			sketch.fill(...LOAD_GREEN);
-			sketch.text(`${Math.floor(progress * 100)}%`, barX + barW, barY + barH + labelSz * 0.5);
+			artBuffer.textAlign(sketch.RIGHT, sketch.TOP);
+			artBuffer.textSize(labelSz);
+			artBuffer.fill(...LOAD_GREEN);
+			artBuffer.text(`${Math.floor(progress * 100)}%`, barX + barW, barY + barH + labelSz * 0.5);
 
 			drawScanLines(now);
 			drawVignette();
@@ -218,12 +255,12 @@ export default function (container) {
 		// ── MAIN (FADE_IN → TITLE → SUBTITLE → PROMPT) ───────────────────────────
 
 		function drawMain(elapsed, now) {
-			sketch.background(...BG_COLOR);
+			artBuffer.background(...BG_COLOR);
 
 			if (phase === PHASE.FADE_IN) {
 				const alpha = sketch.map(elapsed, 0, PHASE_DURATION[PHASE.FADE_IN], 255, 0);
-				sketch.fill(0, 0, 0, alpha);
-				sketch.rect(0, 0, sketch.width, sketch.height);
+				artBuffer.fill(0, 0, 0, alpha);
+				artBuffer.rect(0, 0, artBuffer.width, artBuffer.height);
 			}
 
 			updateAndDrawParticles();
@@ -233,9 +270,9 @@ export default function (container) {
 		}
 
 		function drawContent(elapsed, now) {
-			const cx = sketch.width / 2;
-			const cy = sketch.height / 2;
-			const titleSz = sketch.width * 0.09;
+			const cx = artBuffer.width / 2;
+			const cy = artBuffer.height / 2;
+			const titleSz = artBuffer.width * 0.09;
 			const titleY = cy - titleSz * 0.2;
 
 			// Title
@@ -248,11 +285,11 @@ export default function (container) {
 			// Subtitle
 			if (phase >= PHASE.SUBTITLE) {
 				const alpha = phase === PHASE.SUBTITLE ? sketch.map(elapsed, 0, PHASE_DURATION[PHASE.SUBTITLE] * 0.7, 0, 200) : 200;
-				sketch.textAlign(sketch.CENTER, sketch.CENTER);
-				sketch.textSize(sketch.width * 0.018);
-				sketch.textFont("monospace");
-				sketch.fill(...SUBTITLE_COLOR, alpha);
-				sketch.text(SUBTITLE, cx, titleY + titleSz * 0.9);
+				artBuffer.textAlign(sketch.CENTER, sketch.CENTER);
+				artBuffer.textSize(artBuffer.width * 0.018);
+				artBuffer.textFont("monospace");
+				artBuffer.fill(...SUBTITLE_COLOR, alpha);
+				artBuffer.text(SUBTITLE, cx, titleY + titleSz * 0.9);
 			}
 
 			// Prompt
@@ -262,11 +299,11 @@ export default function (container) {
 					lastBlink = now;
 				}
 				if (promptVisible) {
-					sketch.textAlign(sketch.CENTER, sketch.CENTER);
-					sketch.textSize(sketch.width * 0.022);
-					sketch.textFont("monospace");
-					sketch.fill(...PROMPT_COLOR, 210);
-					sketch.text(PROMPT_TEXT, cx, titleY + titleSz * 1.8);
+					artBuffer.textAlign(sketch.CENTER, sketch.CENTER);
+					artBuffer.textSize(artBuffer.width * 0.022);
+					artBuffer.textFont("monospace");
+					artBuffer.fill(...PROMPT_COLOR, 210);
+					artBuffer.text(PROMPT_TEXT, cx, titleY + titleSz * 1.8);
 				}
 			}
 		}
@@ -276,7 +313,7 @@ export default function (container) {
 		function drawExit() {
 			exitFlashFrames++;
 			const alpha = sketch.map(exitFlashFrames, 0, sketch.frameRate() * PHASE_DURATION[PHASE.FADE_IN] * 0.4, 255, 0);
-			sketch.background(255, 255, 255, Math.max(0, alpha));
+			artBuffer.background(255, 255, 255, Math.max(0, alpha));
 
 			if (exitFlashFrames > sketch.frameRate() * 0.18) {
 				sketch.noLoop();
@@ -287,34 +324,36 @@ export default function (container) {
 		// ── Title with chromatic aberration ───────────────────────────────────────
 
 		function drawTitleAberration(text, x, y, size, alpha) {
-			const ctx = sketch.drawingContext;
+			const ctx = artBuffer.drawingContext;
 			const offset = Math.max(2, size * 0.015);
 
-			sketch.textAlign(sketch.CENTER, sketch.CENTER);
-			sketch.textSize(size);
-			sketch.textFont("monospace");
-			sketch.textStyle(sketch.BOLD);
+			artBuffer.textAlign(sketch.CENTER, sketch.CENTER);
+			artBuffer.textSize(size);
+			artBuffer.textFont("monospace");
+			artBuffer.textStyle(sketch.BOLD);
 
 			ctx.globalCompositeOperation = "screen";
-			sketch.fill(255, 50, 50, alpha * 0.55);
-			sketch.text(text, x - offset, y);
+			artBuffer.fill(255, 50, 50, alpha * 0.55);
+			artBuffer.text(text, x - offset, y);
 
-			sketch.fill(50, 100, 255, alpha * 0.55);
-			sketch.text(text, x + offset, y);
+			artBuffer.fill(50, 100, 255, alpha * 0.55);
+			artBuffer.text(text, x + offset, y);
 
 			ctx.globalCompositeOperation = "source-over";
-			sketch.fill(...TITLE_COLOR, alpha);
-			sketch.text(text, x, y);
+			artBuffer.fill(...TITLE_COLOR, alpha);
+			artBuffer.text(text, x, y);
 
-			sketch.textStyle(sketch.NORMAL);
+			artBuffer.textStyle(sketch.NORMAL);
 		}
 
 		// ── Particles ─────────────────────────────────────────────────────────────
 
 		function makeParticle(randomY = false) {
+			const W = artBuffer.width;
+			const H = artBuffer.height;
 			return {
-				x: sketch.random(0, sketch.width),
-				y: randomY ? sketch.random(0, sketch.height) : sketch.height + sketch.random(10, 40),
+				x: sketch.random(0, W),
+				y: randomY ? sketch.random(0, H) : H + sketch.random(10, 40),
 				size: sketch.random(0.5, 2.5),
 				speed: sketch.random(0.1, 0.4),
 				alpha: sketch.random(30, 100),
@@ -326,8 +365,8 @@ export default function (container) {
 			for (const p of particles) {
 				p.y -= p.speed;
 				p.x += p.drift;
-				sketch.fill(160, 200, 230, p.alpha);
-				sketch.circle(p.x, p.y, p.size);
+				artBuffer.fill(160, 200, 230, p.alpha);
+				artBuffer.circle(p.x, p.y, p.size);
 				if (p.y < -5) Object.assign(p, makeParticle(false));
 			}
 		}
@@ -336,24 +375,24 @@ export default function (container) {
 
 		function drawScanLines(now) {
 			const flicker = 0.12 + sketch.noise(now * 0.0003) * 0.08;
-			sketch.fill(0, 0, 0, flicker * 255);
-			for (let y = 0; y < sketch.height; y += 3) {
-				sketch.rect(0, y, sketch.width, 1);
+			artBuffer.fill(0, 0, 0, flicker * 255);
+			for (let y = 0; y < artBuffer.height; y += 3) {
+				artBuffer.rect(0, y, artBuffer.width, 1);
 			}
 		}
 
 		// ── Vignette ──────────────────────────────────────────────────────────────
 
 		function drawVignette() {
-			const ctx = sketch.drawingContext;
-			const cx = sketch.width / 2;
-			const cy = sketch.height / 2;
+			const ctx = artBuffer.drawingContext;
+			const cx = artBuffer.width / 2;
+			const cy = artBuffer.height / 2;
 			const r = Math.max(cx, cy) * 1.3;
 			const grad = ctx.createRadialGradient(cx, cy, r * 0.3, cx, cy, r);
 			grad.addColorStop(0, "rgba(0,0,0,0)");
 			grad.addColorStop(1, "rgba(0,0,0,0.82)");
 			ctx.fillStyle = grad;
-			ctx.fillRect(0, 0, sketch.width, sketch.height);
+			ctx.fillRect(0, 0, artBuffer.width, artBuffer.height);
 		}
 
 		// ── Audio synthesis (Web Audio API) ───────────────────────────────────────
