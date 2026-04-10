@@ -85,11 +85,23 @@ const DEFAULT_EFFECTS = {
 		colorMode: 1,
 	},
 
+	blur: {
+		enabled: true,
+		blurAmount: 10.0,
+		blurQuality: 10.0,
+		blurDirection: 0,
+		blurCenter: [0.5, 0.5],
+		blurStart: 0.586,
+		blurCrt: 1.0,
+		blurCrtPower: 10.0,
+		blurMin: 0.0,
+	},
+
 	crtDisplay: {
 		enabled: true,
-		brightness: 0.5,
+		brightness: 0.0,
 		cellSize: 2.0,
-		gapOpacity: 0.9,
+		gapOpacity: 0.0,
 		rgbOpacity: 0.0,
 		rgbGain: [1.0, 1.0, 1.0],
 		dotRadius: 0.8,
@@ -99,12 +111,12 @@ const DEFAULT_EFFECTS = {
 	crtWarp: {
 		enabled: true,
 		warpAmount: 0.2,
-		aspectCorrect: 0.0,
+		aspectCorrect: 1.0,
 		borderColor: 2.0,
-		vignette: 0.05,
+		vignette: 0.9,
 		cornerSmooth: 0.015,
 		cornerRadius: 0.2,
-		boundsInset: 0.1,
+		boundsInset: 0.12,
 	},
 };
 

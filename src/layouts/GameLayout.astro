@@ -3,6 +3,7 @@ import "../styles/global.scss";
 import AudioPlayer from "../components/ui/AudioPlayer.astro";
 
 const {title = "Anemoia", audioSrc} = Astro.props;
+const audioAttrs = typeof audioSrc === "string" && audioSrc.length > 0 ? {src: audioSrc} : {};
 ---
 
 <html lang='fr'>
@@ -50,16 +51,10 @@ const {title = "Anemoia", audioSrc} = Astro.props;
 			})();
 		</script>
 		<slot />
-		{
-			audioSrc && (
-				<>
-					<audio id='global-audio' src={audioSrc} loop transition:persist={audioSrc} />
-					<div data-html2canvas-ignore='true'>
-						<AudioPlayer />
-					</div>
-				</>
-			)
-		}
+		<audio id='global-audio' loop transition:persist='global-audio' {...audioAttrs} />
+		<div data-html2canvas-ignore='true'>
+			<AudioPlayer />
+		</div>
 		<!-- GlobalShaderOverlay is bootstrapped in index.astro (SPA mode) -->
 	</body>
 </html>

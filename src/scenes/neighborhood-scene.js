@@ -13,6 +13,7 @@ import {fetchNeighborhoodManifest} from "../lib/scene-data.js";
 import {sceneNavigate} from "../lib/scene-nav.js";
 import {initMouseParallax, initScrollParallax} from "../scripts/parallax.js";
 import {initHeadTrackingParallax} from "../scripts/head-tracking.js";
+import {refreshGlobalAudioPlayer, tryPlayGlobalAudio} from "../lib/global-audio-ui.js";
 
 export async function mount(container, params, data) {
 	const {slug} = params;
@@ -420,11 +421,13 @@ function handleAudio(src) {
 	if (!src) {
 		audio.pause();
 		audio.src = "";
+		refreshGlobalAudioPlayer();
 		return;
 	}
 	if (audio.src !== new URL(src, location.href).href) {
 		audio.src = src;
 	}
 	audio.loop = true;
-	audio.play().catch(() => {});
+	tryPlayGlobalAudio(audio);
+	refreshGlobalAudioPlayer();
 }
