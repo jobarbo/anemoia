@@ -23,6 +23,7 @@
  *       crtWarp:    { enabled: true, warpAmount: 0.32 },
  *       chromatic:  { enabled: true, amount: 0.0015 },
  *       colorQuantize: { enabled: true, levelsPerChannel: 32, blend: 1 },
+ *       dither: { enabled: false, ditherMode: 0, levels: 16, blend: 1 },
  *     },
  *   });
  * Or call applyEffectsConfig({ grain: { enabled: true } }) to append passes at runtime.
@@ -313,6 +314,28 @@ export class ShaderEffects {
 				},
 			},
 
+			// Ordered dither + quantize (single pass). uDitherMode: 0=Bayer4, 1=Bayer8, 2=hash, 3=lines, 4=clustered.
+			// uColorMode: 0=luma (keeps hue), 1=per RGB. Not: Floyd–Steinberg needs multi-pass.
+			dither: {
+				enabled: false,
+				ditherMode: 0.0,
+				levels: 16.0,
+				blend: 1.0,
+				strength: 1.0,
+				scale: 1.0,
+				colorMode: 0.0,
+				uniforms: {
+					uResolution: "[width, height]",
+					uDitherMode: "ditherMode",
+					uLevels: "levels",
+					uMix: "blend",
+					uStrength: "strength",
+					uScale: "scale",
+					uColorMode: "colorMode",
+					uSeed: "shaderSeed",
+				},
+			},
+
 			zoom: {
 				enabled: false,
 				zoomAmount: 0.0, // Static zoom level (1.0 = no zoom, 2.0 = 2x in, 0.5 = 2x out)
@@ -441,6 +464,7 @@ export class ShaderEffects {
 			this.shaderManager.loadShader("deform", "deform/fragment.frag", "deform/vertex.vert"),
 			this.shaderManager.loadShader("chromatic", "chromatic-aberration/fragment.frag", "chromatic-aberration/vertex.vert"),
 			this.shaderManager.loadShader("colorQuantize", "color-quantize/fragment.frag", "color-quantize/vertex.vert"),
+			this.shaderManager.loadShader("dither", "dither/fragment.frag", "dither/vertex.vert"),
 			this.shaderManager.loadShader("grain", "grain/fragment.frag", "grain/vertex.vert"),
 			this.shaderManager.loadShader("collage", "collage-rotate/fragment.frag", "collage-rotate/vertex.vert"),
 			this.shaderManager.loadShader("pixelSort", "pixel-sort/fragment.frag", "pixel-sort/vertex.vert"),

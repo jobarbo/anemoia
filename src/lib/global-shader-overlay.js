@@ -36,7 +36,7 @@ const DEFAULT_EFFECTS = {
 	},
 	pixelGrid: {
 		enabled: true,
-		gridCols: 640.0,
+		gridCols: 460.0,
 		gridRows: 420.0,
 		cellRatio: 1.0,
 		mode: 1.0,
@@ -44,17 +44,27 @@ const DEFAULT_EFFECTS = {
 		gapSize: 0.0,
 		gapBrightness: 1.0,
 	},
-
 	colorQuantize: {
 		enabled: true,
-		levelsPerChannel: 2.0,
-		blend: 0.5,
+		levelsPerChannel: 12.0,
+		blend: 1,
 	},
+	dither: {
+		enabled: true,
+		ditherMode: 1, // Bayer 8x8
+		levels: 1,
+		blend: 1,
+		strength: 1.0,
+		scale: 0.1,
+		colorMode: 0,
+	},
+
+	// Ordered dither (off by default — enable to avoid stacking with colorQuantize or tune both)
 
 	crtDisplay: {
 		enabled: true,
 		brightness: 0.0,
-		cellSize: 3.0,
+		cellSize: 2.0,
 		gapOpacity: 0.9,
 		rgbOpacity: 0.3,
 		rgbGain: [0.8, 1.0, 0.8],
