@@ -29,13 +29,10 @@ import {drawElementLikeObjectFit} from "./canvas-object-fit-draw.js";
 import {ShaderEffects} from "./p5/sketch-shaders.js";
 
 const DEFAULT_EFFECTS = {
-	pixelSort: {
+	chromatic: {
 		enabled: true,
-		sortAmount: 1.28,
-		sampleCount: 112.0,
-		sortMode: 4.0,
-		threshold: 0.8,
-		invert: 1.0,
+		amount: 0.0015,
+		timeMultiplier: 0.0,
 	},
 	pixelGrid: {
 		enabled: true,
@@ -43,47 +40,37 @@ const DEFAULT_EFFECTS = {
 		gridRows: 420.0,
 		cellRatio: 1.0,
 		mode: 1.0,
-		diffuse: 0.0,
+		diffuse: 1.0,
 		gapSize: 0.0,
 		gapBrightness: 1.0,
 	},
-	blur: {
+
+	colorQuantize: {
 		enabled: true,
-		blurAmount: 20.15,
-		blurMode: 1.0,
-		blurCenter: [0.5, 0.5],
-		blurRadius: 0.05,
-		blurStart: 0.86,
-		blurCrt: 1.0,
-		blurCrtPower: 789.0,
-		blurMin: 0,
+		levelsPerChannel: 2.0,
+		blend: 0.5,
 	},
-	chromatic: {
+
+	crtDisplay: {
 		enabled: true,
-		amount: 0.0035,
-		timeMultiplier: 0.0,
+		brightness: 0.0,
+		cellSize: 3.0,
+		gapOpacity: 0.9,
+		rgbOpacity: 0.3,
+		rgbGain: [0.8, 1.0, 0.8],
+		dotRadius: 0.8,
+		dotFalloff: 0.6,
+		filterMode: 0.0,
 	},
 	crtWarp: {
 		enabled: true,
 		warpAmount: 0.2,
 		aspectCorrect: 1.0,
 		borderColor: 2.0,
-		vignette: 0.5,
+		vignette: 0.05,
 		cornerSmooth: 0.015,
 		cornerRadius: 0.2,
 		boundsInset: 0.1,
-	},
-
-	crtDisplay: {
-		enabled: true,
-		brightness: 0.0,
-		cellSize: 2.0,
-		gapOpacity: 0.9,
-		rgbOpacity: 0.0,
-		rgbGain: [1.0, 1.0, 1.0],
-		dotRadius: 0.8,
-		dotFalloff: 0.6,
-		filterMode: 0.0,
 	},
 };
 

@@ -7,6 +7,8 @@ export class ShaderManager {
 		this.defaultVertexPath = null;
 		this.p5Instance = null;
 		this.basePath = "";
+		/** @type {WeakMap<object, Map<string, import("p5").Shader>>} p5.Graphics / sketch → per-pass shader clones */
+		this._shaderClonesByTarget = new WeakMap();
 	}
 
 	/**
@@ -16,7 +18,35 @@ export class ShaderManager {
 	init(p5Instance, basePath = "/library/shaders/") {
 		this.p5Instance = p5Instance;
 		this.basePath = basePath.endsWith("/") ? basePath : `${basePath}/`;
+		this._shaderClonesByTarget = new WeakMap();
 		return this;
+	}
+
+	/**
+	 * Shaders from loadShader() are bound to the main sketch renderer. Ping-pong passes use
+	 * separate WEBGL createGraphics contexts — use p5.Shader.copyToContext() per target (cached).
+	 * @param {string} name
+	 * @param {import("p5")|import("p5").Graphics|null} target
+	 */
+	_getShaderForTarget(name, target) {
+		const base = this.shaders[name];
+		if (!base) return null;
+
+		const dest = target ?? this.p5Instance;
+		// Same WebGL renderer as compile site — use original program
+		if (dest._renderer === base._renderer) {
+			return base;
+		}
+
+		let byName = this._shaderClonesByTarget.get(dest);
+		if (!byName) {
+			byName = new Map();
+			this._shaderClonesByTarget.set(dest, byName);
+		}
+		if (!byName.has(name)) {
+			byName.set(name, base.copyToContext(dest));
+		}
+		return byName.get(name);
 	}
 
 	setDefaultVertex(path) {
@@ -42,12 +72,12 @@ export class ShaderManager {
 	}
 
 	apply(name, uniforms = {}, target = null) {
-		if (!this.shaders[name]) {
+		const shader = this._getShaderForTarget(name, target);
+		if (!shader) {
 			console.error(`Shader "${name}" not found`);
 			return this;
 		}
 
-		const shader = this.shaders[name];
 		const ctx = target || this.p5Instance;
 		ctx.shader(shader);
 

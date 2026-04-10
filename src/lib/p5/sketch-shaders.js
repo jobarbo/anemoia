@@ -22,6 +22,7 @@
  *       crtDisplay: { enabled: true, cellSize: 2.0 },
  *       crtWarp:    { enabled: true, warpAmount: 0.32 },
  *       chromatic:  { enabled: true, amount: 0.0015 },
+ *       colorQuantize: { enabled: true, levelsPerChannel: 32, blend: 1 },
  *     },
  *   });
  * Or call applyEffectsConfig({ grain: { enabled: true } }) to append passes at runtime.
@@ -300,6 +301,18 @@ export class ShaderEffects {
 				},
 			},
 
+			// Per-channel color quantization (retro limited palette / few distinct RGB steps).
+			// levelsPerChannel: 8, 16, 32, 64 … = steps per R,G,B (not total screen palette size).
+			colorQuantize: {
+				enabled: false,
+				levelsPerChannel: 16.0,
+				blend: 1.0, // 0 = passthrough, 1 = full quantization
+				uniforms: {
+					uLevels: "levelsPerChannel",
+					uMix: "blend",
+				},
+			},
+
 			zoom: {
 				enabled: false,
 				zoomAmount: 0.0, // Static zoom level (1.0 = no zoom, 2.0 = 2x in, 0.5 = 2x out)
@@ -427,6 +440,7 @@ export class ShaderEffects {
 			this.shaderManager.loadShader("copy", "copy/fragment.frag", "copy/vertex.vert"),
 			this.shaderManager.loadShader("deform", "deform/fragment.frag", "deform/vertex.vert"),
 			this.shaderManager.loadShader("chromatic", "chromatic-aberration/fragment.frag", "chromatic-aberration/vertex.vert"),
+			this.shaderManager.loadShader("colorQuantize", "color-quantize/fragment.frag", "color-quantize/vertex.vert"),
 			this.shaderManager.loadShader("grain", "grain/fragment.frag", "grain/vertex.vert"),
 			this.shaderManager.loadShader("collage", "collage-rotate/fragment.frag", "collage-rotate/vertex.vert"),
 			this.shaderManager.loadShader("pixelSort", "pixel-sort/fragment.frag", "pixel-sort/vertex.vert"),
