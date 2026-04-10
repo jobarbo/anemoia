@@ -14,13 +14,15 @@
  *   export async function mount(container, params, data) { ... return { unmount } }
  *
  * Transition:
- *   The overlay exposes setTransitionAlpha(0..1). Router fades to black (alpha=1),
- *   swaps scene content, then fades back (alpha=0). Shader runs uninterrupted.
+ *   GlobalShaderOverlay runs a CRT-style beam collapse (power off), the router swaps
+ *   the DOM inside #game-container, then a beam expand (power on). Shader runs uninterrupted.
  */
 
 import {getNeighborhoods, getStory} from "./scene-data.js";
 
-const FADE_DURATION_MS = 300;
+/** Vertical phosphor “tube off / on” timing — feels like old CRT input switching */
+const CRT_OUT_MS = 220;
+const CRT_IN_MS = 260;
 
 /** @type {SceneRouter | null} */
 let _instance = null;
@@ -77,8 +79,11 @@ export class SceneRouter {
 		if (this._transitioning) return;
 		this._transitioning = true;
 
-		// Fade out
-		await this._overlay.fadeTransition(1, FADE_DURATION_MS);
+		const hadScene = Boolean(this._current);
+
+		if (hadScene) {
+			await this._overlay.crtSceneTransition("out", CRT_OUT_MS);
+		}
 
 		// Unmount previous scene
 		if (this._current) {
@@ -121,10 +126,12 @@ export class SceneRouter {
 		this._overlay.setContainer(this._container);
 
 		this._current = {route, params, unmount: unmountFn};
-		this._transitioning = false;
 
-		// Fade in
-		await this._overlay.fadeTransition(0, FADE_DURATION_MS);
+		if (hadScene) {
+			await this._overlay.crtSceneTransition("in", CRT_IN_MS);
+		}
+
+		this._transitioning = false;
 	}
 }
 

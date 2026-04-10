@@ -1,7 +1,5 @@
 @use "base/reset";
 @use "base/typography";
-// Scene component styles — imported globally since SceneRenderer/SceneLayer/InteractiveZone
-// Astro components are no longer used (neighborhood is built in JS via neighborhood-scene.js).
 @use "component/scene-renderer";
 @use "component/scene-layer";
 @use "component/interactive-zone";

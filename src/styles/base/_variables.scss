@@ -1,4 +1,5 @@
-$color-bg: rgb(195, 239, 255);
+// SPA + shader overlay: keep viewport black — light bg caused visible flashes between scenes
+$color-bg: #000000;
 $color-text: #333;
 $color-accent: teal;
 

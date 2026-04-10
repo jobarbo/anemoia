@@ -85,8 +85,6 @@ const DEFAULT_EFFECTS = {
 		colorMode: 1,
 	},
 
-	// Ordered dither (off by default — enable to avoid stacking with colorQuantize or tune both)
-
 	crtDisplay: {
 		enabled: true,
 		brightness: 0.5,
@@ -101,7 +99,7 @@ const DEFAULT_EFFECTS = {
 	crtWarp: {
 		enabled: true,
 		warpAmount: 0.2,
-		aspectCorrect: 1.0,
+		aspectCorrect: 0.0,
 		borderColor: 2.0,
 		vignette: 0.05,
 		cornerSmooth: 0.015,
@@ -179,8 +177,9 @@ function compositeFlatRaster(container, ctx, w, h) {
  * @param {HTMLCanvasElement|null} domSnapshotCanvas - from html-to-image when [data-dom-snapshot]
  */
 function compositeGameScreen(container, ctx, w, h, domSnapshotCanvas) {
-	const bg = getComputedStyle(document.body).backgroundColor;
-	ctx.fillStyle = bg && bg !== "rgba(0, 0, 0, 0)" ? bg : "#000";
+	// Always clear to black — body can be themed separately; light clears caused visible flashes
+	// when swapping scenes before the next canvas frame is captured.
+	ctx.fillStyle = "#000000";
 	ctx.fillRect(0, 0, w, h);
 
 	if (container.querySelector(".scene__layer-container")) {
@@ -190,6 +189,96 @@ function compositeGameScreen(container, ctx, w, h, domSnapshotCanvas) {
 	} else {
 		compositeFlatRaster(container, ctx, w, h);
 	}
+}
+
+const smoothstep = (x) => x * x * (3 - 2 * x);
+
+/**
+ * CRT-style beam collapse / expand (vertical squash), then fade to black on power-off.
+ * Draws into `dest` from `raw` (same dimensions).
+ *
+ * @param {p5.Graphics} raw
+ * @param {p5.Graphics} dest
+ * @param {number} t - 0..1 animation progress
+ * @param {"out"|"in"} direction
+ */
+function applyCrtBeamTransition(raw, dest, t, direction) {
+	const w = dest.width;
+	const h = dest.height;
+	const sctx = dest.drawingContext;
+	const src = /** @type {HTMLCanvasElement} */ (raw.elt);
+	// p5 sets canvas bitmap size = logical size × pixelDensity — source rect must use actual
+	// bitmap dimensions or drawImage only samples the top-left quadrant (zoomed / misaligned).
+	const sw = src.width;
+	const sh = src.height;
+
+	sctx.save();
+	sctx.fillStyle = "#000000";
+	sctx.fillRect(0, 0, w, h);
+
+	if (direction === "out") {
+		// Power off: image squashes to a thin phosphor line, then fades to black
+		let hRatio;
+		let blackout = 0;
+		if (t < 0.78) {
+			const u = t / 0.78;
+			const e = smoothstep(u);
+			hRatio = 1 - e * (1 - 0.024);
+		} else {
+			const u = (t - 0.78) / 0.22;
+			const e = smoothstep(u);
+			hRatio = 0.024 * (1 - e);
+			blackout = e;
+		}
+
+		const dh = Math.max(1, h * hRatio);
+		const y0 = (h - dh) / 2;
+		sctx.imageSmoothingEnabled = true;
+		sctx.drawImage(src, 0, 0, sw, sh, 0, y0, w, dh);
+
+		if (hRatio < 0.1 && hRatio > 0.002) {
+			sctx.globalCompositeOperation = "screen";
+			const glow = Math.min(0.55, (0.1 - hRatio) / 0.1);
+			sctx.fillStyle = `rgba(130, 255, 170, ${glow * 0.42})`;
+			sctx.fillRect(0, y0, w, dh);
+			sctx.globalCompositeOperation = "source-over";
+		}
+
+		if (blackout > 0) {
+			sctx.globalAlpha = blackout;
+			sctx.fillStyle = "#000000";
+			sctx.fillRect(0, 0, w, h);
+			sctx.globalAlpha = 1;
+		}
+	} else {
+		// Power on: faint line expands; ease-out so it “warms up” like a CRT waking
+		const easeOut = (x) => 1 - (1 - x) ** 3;
+		const pre = 0.07;
+		let u = (t - pre) / (1 - pre);
+		if (t < pre) {
+			u = 0;
+		}
+		u = Math.max(0, Math.min(1, u));
+		const e = easeOut(u);
+		const hRatio = 0.02 + e * (1 - 0.02);
+		const fadeIn = Math.min(1, t / 0.14);
+
+		const dh = Math.max(1, h * hRatio);
+		const y0 = (h - dh) / 2;
+		sctx.globalAlpha = fadeIn;
+		sctx.imageSmoothingEnabled = true;
+		sctx.drawImage(src, 0, 0, sw, sh, 0, y0, w, dh);
+		sctx.globalAlpha = 1;
+
+		if (hRatio < 0.14) {
+			sctx.globalCompositeOperation = "screen";
+			sctx.fillStyle = "rgba(120, 240, 160, 0.18)";
+			sctx.fillRect(0, y0, w, dh);
+			sctx.globalCompositeOperation = "source-over";
+		}
+	}
+
+	sctx.restore();
 }
 
 /** z-index string for the overlay canvas; reads --game-shader-overlay-z from :root */
@@ -212,8 +301,12 @@ export class GlobalShaderOverlay {
 		this._p5Instance = null;
 		/** @type {p5.Graphics|null} P2D buffer — compositor draws here */
 		this._captureBuffer = null;
+		/** @type {p5.Graphics|null} Unprocessed composite; CRT transition reads from here into _captureBuffer */
+		this._rawComposite = null;
 		/** @type {p5.Graphics|null} WEBGL buffer — receives P2D, fed to shader pipeline */
 		this._webglBuffer = null;
+		/** @type {{ direction: 'out'|'in', startTime: number, durationMs: number, resolve: () => void } | null} */
+		this._crtTransition = null;
 		/** @type {HTMLElement|null} */
 		this._scrollContainer = null;
 		/** @type {boolean} */
@@ -249,8 +342,10 @@ export class GlobalShaderOverlay {
 				const w = window.innerWidth;
 				const h = window.innerHeight;
 
-				// P2D buffer: compositor draws here via Canvas2D drawImage()
+				// P2D buffer: final pre-shader frame (after optional CRT pass)
 				self._captureBuffer = sketch.createGraphics(w, h);
+				// Raw composite from DOM/canvas before CRT beam effect
+				self._rawComposite = sketch.createGraphics(w, h);
 				// WEBGL buffer: receives P2D content via p5 image(), used as shader uTexture
 				self._webglBuffer = sketch.createGraphics(w, h, sketch.WEBGL);
 
@@ -279,16 +374,32 @@ export class GlobalShaderOverlay {
 				// Run compositor every N frames — fast enough for smooth-looking updates,
 				// light enough (5-20ms) to not interfere with the 60fps shader loop
 				if (self._frameCount % COMPOSITE_EVERY_N_FRAMES === 0) {
-					compositeGameScreen(self._scrollContainer, self._captureBuffer.drawingContext, self._captureBuffer.width, self._captureBuffer.height, self._domSnapshotCanvas);
+					const cw = self._captureBuffer.width;
+					const ch = self._captureBuffer.height;
 
-					// Transition overlay: black rect drawn onto capture buffer before shader pass
-					if (self._transitionAlpha > 0) {
-						const ctx = self._captureBuffer.drawingContext;
-						ctx.save();
-						ctx.globalAlpha = self._transitionAlpha;
-						ctx.fillStyle = "#000";
-						ctx.fillRect(0, 0, self._captureBuffer.width, self._captureBuffer.height);
-						ctx.restore();
+					compositeGameScreen(self._scrollContainer, self._rawComposite.drawingContext, cw, ch, self._domSnapshotCanvas);
+
+					if (self._crtTransition) {
+						const tr = self._crtTransition;
+						const elapsed = performance.now() - tr.startTime;
+						const t = Math.min(1, elapsed / tr.durationMs);
+						applyCrtBeamTransition(self._rawComposite, self._captureBuffer, t, tr.direction);
+						if (t >= 1) {
+							const {resolve, direction} = tr;
+							self._crtTransition = null;
+							self._transitionAlpha = direction === "out" ? 1 : 0;
+							queueMicrotask(resolve);
+						}
+					} else {
+						self._captureBuffer.image(self._rawComposite, 0, 0, cw, ch);
+						if (self._transitionAlpha > 0) {
+							const ctx = self._captureBuffer.drawingContext;
+							ctx.save();
+							ctx.globalAlpha = self._transitionAlpha;
+							ctx.fillStyle = "#000000";
+							ctx.fillRect(0, 0, cw, ch);
+							ctx.restore();
+						}
 					}
 
 					self._captureReady = true;
@@ -309,6 +420,7 @@ export class GlobalShaderOverlay {
 				const w = window.innerWidth;
 				const h = window.innerHeight;
 				self._captureBuffer.resizeCanvas(w, h);
+				self._rawComposite.resizeCanvas(w, h);
 				self._webglBuffer.resizeCanvas(w, h);
 				sketch.resizeCanvas(w, h);
 				self._domSnapshotCanvas = null;
@@ -344,6 +456,9 @@ export class GlobalShaderOverlay {
 	 * @param {number} durationMs
 	 * @returns {Promise<void>}
 	 */
+	/**
+	 * Simple linear fade to/from black (legacy). Prefer {@link crtSceneTransition} for scene changes.
+	 */
 	fadeTransition(target, durationMs) {
 		return new Promise((resolve) => {
 			const start = performance.now();
@@ -364,6 +479,28 @@ export class GlobalShaderOverlay {
 		});
 	}
 
+	/**
+	 * CRT-style scene change: vertical beam collapse (power off) or expand (power on).
+	 * Resolves when the animation completes. Shader pipeline keeps running; only the CPU composite changes.
+	 *
+	 * @param {"out"|"in"} direction - `out` = old screen shuts down; `in` = new screen warms up
+	 * @param {number} durationMs
+	 * @returns {Promise<void>}
+	 */
+	crtSceneTransition(direction, durationMs) {
+		return new Promise((resolve) => {
+			if (direction === "in") {
+				this._transitionAlpha = 0;
+			}
+			this._crtTransition = {
+				direction,
+				startTime: performance.now(),
+				durationMs,
+				resolve,
+			};
+		});
+	}
+
 	destroy() {
 		this._destroyed = true;
 
@@ -373,6 +510,8 @@ export class GlobalShaderOverlay {
 		}
 
 		this._captureBuffer = null;
+		this._rawComposite = null;
+		this._crtTransition = null;
 		this._webglBuffer = null;
 		this._scrollContainer = null;
 		this._captureReady = false;

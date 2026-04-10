@@ -94,6 +94,15 @@ export async function mount(container, params, data) {
 	// ── Distribute slotted content into layer outlets ────────────────────────
 	distributeSlottedContent(scene);
 
+	// Images / videos / mask PNGs must be ready before CRT “tube on” (router runs after mount returns)
+	await waitForNeighborhoodAssets(scene);
+
+	// PSD bottom alignment — scroll height is meaningful only after bitmaps decoded
+	if (container.scrollHeight > container.clientHeight) {
+		container.scrollTop = container.scrollHeight;
+	}
+	await waitFrames(2);
+
 	// ── Mount snow p5 sketch ─────────────────────────────────────────────────
 	let snowInstance = null;
 	const snowEl = scene.querySelector("[data-sketch-container]");
@@ -105,13 +114,6 @@ export async function mount(container, params, data) {
 
 	// ── Parallax ──────────────────────────────────────────────────────────────
 	const layers = scene.querySelectorAll(".scene__layer-container");
-
-	// Scroll to bottom (PSD bottom alignment)
-	requestAnimationFrame(() => {
-		if (container.scrollHeight > container.clientHeight) {
-			container.scrollTop = container.scrollHeight;
-		}
-	});
 
 	let cleanupParallax = () => {};
 	const scrollCleanup = initScrollParallax(layers, container);
@@ -273,6 +275,7 @@ function createLayerMedia(layer, parentLayer, scenePath) {
 		el.alt = layer.name;
 	}
 	wrapper.appendChild(el);
+	wrapper.dataset.maskSrc = clipMaskPath;
 	return wrapper;
 }
 
@@ -332,6 +335,80 @@ function distributeSlottedContent(scene) {
 		if (!targetName) return;
 		const target = scene.querySelector(`[data-slot-outlet="${targetName}"]`);
 		if (target) target.appendChild(child);
+	});
+}
+
+/** @param {number} n */
+async function waitFrames(n) {
+	for (let i = 0; i < n; i++) {
+		await new Promise((r) => requestAnimationFrame(r));
+	}
+}
+
+/**
+ * Wait until layer images/videos and CSS mask PNGs are loaded so the CRT “tube on”
+ * reveals a fully laid-out scene (router runs transition after mount resolves).
+ *
+ * @param {HTMLElement} scene
+ */
+async function waitForNeighborhoodAssets(scene) {
+	const imgs = /** @type {HTMLImageElement[]} */ ([...scene.querySelectorAll("img")]);
+	const videos = /** @type {HTMLVideoElement[]} */ ([...scene.querySelectorAll("video")]);
+	const maskEls = [...scene.querySelectorAll("[data-mask-src]")];
+	const maskUrls = [...new Set(maskEls.map((el) => el.dataset.maskSrc).filter(Boolean))];
+
+	const imgTasks = imgs.map((img) => whenImageReady(img));
+	const videoTasks = videos.map((v) => whenVideoReady(v));
+	const maskTasks = maskUrls.map((url) => preloadImageUrl(url));
+
+	await Promise.all([...imgTasks, ...videoTasks, ...maskTasks]);
+}
+
+/** @param {HTMLImageElement} img */
+function whenImageReady(img) {
+	if (!img.src) return Promise.resolve();
+	if (img.complete) {
+		return decodeImageSafe(img);
+	}
+	return new Promise((resolve) => {
+		img.addEventListener(
+			"load",
+			() => {
+				void decodeImageSafe(img).finally(() => resolve());
+			},
+			{once: true}
+		);
+		img.addEventListener("error", () => resolve(), {once: true});
+	});
+}
+
+/** @param {HTMLImageElement} img */
+async function decodeImageSafe(img) {
+	try {
+		if (img.naturalWidth > 0 && "decode" in img) {
+			await /** @type {HTMLImageElement & {decode(): Promise<void>}} */ (img).decode();
+		}
+	} catch {
+		/* decode can fail for broken images — still resolve */
+	}
+}
+
+/** @param {HTMLVideoElement} v */
+function whenVideoReady(v) {
+	if (v.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) return Promise.resolve();
+	return new Promise((resolve) => {
+		v.addEventListener("loadeddata", () => resolve(), {once: true});
+		v.addEventListener("error", () => resolve(), {once: true});
+	});
+}
+
+/** @param {string} url */
+function preloadImageUrl(url) {
+	return new Promise((resolve) => {
+		const im = new Image();
+		im.onload = () => resolve();
+		im.onerror = () => resolve();
+		im.src = url;
 	});
 }
 
