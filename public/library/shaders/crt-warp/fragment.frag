@@ -5,22 +5,32 @@ varying vec2 vTexCoord;
 uniform sampler2D uTexture;
 uniform vec2 uResolution;
 uniform float uWarpAmount;      // Barrel distortion strength (0.0 = flat, ~0.3-0.5 = subtle TV, ~1.0+ = heavy)
+uniform float uAspectCorrect;   // 0.0 = barrel in UV space; 1.0 = radial distance uses pixel aspect (w/h)
 uniform float uCornerRadius;    // Corner rounding/vignette darkness (0.0 = no darkening, 1.0 = full black corners)
 uniform float uCornerSmooth;    // Softness of corner fade (higher = softer edge)
-uniform float uBorderColor;     // 0.0 = black border outside screen, 1.0 = mirror/repeat
+uniform float uBorderColor;     // 0.0 = black border, 1.0 = clamp to edge, 2.0 = infinite mirror
 uniform float uVignette;        // Overall vignette intensity (0.0 = none, 1.0 = strong edge darkening)
 
 // Barrel distortion: bends UVs outward from center like a CRT tube
-vec2 barrelDistortion(vec2 uv, float amount) {
+// Corners stay on canvas boundaries — normalization uses corner r² (0.5 in UV space, aspect-adjusted when uAspectCorrect)
+vec2 barrelDistortion(vec2 uv, float amount, vec2 resolution, float aspectCorrect) {
 	vec2 centered = uv - 0.5;
+	float aspect = resolution.x / max(resolution.y, 1.0);
+	float cornerR2 = 0.5;
 
-	// Distance from center
+	if (aspectCorrect > 0.5) {
+		centered.x *= aspect;
+		cornerR2 = 0.25 * (aspect * aspect + 1.0);
+	}
+
 	float r2 = dot(centered, centered);
-
-	// Barrel distortion formula
 	float distortion = 1.0 + r2 * amount;
+	float cornerDistortion = 1.0 + cornerR2 * amount;
+	vec2 distorted = centered * (distortion / cornerDistortion);
 
-	vec2 distorted = centered * distortion;
+	if (aspectCorrect > 0.5) {
+		distorted.x /= aspect;
+	}
 
 	return distorted + 0.5;
 }
@@ -41,31 +51,27 @@ float screenMask(vec2 uv, float radius, float smoothness) {
 void main() {
 	vec2 uv = vTexCoord;
 
-	// Apply barrel distortion
-	vec2 warpedUV = barrelDistortion(uv, uWarpAmount);
-
-	// Check if warped UVs are outside the texture
-	bool outsideBounds = warpedUV.x < 0.0 || warpedUV.x > 1.0 || warpedUV.y < 0.0 || warpedUV.y > 1.0;
+	vec2 warpedUV = barrelDistortion(uv, uWarpAmount, uResolution, uAspectCorrect);
 
 	vec4 color;
-	if (outsideBounds) {
-		if (uBorderColor > 0.5) {
-			// Mirror mode: clamp to edge
-			vec2 clampedUV = clamp(warpedUV, 0.0, 1.0);
-			color = texture2D(uTexture, clampedUV);
-		} else {
-			// Black border
-			color = vec4(0.0, 0.0, 0.0, 1.0);
-		}
+	if (uBorderColor > 1.5) {
+		// Infinite mirror: abs(mod(uv+1,2)-1) is identity inside [0,1], mirrors outside.
+		vec2 mirroredUV = abs(mod(warpedUV + 1.0, 2.0) - 1.0);
+		color = texture2D(uTexture, mirroredUV);
+	} else if (uBorderColor > 0.5) {
+		color = texture2D(uTexture, clamp(warpedUV, 0.0, 1.0));
 	} else {
-		color = texture2D(uTexture, warpedUV);
+		bool outsideBounds = warpedUV.x < 0.0 || warpedUV.x > 1.0 || warpedUV.y < 0.0 || warpedUV.y > 1.0;
+		if (outsideBounds) {
+			color = vec4(0.0, 0.0, 0.0, 1.0);
+		} else {
+			color = texture2D(uTexture, warpedUV);
+		}
 	}
 
-	// Corner darkening (rounded rectangle mask)
 	float mask = screenMask(uv, uCornerRadius, max(uCornerSmooth, 0.001));
 	color.rgb *= mask;
 
-	// Vignette (subtle edge darkening based on distance from center)
 	if (uVignette > 0.0) {
 		vec2 vignetteUV = uv * 2.0 - 1.0;
 		float vignette = 1.0 - dot(vignetteUV, vignetteUV) * uVignette * 0.5;

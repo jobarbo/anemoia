@@ -20,7 +20,7 @@
  *
  * Per-sketch filters (only this file’s defaults are merged):
  *   new ShaderEffects({
- *     effects: { crtWarp: { enabled: true, warpAmount: 0.5 }, grain: { enabled: true, amount: 0.04 } },
+ *     effects: { crtWarp: { enabled: true, warpAmount: 0.5, aspectCorrect: 1.0 }, grain: { enabled: true, amount: 0.04 } },
  *   });
  * Or call applyEffectsConfig({ pixelSort: { enabled: true } }) after changing presets at runtime.
  */
@@ -46,6 +46,13 @@ function mergeEffectsConfig(target, patch) {
 				existing.uniforms = {...existing.uniforms, ...v};
 			} else if (v !== undefined) {
 				existing[k] = v;
+			}
+		}
+		if (name === "crtWarp" && Object.prototype.hasOwnProperty.call(delta, "borderMode") && delta.borderMode !== undefined) {
+			const modes = {black: 0, clamp: 1, mirror: 2};
+			const key = String(delta.borderMode).toLowerCase();
+			if (key in modes) {
+				existing.borderColor = modes[key];
 			}
 		}
 	}
@@ -306,16 +313,19 @@ export class ShaderEffects {
 				},
 			},
 
+			// crtWarp: borderColor 0 / 1 / 2 → black / clamp / mirror. Patch may use borderMode: "black"|"clamp"|"mirror" instead.
 			crtWarp: {
 				enabled: false,
-				warpAmount: 0.74, // Barrel distortion (0.0 = flat, 0.3-0.5 = subtle TV, 1.0+ = heavy)
-				cornerRadius: 0.0, // Corner rounding (0.0 = square, 0.1 = slight rounding)
-				cornerSmooth: 0.0, // Softness of corner fade
-				borderColor: 1.0, // 0.0 = black outside, 1.0 = mirror/clamp
-				vignette: 0.5, // Edge darkening (0.0 = none, 1.0 = strong)
+				warpAmount: 0.74, // Barrel; corners stay on [0,1] — tune by eye vs older shaders
+				aspectCorrect: 1.0, // 1 = radial warp uses pixel aspect (non-square); 0 = UV-square legacy
+				cornerRadius: 0.0,
+				cornerSmooth: 0.0,
+				borderColor: 1.0,
+				vignette: 0.5,
 				uniforms: {
 					uResolution: "[width, height]",
 					uWarpAmount: "warpAmount",
+					uAspectCorrect: "aspectCorrect",
 					uCornerRadius: "cornerRadius",
 					uCornerSmooth: "cornerSmooth",
 					uBorderColor: "borderColor",
@@ -438,7 +448,7 @@ export class ShaderEffects {
 
 	/**
 	 * Merge preset toggles/params from a sketch file (or runtime). Rebuilds pipeline if already set up.
-	 * @param {Record<string, object>} patch - e.g. { crtWarp: { enabled: true, vignette: 0.6 } }
+	 * @param {Record<string, object>} patch - e.g. { crtWarp: { enabled: true, vignette: 0.6, borderMode: "mirror" } }
 	 */
 	applyEffectsConfig(patch) {
 		mergeEffectsConfig(this.effectsConfig, patch);
