@@ -14,7 +14,7 @@
  * Captured frame-perfectly by GlobalShaderOverlay via flat mode (drawImage on canvas).
  */
 
-import {navigate} from "astro:transitions/client";
+import {sceneNavigate} from "../lib/scene-nav.js";
 import {THEME, drawScanLines, drawVignette, drawTitleAberration, drawButton, hitTest, tickBlink} from "../lib/retro-theme.js";
 
 export default function (container) {
@@ -37,9 +37,6 @@ export default function (container) {
 		let blinkVisible = true;
 		let lastBlink = 0;
 
-		/** Map image (optional — loaded async; placeholder until ready). */
-		let mapImg = null;
-
 		sketch.setup = () => {
 			const w = window.innerWidth;
 			const h = window.innerHeight;
@@ -48,17 +45,6 @@ export default function (container) {
 			artBuffer = sketch.createGraphics(w, h);
 			artBuffer.noStroke();
 			artBuffer.textFont(THEME.FONT);
-
-			// p5 v2 disables sketch.preload — load assets here instead.
-			sketch.loadImage(
-				"/assets/scenes/overworld/map.png",
-				(img) => {
-					mapImg = img;
-				},
-				() => {
-					/* 404 or load error — keep mapImg null, placeholder grid draws */
-				},
-			);
 		};
 
 		sketch.draw = () => {
@@ -83,12 +69,8 @@ export default function (container) {
 			const mapW = w - mapPad * 2;
 			const mapH = h - titleH - footerH;
 
-			if (mapImg) {
-				artBuffer.image(mapImg, mapX, mapY, mapW, mapH);
-			} else {
-				// Placeholder grid — retro terminal map
-				drawMapPlaceholder(artBuffer, mapX, mapY, mapW, mapH, sketch);
-			}
+			// Retro terminal placeholder grid (no map image)
+			drawMapPlaceholder(artBuffer, mapX, mapY, mapW, mapH, sketch);
 
 			// ── Title ─────────────────────────────────────────────────────────────
 			const titleSz = w * 0.032;
@@ -152,12 +134,12 @@ export default function (container) {
 
 			for (const rect of pinRects) {
 				if (hitTest(mx, my, rect)) {
-					navigate(`/neighborhood/${rect.slug}`);
+					sceneNavigate("neighborhood", {slug: rect.slug});
 					return;
 				}
 			}
 			if (backRect && hitTest(mx, my, backRect)) {
-				navigate("/");
+				sceneNavigate("splash");
 			}
 		};
 

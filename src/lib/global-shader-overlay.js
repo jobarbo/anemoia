@@ -228,6 +228,8 @@ export class GlobalShaderOverlay {
 		this._domSnapshotInFlight = false;
 		/** @type {number} performance.now() when a DOM snapshot was last *started* (throttles retries) */
 		this._lastDomSnapshotStartedAt = 0;
+		/** @type {number} 0 = fully visible, 1 = fully black (used for scene transitions) */
+		this._transitionAlpha = 0;
 	}
 
 	/**
@@ -278,6 +280,17 @@ export class GlobalShaderOverlay {
 				// light enough (5-20ms) to not interfere with the 60fps shader loop
 				if (self._frameCount % COMPOSITE_EVERY_N_FRAMES === 0) {
 					compositeGameScreen(self._scrollContainer, self._captureBuffer.drawingContext, self._captureBuffer.width, self._captureBuffer.height, self._domSnapshotCanvas);
+
+					// Transition overlay: black rect drawn onto capture buffer before shader pass
+					if (self._transitionAlpha > 0) {
+						const ctx = self._captureBuffer.drawingContext;
+						ctx.save();
+						ctx.globalAlpha = self._transitionAlpha;
+						ctx.fillStyle = "#000";
+						ctx.fillRect(0, 0, self._captureBuffer.width, self._captureBuffer.height);
+						ctx.restore();
+					}
+
 					self._captureReady = true;
 				}
 
@@ -305,6 +318,50 @@ export class GlobalShaderOverlay {
 		};
 
 		this._p5Instance = new p5(sketchFn);
+	}
+
+	/**
+	 * Change the composited container without destroying the shader pipeline.
+	 * Called by SceneRouter after each scene swap.
+	 *
+	 * @param {HTMLElement} newContainer
+	 */
+	setContainer(newContainer) {
+		this._scrollContainer = newContainer;
+		// Reset DOM snapshot state — irrelevant for canvas-only scenes
+		this._domSnapshotCanvas = null;
+		this._domSnapshotInFlight = false;
+		this._lastDomSnapshotStartedAt = 0;
+		this._captureReady = false;
+	}
+
+	/**
+	 * Animate _transitionAlpha to `target` over `durationMs` milliseconds.
+	 * Resolves when the animation is complete.
+	 * The draw loop reads _transitionAlpha and overlays a black rect on the output.
+	 *
+	 * @param {number} target - 0 (visible) or 1 (black)
+	 * @param {number} durationMs
+	 * @returns {Promise<void>}
+	 */
+	fadeTransition(target, durationMs) {
+		return new Promise((resolve) => {
+			const start = performance.now();
+			const from = this._transitionAlpha;
+			const self = this;
+
+			const tick = (now) => {
+				const t = Math.min(1, (now - start) / durationMs);
+				self._transitionAlpha = from + (target - from) * t;
+				if (t < 1) {
+					requestAnimationFrame(tick);
+				} else {
+					self._transitionAlpha = target;
+					resolve();
+				}
+			};
+			requestAnimationFrame(tick);
+		});
 	}
 
 	destroy() {

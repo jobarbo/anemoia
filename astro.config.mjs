@@ -18,5 +18,9 @@ export default defineConfig({
 		optimizeDeps: {
 			include: ["locomotive-scroll", "gsap", "gsap/ScrollTrigger", "p5", "ml5"],
 		},
+		server: {
+			// SPA fallback: serve index.html for all unmatched routes in dev
+			historyApiFallback: true,
+		},
 	},
 });

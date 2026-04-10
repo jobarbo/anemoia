@@ -1,21 +1,18 @@
 ---
 /**
- * SPA shell — single page that hosts all scenes.
+ * SPA catch-all for static hosting.
  *
- * The GlobalShaderOverlay is mounted ONCE on #game-container and never destroyed.
- * Scene transitions happen by swapping content inside the container while the
- * shader pipeline keeps running — eliminating the "flash of unfiltered content".
+ * Static hosts (Netlify, Vercel, GitHub Pages, etc.) serve this page
+ * for any URL that doesn't match a static file. The SPA router reads
+ * location.pathname at boot and mounts the correct scene.
  *
- * All content data (neighborhoods, stories) is embedded as JSON at build time
- * so the client-side scene router can access it without extra fetches.
+ * This is identical in function to index.html — the router handles routing.
  */
 import GameLayout from "../layouts/GameLayout.astro";
 import {getCollection} from "astro:content";
 
 const neighborhoods = await getCollection("neighborhoods");
 const storiesCollection = await getCollection("stories");
-
-// ── Serialize story blocks at build time ─────────────────────────────────────
 
 function parseMarkdownBlocks(md) {
 	const blocks = [];
@@ -74,10 +71,7 @@ const gameData = {
 ---
 
 <GameLayout title="Anemoia">
-	<!-- SPA game container: shader overlay composites this element continuously -->
 	<main id='game-container' data-game-screen='splash'></main>
-
-	<!-- Content data embedded at build time for scene-data.js -->
 	<script type='application/json' id='game-data' set:html={JSON.stringify(gameData)}></script>
 </GameLayout>
 
@@ -86,12 +80,9 @@ const gameData = {
 	import {SceneRouter} from "../lib/scene-router.js";
 
 	const container = document.getElementById("game-container") as HTMLElement;
-
-	// Mount overlay ONCE — never destroyed during the session
 	const overlay = new GlobalShaderOverlay();
 	overlay.mount(container);
 
-	// Boot the router — reads current URL and mounts the correct scene
 	const router = new SceneRouter({container, overlay});
 	router.bootFromUrl();
 </script>

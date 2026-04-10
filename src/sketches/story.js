@@ -22,7 +22,7 @@
  */
 
 import gsap from "gsap";
-import {navigate} from "astro:transitions/client";
+import {sceneNavigate} from "../lib/scene-nav.js";
 import {THEME, drawScanLines, drawVignette, drawTitleAberration, drawButton, hitTest, tickBlink} from "../lib/retro-theme.js";
 
 export default function (container) {
@@ -137,7 +137,7 @@ export default function (container) {
 
 		sketch.mousePressed = () => {
 			if (backRect && hitTest(sketch.mouseX, sketch.mouseY, backRect)) {
-				navigate(`/neighborhood/${neighborhood}`);
+				sceneNavigate("neighborhood", {slug: neighborhood});
 			}
 		};
 
