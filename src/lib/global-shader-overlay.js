@@ -49,7 +49,7 @@ function domCompositeFilter(domNode) {
 
 const DEFAULT_EFFECTS = {
 	chromatic: {
-		enabled: false,
+		enabled: true,
 		amount: 0.0005,
 		timeMultiplier: 0.0,
 	},
@@ -63,60 +63,61 @@ const DEFAULT_EFFECTS = {
 		gapSize: 0.0,
 		gapBrightness: 1.0,
 	},
-	zoom: {
-		enabled: true,
-		zoomAmount: 0.75,
-		zoomSpeed: 0.8,
-		animateZoom: 0.0,
-		easingMode: 4.0,
-	},
+
 	colorQuantize: {
 		enabled: false,
-		levelsPerChannel: 12.0,
+		levelsPerChannel: 8.0,
 		blend: 1,
 	},
 	dither: {
 		enabled: true,
-		ditherMode: 1, // Bayer 8x8
+		ditherMode: 0, // Bayer 8x8
 		levels: 8,
 		blend: 1,
 		strength: 1.0,
 		scale: 0.1,
 		colorMode: 1,
 	},
-
+	zoom: {
+		enabled: true,
+		zoomAmount: 0.9,
+		zoomSpeed: 0.8,
+		animateZoom: 0.0,
+		easingMode: 4.0,
+	},
 	crtDisplay: {
 		enabled: true,
 		brightness: 0.0,
-		cellSize: 2.0,
-		gapOpacity: 0.0,
+		cellSize: 3.0,
+		gapOpacity: 0.9,
 		rgbOpacity: 0.0,
 		rgbGain: [1.0, 1.0, 1.0],
 		dotRadius: 0.8,
-		dotFalloff: 0.6,
+		dotFalloff: 0.5,
 		filterMode: 0.0,
+	},
+
+	crtWarp: {
+		enabled: true,
+		warpAmount: 0.2,
+		aspectCorrect: 0.0,
+		borderColor: 2.0,
+		vignette: 0.0,
+		cornerSmooth: 0.015,
+		cornerRadius: 0.2,
+		boundsInset: 0.05,
 	},
 
 	blur: {
 		enabled: true,
 		blurAmount: 10.0,
-		blurQuality: 10.0,
+		blurQuality: 40.0,
 		blurDirection: 0,
 		blurCenter: [0.5, 0.5],
 		blurStart: 0.586,
 		blurCrt: 1.0,
 		blurCrtPower: 10.0,
 		blurMin: 0.0,
-	},
-	crtWarp: {
-		enabled: true,
-		warpAmount: 0.2,
-		aspectCorrect: 1.0,
-		borderColor: 2.0,
-		vignette: 0.0,
-		cornerSmooth: 0.015,
-		cornerRadius: 0.2,
-		boundsInset: 0.12,
 	},
 };
 
