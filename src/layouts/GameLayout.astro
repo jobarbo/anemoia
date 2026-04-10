@@ -15,7 +15,7 @@ const {title = "Anemoia", audioSrc} = Astro.props;
 		<ClientRouter />
 	</head>
 	<body>
-		<canvas id='ht-debug' style='display:none;position:fixed;top:1rem;right:1rem;z-index:9999;border:2px solid #0f0;border-radius:4px;box-shadow:0 0 12px rgba(0,255,0,.4)'></canvas>
+		<canvas id='ht-debug' data-html2canvas-ignore='true' style='display:none;position:fixed;top:1rem;right:1rem;z-index:9999;border:2px solid #0f0;border-radius:4px;box-shadow:0 0 12px rgba(0,255,0,.4)'></canvas>
 		<script is:inline>
 			(function () {
 				const canvas = document.getElementById("ht-debug");
@@ -53,9 +53,32 @@ const {title = "Anemoia", audioSrc} = Astro.props;
 			audioSrc && (
 				<>
 					<audio id='global-audio' src={audioSrc} loop transition:persist={audioSrc} />
-					<AudioPlayer />
+					<div data-html2canvas-ignore='true'>
+						<AudioPlayer />
+					</div>
 				</>
 			)
 		}
+		<script>
+			import {GlobalShaderOverlay} from "../lib/global-shader-overlay.js";
+
+			let overlay: InstanceType<typeof GlobalShaderOverlay> | null = null;
+
+			document.addEventListener("astro:page-load", () => {
+				const container = document.querySelector<HTMLElement>(".neighborhood-container");
+				if (container && !overlay) {
+					overlay = new GlobalShaderOverlay();
+					overlay.mount(container);
+				} else if (!container && overlay) {
+					overlay.destroy();
+					overlay = null;
+				}
+			});
+
+			document.addEventListener("astro:before-preparation", () => {
+				overlay?.destroy();
+				overlay = null;
+			});
+		</script>
 	</body>
 </html>

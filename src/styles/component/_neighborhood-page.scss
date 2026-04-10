@@ -2,7 +2,8 @@
 	height: 100vh;
 	background: #000;
 	overflow-y: auto;
-	overflow-x: hidden;
+	/* Horizontal bleed matches compositor (body keeps overflow-x: hidden on the document). */
+	overflow-x: visible;
 	position: relative;
 }
 

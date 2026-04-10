@@ -11,6 +11,8 @@
 		aspect-ratio: unset;
 		width: 100%;
 		height: auto;
+		/* Wide / offset layers must bleed past the scene box (viewport still clipped by html/body). */
+		//overflow: visible;
 	}
 }
 

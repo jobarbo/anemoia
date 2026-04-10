@@ -11,6 +11,7 @@ uniform float uZoomInAmount;   // max zoom when animating
 uniform float uAnimateZoom;    // 0.0 = static, 1.0 = animate between out/in
 uniform vec2 uCenter;
 uniform float uEasingMode;    // 0=sine, 1=linear, 2=ease-in, 3=ease-out, 4=ease-in-out, 5=bounce
+uniform float uOutOfBoundsMode; // 0=black, 1=clamp edge, 2=mirror tile, 3=transparent
 
 // Attempt easing functions on a 0-1 triangle wave
 float triangleWave(float t) {
@@ -109,12 +110,26 @@ void main() {
 	vec2 offset = uv - uCenter;
 	vec2 zoomedUV = uCenter + offset / zoom;
 
-	// Infinite mirrored tiling outside the original canvas, while leaving the
-	// core image (0..1) unchanged.
-	vec2 finalUV = mirrorInfinite(zoomedUV);
+	float mode = uOutOfBoundsMode;
+	vec4 baseColor;
 
-	// Sample the texture
-	vec4 baseColor = texture2D(uTexture, finalUV);
+	if (mode < 0.5) {
+		// Black outside [0,1]²
+		bool inside = zoomedUV.x >= 0.0 && zoomedUV.x <= 1.0 && zoomedUV.y >= 0.0 && zoomedUV.y <= 1.0;
+		baseColor = inside ? texture2D(uTexture, zoomedUV) : vec4(0.0, 0.0, 0.0, 1.0);
+	} else if (mode < 1.5) {
+		// Stretch edge pixels
+		baseColor = texture2D(uTexture, clamp(zoomedUV, 0.0, 1.0));
+	} else if (mode < 2.5) {
+		// Infinite mirrored tiling (legacy default)
+		vec2 finalUV = mirrorInfinite(zoomedUV);
+		baseColor = texture2D(uTexture, finalUV);
+	} else {
+		// Transparent outside [0,1]²
+		bool inside = zoomedUV.x >= 0.0 && zoomedUV.x <= 1.0 && zoomedUV.y >= 0.0 && zoomedUV.y <= 1.0;
+		baseColor = inside ? texture2D(uTexture, zoomedUV) : vec4(0.0, 0.0, 0.0, 0.0);
+	}
+
 	gl_FragColor = baseColor;
 }
 

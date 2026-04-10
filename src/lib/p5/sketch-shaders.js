@@ -57,6 +57,13 @@ function mergeEffectsConfig(target, patch) {
 				existing.borderColor = modes[key];
 			}
 		}
+		if (name === "zoom" && Object.prototype.hasOwnProperty.call(delta, "borderMode") && delta.borderMode !== undefined) {
+			const modes = {black: 0, clamp: 1, mirror: 2, transparent: 3};
+			const key = String(delta.borderMode).toLowerCase();
+			if (key in modes) {
+				existing.outOfBoundsMode = modes[key];
+			}
+		}
 	}
 }
 
@@ -303,6 +310,8 @@ export class ShaderEffects {
 				easingMode: 4.0, // 0=sine, 1=linear, 2=ease-in, 3=ease-out, 4=ease-in-out, 5=bounce
 				center: [0.5, 0.5], // Zoom center point (normalized 0-1)
 				timeMultiplier: 0.0,
+				// uOutOfBoundsMode: 0=black, 1=clamp, 2=mirror, 3=transparent. Or borderMode: "black"|"clamp"|"mirror"|"transparent"
+				outOfBoundsMode: 2.0,
 				uniforms: {
 					uTime: "shaderTime * timeMultiplier",
 					uZoomSpeed: "zoomSpeed",
@@ -312,6 +321,7 @@ export class ShaderEffects {
 					uAnimateZoom: "animateZoom",
 					uEasingMode: "easingMode",
 					uCenter: "center",
+					uOutOfBoundsMode: "outOfBoundsMode",
 				},
 			},
 
@@ -320,10 +330,12 @@ export class ShaderEffects {
 				enabled: false,
 				warpAmount: 0.74, // Barrel; corners stay on [0,1] — tune by eye vs older shaders
 				aspectCorrect: 1.0, // 1 = radial warp uses pixel aspect (non-square); 0 = UV-square legacy
-				cornerRadius: 0.0,
-				cornerSmooth: 0.0,
+				cornerRadius: 0.0, // Rounded sampling bounds on warped UV (with boundsInset); not a separate vignette multiply
+				cornerSmooth: 0.0, // Softness of that rounded edge (pairs with cornerRadius)
 				borderColor: 1.0,
 				vignette: 0.5,
+				boundsInset: 0.0, // UV margin before rounded-rect: 0 = full quad; >0 shrink; <0 expand
+				rgbGain: [1.0, 1.0, 1.0], // Per-channel gain after vignette
 				uniforms: {
 					uResolution: "[width, height]",
 					uWarpAmount: "warpAmount",
@@ -332,6 +344,8 @@ export class ShaderEffects {
 					uCornerSmooth: "cornerSmooth",
 					uBorderColor: "borderColor",
 					uVignette: "vignette",
+					uBoundsInset: "boundsInset",
+					uRgbGain: "rgbGain",
 				},
 			},
 			crtDisplay: {
@@ -343,6 +357,7 @@ export class ShaderEffects {
 				dotRadius: 0.8, // Size of phosphor dots (0.0-0.5, smaller = larger gaps)
 				dotFalloff: 0.6, // Softness of phosphor dot edges (0.0 = sharp, 1.0 = very soft)
 				filterMode: 0.0, // Display mode: 0.0 = true pixel display (sample at cell center), 1.0 = filter overlay (sample at actual position)
+				rgbGain: [1.0, 1.0, 1.0], // Per-channel multiplier on phosphor output
 				uniforms: {
 					uResolution: "[width, height]",
 					uBrightness: "brightness",
@@ -352,6 +367,7 @@ export class ShaderEffects {
 					uDotRadius: "dotRadius",
 					uDotFalloff: "dotFalloff",
 					uFilterMode: "filterMode",
+					uRgbGain: "rgbGain",
 				},
 			},
 			blur: {
@@ -454,7 +470,7 @@ export class ShaderEffects {
 
 	/**
 	 * Merge preset toggles/params from a sketch file (or runtime). Rebuilds pipeline if already set up.
-	 * @param {Record<string, object>} patch - e.g. { crtWarp: { enabled: true, vignette: 0.6, borderMode: "mirror" } }
+	 * @param {Record<string, object>} patch - e.g. { crtWarp: { enabled: true, vignette: 0.6, borderMode: "mirror" }, zoom: { borderMode: "black" } }
 	 */
 	applyEffectsConfig(patch) {
 		mergeEffectsConfig(this.effectsConfig, patch);

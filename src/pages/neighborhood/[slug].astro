@@ -23,7 +23,9 @@ const manifest = await loadManifest(neighborhood.scenePath, {
 
 <GameLayout title={`Anemoia - ${neighborhood.name}`} audioSrc={neighborhood.audioSrc}>
 	<main class='neighborhood-container' transition:name={`neighborhood-${neighborhood.slug}`} transition:animate={pageSlideFromBottom}>
-		<BackButton href='/overworld' label='Retour à la carte' />
+		<div data-html2canvas-ignore='true' class='back-button-overlay'>
+			<BackButton href='/overworld' label='Retour à la carte' />
+		</div>
 
 		<SceneRenderer manifest={manifest} sceneSlug={neighborhood.slug} class='neighborhood-scene' viewportAspectRatio enableHeadTracking>
 			<SketchCanvas slotTarget='foreground' sketch='snow' />
@@ -33,4 +35,12 @@ const manifest = await loadManifest(neighborhood.scenePath, {
 
 <style lang='scss'>
 	@use "../../styles/component/neighborhood-page";
+
+	.back-button-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		z-index: 900002; // Above the shader overlay (9000) — stays crisp and undistorted
+		pointer-events: auto;
+	}
 </style>

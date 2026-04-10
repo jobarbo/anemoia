@@ -11,6 +11,7 @@ uniform float uRgbOpacity; // RGB color separation opacity (0.0 = no separation,
 uniform float uDotRadius; // Size of phosphor dots (0.0-0.5)
 uniform float uDotFalloff; // Softness of phosphor dot edges (0.0-1.0)
 uniform float uFilterMode; // Display mode: 0.0 = true pixel (sample at cell center), 1.0 = filter overlay (sample at actual position)
+uniform vec3 uRgbGain; // Per-channel multiplier on final CRT color (default 1,1,1)
 
 void main() {
 	vec2 uv = vTexCoord;
@@ -118,7 +119,8 @@ void main() {
 	
 	// Apply brightness boost
 	crtColor *= (1.0 + uBrightness);
-	
+	crtColor *= uRgbGain;
+
 	gl_FragColor = vec4(crtColor, cellColor.a);
 }
 
