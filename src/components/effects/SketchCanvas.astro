@@ -4,10 +4,10 @@
  * Usage: <SketchCanvas sketch="snow" /> or <SketchCanvas sketch="your-name" class="my-class" />
  * When used inside SceneRenderer, set slotTarget to the layer name (from manifest) to place the sketch in that layer.
  */
-const {sketch, class: className, slotTarget} = Astro.props;
+const {sketch, class: className, slotTarget, data} = Astro.props;
 ---
 
-<div class={`sketch-canvas ${className ?? ""}`} data-sketch-container data-sketch={sketch} {...slotTarget != null && {"data-slot": slotTarget}}></div>
+<div class={`sketch-canvas ${className ?? ""}`} data-sketch-container data-sketch={sketch} {...slotTarget != null && {"data-slot": slotTarget}} {...data != null && {"data-sketch-data": JSON.stringify(data)}}></div>
 
 <script>
 	import p5 from "p5";

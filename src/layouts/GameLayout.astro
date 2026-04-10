@@ -15,7 +15,10 @@ const {title = "Anemoia", audioSrc} = Astro.props;
 		<ClientRouter />
 	</head>
 	<body>
-		<canvas id='ht-debug' data-html2canvas-ignore='true' style='display:none;position:fixed;top:1rem;right:1rem;z-index:9999;border:2px solid #0f0;border-radius:4px;box-shadow:0 0 12px rgba(0,255,0,.4)'></canvas>
+		<canvas
+			id='ht-debug'
+			data-html2canvas-ignore='true'
+			style='display:none;position:fixed;top:1rem;right:1rem;z-index:9999;border:2px solid #0f0;border-radius:4px;box-shadow:0 0 12px rgba(0,255,0,.4)'></canvas>
 		<script is:inline>
 			(function () {
 				const canvas = document.getElementById("ht-debug");

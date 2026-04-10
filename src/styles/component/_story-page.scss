@@ -1,37 +1,8 @@
+// Story page layout — all visual content is rendered in the canvas sketch (story.js).
+// Only structural container styles remain here.
 .story-container {
-	background: #111;
-	color: #eee;
-	min-height: 100vh;
-}
-
-.story-content {
-	max-width: 800px;
-	margin: 0 auto;
-}
-
-.story-header {
-	margin-bottom: 30vh;
+	width: 100vw;
 	height: 100vh;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	h1 {
-		font-size: 6rem;
-		text-align: center;
-	}
-}
-
-.story-text {
-	font-size: 3rem;
-	line-height: 2;
-
-	:global(p) {
-		margin-bottom: 10vh;
-		opacity: 0.8;
-		transition: opacity 0.5s;
-
-		&:hover {
-			opacity: 1;
-		}
-	}
+	overflow: hidden;
+	position: relative;
 }

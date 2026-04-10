@@ -17,6 +17,7 @@
  * Rendering: P2D offscreen buffer → ShaderEffects → visible WEBGL canvas (CRT-style post).
  */
 import {ShaderEffects} from "../lib/p5/sketch-shaders.js";
+import {THEME, drawScanLines, drawVignette, drawTitleAberration, tickBlink} from "../lib/retro-theme.js";
 
 export default function (container) {
 	/** P2D offscreen buffer — all 2D drawing (gradients, text, scan lines). */
@@ -54,11 +55,11 @@ export default function (container) {
 			"Calibration de la mémoire affective...",
 		];
 
-		const BG_COLOR = [6, 8, 18, 90];
-		const TITLE_COLOR = [8, 170, 80];
-		const SUBTITLE_COLOR = [170, 200, 170];
-		const PROMPT_COLOR = [120, 200, 140];
-		const LOAD_GREEN = [120, 200, 140]; // phosphor green, DOS aesthetic
+		const BG_COLOR = [...THEME.BG, 90];
+		const TITLE_COLOR = THEME.GREEN_PRIMARY;
+		const SUBTITLE_COLOR = THEME.GREEN_SUBTLE;
+		const PROMPT_COLOR = THEME.GREEN_MID;
+		const LOAD_GREEN = THEME.GREEN_MID; // phosphor green, DOS aesthetic
 
 		const PHASE = {ATTRACT: 0, LOADING: 1, FADE_IN: 2, TITLE: 3, SUBTITLE: 4, PROMPT: 5, EXIT: 6};
 		const PHASE_DURATION = {
@@ -205,8 +206,8 @@ export default function (container) {
 				artBuffer.text("[ CLIQUER OU APPUYER POUR DÉMARRER ]", artBuffer.width / 2, artBuffer.height / 2);
 			}
 
-			drawScanLines(now);
-			drawVignette();
+			drawScanLines(artBuffer, now, sketch);
+			drawVignette(artBuffer);
 		}
 
 		// ── LOADING ───────────────────────────────────────────────────────────────
@@ -254,8 +255,8 @@ export default function (container) {
 			artBuffer.fill(...LOAD_GREEN);
 			artBuffer.text(`${Math.floor(progress * 100)}%`, barX + barW, barY + barH + labelSz * 0.5);
 
-			drawScanLines(now);
-			drawVignette();
+			drawScanLines(artBuffer, now, sketch);
+			drawVignette(artBuffer);
 		}
 
 		// ── MAIN (FADE_IN → TITLE → SUBTITLE → PROMPT) ───────────────────────────
@@ -271,8 +272,8 @@ export default function (container) {
 
 			updateAndDrawParticles();
 			drawContent(elapsed, now);
-			drawScanLines(now);
-			drawVignette();
+			drawScanLines(artBuffer, now, sketch);
+			drawVignette(artBuffer);
 		}
 
 		function drawContent(elapsed, now) {
@@ -285,7 +286,7 @@ export default function (container) {
 			if (phase >= PHASE.TITLE) {
 				const alpha = phase === PHASE.TITLE ? sketch.map(elapsed, 0, 0.3, 0, 255) : 255;
 				const revealedCount = phase === PHASE.TITLE ? Math.floor(sketch.map(elapsed, 0, PHASE_DURATION[PHASE.TITLE], 0, TITLE.length + 0.99)) : TITLE.length;
-				drawTitleAberration(TITLE.slice(0, Math.min(revealedCount, TITLE.length)), cx, titleY, titleSz, alpha);
+				drawTitleAberrationLocal(TITLE.slice(0, Math.min(revealedCount, TITLE.length)), cx, titleY, titleSz, alpha);
 			}
 
 			// Subtitle
@@ -329,27 +330,8 @@ export default function (container) {
 
 		// ── Title with chromatic aberration ───────────────────────────────────────
 
-		function drawTitleAberration(text, x, y, size, alpha) {
-			const ctx = artBuffer.drawingContext;
-			const offset = Math.max(2, size * 0.015);
-
-			artBuffer.textAlign(sketch.CENTER, sketch.CENTER);
-			artBuffer.textSize(size);
-			artBuffer.textFont("monospace");
-			artBuffer.textStyle(sketch.BOLD);
-
-			ctx.globalCompositeOperation = "screen";
-			artBuffer.fill(50, 50, 50, alpha * 0.55);
-			artBuffer.text(text, x - offset, y);
-
-			artBuffer.fill(50, 100, 255, alpha * 0.55);
-			artBuffer.text(text, x + offset, y);
-
-			ctx.globalCompositeOperation = "source-over";
-			artBuffer.fill(...TITLE_COLOR, alpha);
-			artBuffer.text(text, x, y);
-
-			artBuffer.textStyle(sketch.NORMAL);
+		function drawTitleAberrationLocal(text, x, y, size, alpha) {
+			drawTitleAberration(artBuffer, text, x, y, size, alpha, sketch);
 		}
 
 		// ── Particles ─────────────────────────────────────────────────────────────
@@ -377,29 +359,7 @@ export default function (container) {
 			}
 		}
 
-		// ── CRT scan lines ────────────────────────────────────────────────────────
-
-		function drawScanLines(now) {
-			const flicker = 0.12 + sketch.noise(now * 0.0003) * 0.08;
-			artBuffer.fill(0, 0, 0, flicker * 255);
-			for (let y = 0; y < artBuffer.height; y += 3) {
-				artBuffer.rect(0, y, artBuffer.width, 1);
-			}
-		}
-
-		// ── Vignette ──────────────────────────────────────────────────────────────
-
-		function drawVignette() {
-			const ctx = artBuffer.drawingContext;
-			const cx = artBuffer.width / 2;
-			const cy = artBuffer.height / 2;
-			const r = Math.max(cx, cy) * 1.03;
-			const grad = ctx.createRadialGradient(cx, cy, r * 0.2, cx, cy, r);
-			grad.addColorStop(0, "rgba(0,0,0,0)");
-			grad.addColorStop(1, "rgba(0,0,0,0.82)");
-			ctx.fillStyle = grad;
-			ctx.fillRect(0, 0, artBuffer.width, artBuffer.height);
-		}
+		// ── CRT scan lines + vignette (delegated to retro-theme) ─────────────────
 
 		// ── Audio synthesis (Web Audio API) ───────────────────────────────────────
 

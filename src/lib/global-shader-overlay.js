@@ -54,7 +54,7 @@ const DEFAULT_EFFECTS = {
 		timeMultiplier: 0.0,
 	},
 	pixelGrid: {
-		enabled: true,
+		enabled: false,
 		gridCols: 660.0,
 		gridRows: 620.0,
 		cellRatio: 1.0,
@@ -62,6 +62,13 @@ const DEFAULT_EFFECTS = {
 		diffuse: 0.0,
 		gapSize: 0.0,
 		gapBrightness: 1.0,
+	},
+	zoom: {
+		enabled: true,
+		zoomAmount: 0.8,
+		zoomSpeed: 0.8,
+		animateZoom: 0.0,
+		easingMode: 4.0,
 	},
 	colorQuantize: {
 		enabled: false,

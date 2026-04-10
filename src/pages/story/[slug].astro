@@ -1,7 +1,7 @@
 ---
-import {getCollection, render} from "astro:content";
+import {getCollection} from "astro:content";
 import GameLayout from "../../layouts/GameLayout.astro";
-import BackButton from "../../components/ui/BackButton.astro";
+import SketchCanvas from "../../components/effects/SketchCanvas.astro";
 import {pageFade} from "../../lib/transitions.js";
 
 export async function getStaticPaths() {
@@ -13,58 +13,85 @@ export async function getStaticPaths() {
 }
 
 const {story} = Astro.props;
-const {Content} = await render(story);
 
-console.log("story", story);
+/**
+ * Parse raw Markdown body into canvas-renderable blocks.
+ * Handles: # h1, ## h2, ### h3 (rendered as h2), paragraphs.
+ * Skips blank lines and horizontal rules.
+ *
+ * @param {string} md - raw Markdown string (story.body)
+ * @returns {Array<{type:'h1'|'h2'|'p', text:string}>}
+ */
+function parseMarkdownBlocks(md) {
+	/** @type {Array<{type:'h1'|'h2'|'p', text:string}>} */
+	const blocks = [];
+	// Collapse Windows line endings
+	const lines = md.replace(/\r\n/g, "\n").split("\n");
+
+	let paraLines = [];
+
+	const flushPara = () => {
+		const text = paraLines.join(" ").trim();
+		if (text) blocks.push({type: "p", text});
+		paraLines = [];
+	};
+
+	for (const raw of lines) {
+		const line = raw.trim();
+
+		if (!line || /^---+$/.test(line)) {
+			flushPara();
+			continue;
+		}
+
+		const h1 = line.match(/^#\s+(.+)/);
+		if (h1) {
+			flushPara();
+			blocks.push({type: "h1", text: h1[1].trim()});
+			continue;
+		}
+
+		const h2 = line.match(/^#{2,3}\s+(.+)/);
+		if (h2) {
+			flushPara();
+			blocks.push({type: "h2", text: h2[1].trim()});
+			continue;
+		}
+
+		// Strip inline Markdown (bold, italic, links, code) — keep plain text
+		const cleaned = line
+			.replace(/!\[.*?\]\(.*?\)/g, "") // images
+			.replace(/\[(.+?)\]\(.*?\)/g, "$1") // links → label
+			.replace(/`([^`]+)`/g, "$1") // inline code
+			.replace(/\*\*(.+?)\*\*/g, "$1") // bold
+			.replace(/\*(.+?)\*/g, "$1") // italic
+			.replace(/_(.+?)_/g, "$1"); // italic alt
+
+		if (cleaned.trim()) {
+			paraLines.push(cleaned.trim());
+		} else {
+			flushPara();
+		}
+	}
+	flushPara();
+
+	return blocks;
+}
+
+const blocks = parseMarkdownBlocks(story.body);
 ---
 
 <GameLayout title={`Anemoia - ${story.data.title}`} audioSrc={story.data.audioSrc}>
-	<main class='story-container' data-game-screen='story' data-scroll-container transition:animate={pageFade}>
-		<BackButton href={`/neighborhood/${story.data.neighborhood}`} label='Retour au quartier' dataScrollFixed />
-
-		<div class='story-content' data-scroll-section>
-			<div class='story-header' data-scroll data-scroll-speed='-0.2'>
-				<h1>{story.data.title}</h1>
-			</div>
-
-			<div class='story-text' data-scroll data-scroll-speed='-0.2'>
-				<Content />
-			</div>
-		</div>
+	<main class='story-container' data-game-screen='story' transition:animate={pageFade}>
+		<SketchCanvas sketch='story' data={{title: story.data.title, neighborhood: story.data.neighborhood, blocks}} />
 	</main>
 </GameLayout>
 
-<script>
-	import LocomotiveScroll from "locomotive-scroll";
-	import gsap from "gsap";
-	import {ScrollTrigger} from "gsap/ScrollTrigger";
-
-	gsap.registerPlugin(ScrollTrigger);
-
-	document.addEventListener("astro:page-load", () => {
-		const container = document.querySelector("[data-scroll-container]");
-		if (!container) return;
-
-		const scroll = new LocomotiveScroll({
-			lenisOptions: {lerp: 0.08, smoothWheel: true},
-			scrollCallback: () => ScrollTrigger.update(),
-		});
-
-		ScrollTrigger.scrollerProxy(container, {
-			scrollTop(value) {
-				if (arguments.length && value !== undefined) {
-					scroll.scrollTo(value, {immediate: true});
-					return;
-				}
-				return scroll.lenisInstance?.scroll ?? 0;
-			},
-			getBoundingClientRect() {
-				return {top: 0, left: 0, width: window.innerWidth, height: window.innerHeight};
-			},
-		});
-	});
-</script>
-
 <style lang='scss'>
-	@use "../../styles/component/story-page";
+	.story-container {
+		width: 100vw;
+		height: 100vh;
+		overflow: hidden;
+		position: relative;
+	}
 </style>
