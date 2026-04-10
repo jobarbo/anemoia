@@ -26,7 +26,7 @@ export default function (container) {
 
 	const shaders = new ShaderEffects({
 		effects: {
-			crtDisplay: {enabled: true, brightness: 0.99, cellSize: 2.0, gapOpacity: 0.9, rgbOpacity: 0.9, dotRadius: 0.8, dotFalloff: 0.6, filterMode: 0.0},
+			/* 			crtDisplay: {enabled: true, brightness: 0.99, cellSize: 2.0, gapOpacity: 0.9, rgbOpacity: 0.9, dotRadius: 0.8, dotFalloff: 0.6, filterMode: 0.0},
 			crtDisplay: {enabled: true, brightness: 0.99, cellSize: 12.0, gapOpacity: 0.9, rgbOpacity: 0.9, dotRadius: 0.8, dotFalloff: 0.6, filterMode: 0.0},
 			crtDisplay: {enabled: true, brightness: 0.99, cellSize: 122.0, gapOpacity: 0.9, rgbOpacity: 0.9, dotRadius: 0.8, dotFalloff: 0.6, filterMode: 0.0},
 			pixelSort: {enabled: true, sortAmount: 111.28, sampleCount: 12.0, sortMode: 1.0, threshold: 0.1, invert: 0.0},
@@ -34,8 +34,7 @@ export default function (container) {
 
 			crtWarp: {enabled: true, warpAmount: 0.32, aspectCorrect: 1.0, borderColor: 1.0, vignette: 0.02},
 			//pixelSort: {enabled: true, sortAmount: 111.28, sampleCount: 2.0, sortMode: 1.0, threshold: 0.9, invert: 1.0},
-			crtDisplay: {enabled: true, brightness: 0.99, cellSize: 2.0, gapOpacity: 0.9, rgbOpacity: 0.9, dotRadius: 0.8, dotFalloff: 0.6, filterMode: 0.0},
-
+			crtDisplay: {enabled: true, brightness: 0.99, cellSize: 2.0, gapOpacity: 0.9, rgbOpacity: 0.9, dotRadius: 0.8, dotFalloff: 0.6, filterMode: 0.0}, */
 			//chromatic: {enabled: true, amount: 0.0015, timeMultiplier: 21.2},
 		},
 	});
@@ -56,9 +55,9 @@ export default function (container) {
 		];
 
 		const BG_COLOR = [6, 8, 18, 90];
-		const TITLE_COLOR = [120, 200, 140];
-		const SUBTITLE_COLOR = [180, 190, 210];
-		const PROMPT_COLOR = [220, 230, 255];
+		const TITLE_COLOR = [8, 170, 80];
+		const SUBTITLE_COLOR = [170, 200, 170];
+		const PROMPT_COLOR = [120, 200, 140];
 		const LOAD_GREEN = [120, 200, 140]; // phosphor green, DOS aesthetic
 
 		const PHASE = {ATTRACT: 0, LOADING: 1, FADE_IN: 2, TITLE: 3, SUBTITLE: 4, PROMPT: 5, EXIT: 6};
@@ -69,7 +68,7 @@ export default function (container) {
 			[PHASE.SUBTITLE]: 1.5,
 		};
 
-		const PARTICLE_COUNT = 3360;
+		const PARTICLE_COUNT = 13360;
 		const BLINK_INTERVAL_MS = 600;
 
 		// ── State ─────────────────────────────────────────────────────────────────
@@ -340,7 +339,7 @@ export default function (container) {
 			artBuffer.textStyle(sketch.BOLD);
 
 			ctx.globalCompositeOperation = "screen";
-			artBuffer.fill(255, 50, 50, alpha * 0.55);
+			artBuffer.fill(50, 50, 50, alpha * 0.55);
 			artBuffer.text(text, x - offset, y);
 
 			artBuffer.fill(50, 100, 255, alpha * 0.55);
@@ -394,8 +393,8 @@ export default function (container) {
 			const ctx = artBuffer.drawingContext;
 			const cx = artBuffer.width / 2;
 			const cy = artBuffer.height / 2;
-			const r = Math.max(cx, cy) * 1.3;
-			const grad = ctx.createRadialGradient(cx, cy, r * 0.3, cx, cy, r);
+			const r = Math.max(cx, cy) * 1.03;
+			const grad = ctx.createRadialGradient(cx, cy, r * 0.2, cx, cy, r);
 			grad.addColorStop(0, "rgba(0,0,0,0)");
 			grad.addColorStop(1, "rgba(0,0,0,0.82)");
 			ctx.fillStyle = grad;

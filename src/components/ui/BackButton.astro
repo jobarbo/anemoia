@@ -6,7 +6,7 @@ interface Props {
 }
 const { href, label = "Retour", dataScrollFixed } = Astro.props;
 ---
-<a href={href} class="back-btn" data-scroll-fixed={dataScrollFixed ? true : undefined}>{label}</a>
+<a href={href} class="back-btn" data-composite-exclude data-scroll-fixed={dataScrollFixed ? true : undefined}>{label}</a>
 
 <style lang="scss">
 	@use "../../styles/component/back-button";

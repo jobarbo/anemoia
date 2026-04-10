@@ -2,7 +2,7 @@
 	position: fixed;
 	bottom: 2rem;
 	right: 2rem;
-	z-index: 1000;
+	z-index: var(--game-ui-above-shader-z, 9500);
 
 	button {
 		background: rgba(255, 255, 255, 0.2);

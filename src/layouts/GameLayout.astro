@@ -65,12 +65,14 @@ const {title = "Anemoia", audioSrc} = Astro.props;
 			let overlay: InstanceType<typeof GlobalShaderOverlay> | null = null;
 
 			document.addEventListener("astro:page-load", () => {
-				const container = document.querySelector<HTMLElement>(".neighborhood-container");
-				if (container && !overlay) {
+				const container = document.querySelector<HTMLElement>("[data-game-screen]");
+				if (container) {
+					overlay?.destroy();
+					overlay = null;
 					overlay = new GlobalShaderOverlay();
 					overlay.mount(container);
-				} else if (!container && overlay) {
-					overlay.destroy();
+				} else {
+					overlay?.destroy();
 					overlay = null;
 				}
 			});

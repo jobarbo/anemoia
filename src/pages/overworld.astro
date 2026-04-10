@@ -13,7 +13,7 @@ const audioSrc = "/assets/scenes/overworld/ambient.mp3";
 ---
 
 <GameLayout title='Anemoia - Overworld' audioSrc={audioSrc}>
-	<main class='overworld-container' transition:animate={pageFade}>
+	<main class='overworld-container' data-game-screen='overworld' data-dom-snapshot transition:animate={pageFade}>
 		<h1>Carte de la ville</h1>
 
 		<div class='map-wrapper'>

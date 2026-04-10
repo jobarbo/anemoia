@@ -2,7 +2,7 @@
 	position: fixed;
 	top: 2rem;
 	left: 2rem;
-	z-index: 100;
+	z-index: var(--game-ui-above-shader-z, 9500);
 	color: #fff;
 	text-decoration: none;
 	background: rgba(0, 0, 0, 0.5);

@@ -19,7 +19,7 @@ console.log("story", story);
 ---
 
 <GameLayout title={`Anemoia - ${story.data.title}`} audioSrc={story.data.audioSrc}>
-	<main class='story-container' data-scroll-container transition:animate={pageFade}>
+	<main class='story-container' data-game-screen='story' data-scroll-container transition:animate={pageFade}>
 		<BackButton href={`/neighborhood/${story.data.neighborhood}`} label='Retour au quartier' dataScrollFixed />
 
 		<div class='story-content' data-scroll-section>

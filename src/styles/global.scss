@@ -1,6 +1,12 @@
 @use "base/reset";
 @use "base/typography";
 
+// Stacking: GlobalShaderOverlay (fixed WebGL canvas) vs UI chrome
+:root {
+	--game-shader-overlay-z: 9000;
+	--game-ui-above-shader-z: 9500;
+}
+
 // View transition keyframes – slide vertical (personnaliser la direction ici)
 // Nouvelle page entre par le bas, ancienne sort par le haut
 @keyframes view-slide-in-from-bottom {

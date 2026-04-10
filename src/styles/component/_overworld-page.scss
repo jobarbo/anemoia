@@ -21,7 +21,7 @@
 	border-radius: 50%;
 	transform: translate(-50%, -50%);
 	text-decoration: none;
-	z-index: 1000;
+	z-index: var(--game-ui-above-shader-z, 9500);
 
 	&:hover .hood-name {
 		opacity: 1;
@@ -39,7 +39,6 @@
 	padding: 0.25rem 0.5rem;
 	border-radius: 4px;
 	opacity: 0;
-	transition: all 0.2s;
 	white-space: nowrap;
 	pointer-events: none;
 }

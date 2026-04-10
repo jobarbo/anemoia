@@ -22,7 +22,7 @@ const manifest = await loadManifest(neighborhood.scenePath, {
 ---
 
 <GameLayout title={`Anemoia - ${neighborhood.name}`} audioSrc={neighborhood.audioSrc}>
-	<main class='neighborhood-container' transition:name={`neighborhood-${neighborhood.slug}`} transition:animate={pageSlideFromBottom}>
+	<main class='neighborhood-container' data-game-screen='neighborhood' transition:name={`neighborhood-${neighborhood.slug}`} transition:animate={pageSlideFromBottom}>
 		<div data-html2canvas-ignore='true' class='back-button-overlay'>
 			<BackButton href='/overworld' label='Retour à la carte' />
 		</div>
