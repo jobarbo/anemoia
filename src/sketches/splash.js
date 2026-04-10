@@ -27,9 +27,12 @@ export default function (container) {
 	const shaders = new ShaderEffects({
 		effects: {
 			pixelGrid: {enabled: true, gridCols: 640.0, gridRows: 440.0, cellRatio: 100.0, mode: 0.0, diffuse: 1.0, gapSize: 0.0, gapBrightness: 1.0},
-			crtDisplay: {enabled: true, brightness: 0.99, cellSize: 2.0, gapOpacity: 0.9, rgbOpacity: 0.9, dotRadius: 0.8, dotFalloff: 0.6, filterMode: 0.0},
+
 			crtWarp: {enabled: true, warpAmount: 0.32, aspectCorrect: 1.0, borderColor: 1.0, vignette: 0.02},
-			chromatic: {enabled: true, amount: 0.0015, timeMultiplier: 1.2},
+			pixelSort: {enabled: true, sortAmount: 111.28, sampleCount: 2.0, sortMode: 1.0, threshold: 0.9, invert: 1.0},
+			crtDisplay: {enabled: true, brightness: 0.99, cellSize: 2.0, gapOpacity: 0.9, rgbOpacity: 0.9, dotRadius: 0.8, dotFalloff: 0.6, filterMode: 0.0},
+
+			chromatic: {enabled: true, amount: 0.0015, timeMultiplier: 21.2},
 		},
 	});
 

@@ -2,14 +2,11 @@
  * Sketch Shader Effects
  *
  * A modular, plug-and-play shader effects system for p5.js projects.
- * This file contains all shader-related code and configuration, keeping sketch.js clean.
+ * Each sketch creates its own independent ShaderEffects instance with its own pass stack.
  *
- * Features:
- * - Easy configuration of multiple shader effects
- * - Dynamic enable/disable of effects
- * - Animated shader parameters with time control
- * - Seamless integration with ShaderManager and ShaderPipeline
- * - Reusable across projects with minimal setup
+ * Stack order: the ORDER of keys in `options.effects` is the pipeline order (first key = first pass).
+ * effectsConfig holds the shared registry of defaults and uniforms — no duplication per sketch.
+ * Effects added later via addEffect / applyEffectsConfig are appended at the end of the stack.
  *
  * Usage (p5.js 2.x — no preload):
  * 1. async setup() { await shaderEffects.loadShaders(sketch); … }
@@ -18,11 +15,16 @@
  *
  * ES modules: import { ShaderEffects } from "../lib/p5/sketch-shaders.js"
  *
- * Per-sketch filters (only this file’s defaults are merged):
+ * Declare your stack — key order is pass order:
  *   new ShaderEffects({
- *     effects: { crtWarp: { enabled: true, warpAmount: 0.5, aspectCorrect: 1.0 }, grain: { enabled: true, amount: 0.04 } },
+ *     effects: {
+ *       pixelGrid:  { enabled: true, gridCols: 640, gridRows: 440 },
+ *       crtDisplay: { enabled: true, cellSize: 2.0 },
+ *       crtWarp:    { enabled: true, warpAmount: 0.32 },
+ *       chromatic:  { enabled: true, amount: 0.0015 },
+ *     },
  *   });
- * Or call applyEffectsConfig({ pixelSort: { enabled: true } }) after changing presets at runtime.
+ * Or call applyEffectsConfig({ grain: { enabled: true } }) to append passes at runtime.
  */
 import {ShaderManager} from "./shaderManager.js";
 import {ShaderPipeline} from "./shaderPipeline.js";
@@ -380,7 +382,11 @@ export class ShaderEffects {
 
 		mergeEffectsConfig(this.effectsConfig, options.effects ?? options.effectsConfig ?? {});
 
-		// Cache for last enabled effects (to detect changes)
+		// Pass order: keys from the sketch's effects object define the pipeline stack order.
+		// Effects enabled later via setEffectEnabled / addEffect are appended at the end.
+		this.effectPassOrder = Object.keys(options.effects ?? options.effectsConfig ?? {});
+
+		// Cache for last enabled effects (to detect changes and order shifts)
 		this.lastEnabledEffects = null;
 
 		// FPS overlay (enable with shaderEffects.toggleFPS(true) when debugging)
@@ -452,6 +458,10 @@ export class ShaderEffects {
 	 */
 	applyEffectsConfig(patch) {
 		mergeEffectsConfig(this.effectsConfig, patch);
+		// Append any new keys from the patch at the end of the pass order
+		for (const name of Object.keys(patch ?? {})) {
+			if (!this.effectPassOrder.includes(name)) this.effectPassOrder.push(name);
+		}
 		this.lastEnabledEffects = null;
 		if (this.shaderPipeline && this.shaderManager && this.mainCanvas) {
 			this.reinitializePipeline();
@@ -470,6 +480,7 @@ export class ShaderEffects {
 			...config,
 			uniforms: config.uniforms || {},
 		};
+		if (!this.effectPassOrder.includes(effectName)) this.effectPassOrder.push(effectName);
 		return this;
 	}
 
@@ -740,25 +751,27 @@ export class ShaderEffects {
 			this.p5Instance.clear();
 		}
 
-		// Build effect passes dynamically (only rebuild if effects changed)
-		const currentEnabledEffects = Object.keys(this.effectsConfig).filter((name) => this.effectsConfig[name].enabled);
+		// Build ordered pass list: effectPassOrder first, then any enabled effects not in the list
+		// (fallback for effects enabled programmatically after construction via setEffectEnabled/addEffect)
+		const ordered = this.effectPassOrder.filter((name) => this.effectsConfig[name]?.enabled);
+		const extra = Object.keys(this.effectsConfig).filter(
+			(name) => this.effectsConfig[name].enabled && !this.effectPassOrder.includes(name),
+		);
+		const currentEnabledEffects = [...ordered, ...extra];
 
 		if (JSON.stringify(this.lastEnabledEffects) !== JSON.stringify(currentEnabledEffects)) {
 			this.shaderPipeline.clearPasses();
 
-			// Iterate through effectsConfig to build passes
-			for (const effectName in this.effectsConfig) {
+			for (const effectName of currentEnabledEffects) {
 				const effect = this.effectsConfig[effectName];
-				if (effect.enabled) {
-					this.shaderPipeline.addPass(effectName, () => {
-						const uniforms = {};
-						for (const uniformName in effect.uniforms) {
-							const value = effect.uniforms[uniformName];
-							uniforms[uniformName] = this.evaluateUniformValue(value, effect);
-						}
-						return uniforms;
-					});
-				}
+				this.shaderPipeline.addPass(effectName, () => {
+					const uniforms = {};
+					for (const uniformName in effect.uniforms) {
+						const value = effect.uniforms[uniformName];
+						uniforms[uniformName] = this.evaluateUniformValue(value, effect);
+					}
+					return uniforms;
+				});
 			}
 
 			this.lastEnabledEffects = [...currentEnabledEffects];
