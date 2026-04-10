@@ -9,7 +9,7 @@
 
 export const THEME = {
 	/** Deep blue-black background */
-	BG: [6, 8, 18],
+	BG: [16, 18, 28],
 	/** Phosphor green — titles, active elements, primary UI */
 	GREEN_PRIMARY: [8, 170, 80],
 	/** Medium green — CTAs, prompts, borders, pin markers */

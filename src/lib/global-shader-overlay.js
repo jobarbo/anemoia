@@ -66,11 +66,11 @@ const DEFAULT_EFFECTS = {
 
 	colorQuantize: {
 		enabled: false,
-		levelsPerChannel: 8.0,
+		levelsPerChannel: 12.0,
 		blend: 1,
 	},
 	dither: {
-		enabled: true,
+		enabled: false,
 		ditherMode: 0, // Bayer 8x8
 		levels: 8,
 		blend: 1,
@@ -88,12 +88,12 @@ const DEFAULT_EFFECTS = {
 	crtDisplay: {
 		enabled: true,
 		brightness: 0.0,
-		cellSize: 3.0,
+		cellSize: 2.0,
 		gapOpacity: 0.9,
-		rgbOpacity: 0.0,
+		rgbOpacity: 0.1,
 		rgbGain: [1.0, 1.0, 1.0],
-		dotRadius: 0.8,
-		dotFalloff: 0.5,
+		dotRadius: 0.5,
+		dotFalloff: 0.2,
 		filterMode: 0.0,
 	},
 
@@ -110,11 +110,11 @@ const DEFAULT_EFFECTS = {
 
 	blur: {
 		enabled: true,
-		blurAmount: 10.0,
+		blurAmount: 2.0,
 		blurQuality: 40.0,
 		blurDirection: 0,
 		blurCenter: [0.5, 0.5],
-		blurStart: 0.586,
+		blurStart: 0.1586,
 		blurCrt: 1.0,
 		blurCrtPower: 10.0,
 		blurMin: 0.0,
@@ -303,6 +303,14 @@ function getShaderOverlayZIndex() {
 /** Run the compositor every N draw frames (~6 = 10fps at 60fps render rate) */
 const COMPOSITE_EVERY_N_FRAMES = 1;
 
+/** @type {GlobalShaderOverlay|null} */
+let _overlayInstance = null;
+
+/** Singleton accessor for the active GlobalShaderOverlay (set on mount). */
+export function getGlobalShaderOverlay() {
+	return _overlayInstance;
+}
+
 export class GlobalShaderOverlay {
 	/**
 	 * @param {{ effects?: Record<string, object> }} [options]
@@ -312,6 +320,8 @@ export class GlobalShaderOverlay {
 
 		/** @type {p5|null} */
 		this._p5Instance = null;
+		/** @type {ShaderEffects|null} Live shader pipeline — set after loadShaders completes */
+		this._shaderEffects = null;
 		/** @type {p5.Graphics|null} P2D buffer — compositor draws here */
 		this._captureBuffer = null;
 		/** @type {p5.Graphics|null} Unprocessed composite; CRT transition reads from here into _captureBuffer */
@@ -344,6 +354,7 @@ export class GlobalShaderOverlay {
 	 */
 	mount(scrollContainer) {
 		this._scrollContainer = scrollContainer;
+		_overlayInstance = this;
 
 		const shaders = new ShaderEffects({effects: this._effects});
 		const self = this;
@@ -351,6 +362,7 @@ export class GlobalShaderOverlay {
 		const sketchFn = (sketch) => {
 			sketch.setup = async () => {
 				await shaders.loadShaders(sketch);
+				self._shaderEffects = shaders;
 
 				const w = window.innerWidth;
 				const h = window.innerHeight;
@@ -514,8 +526,27 @@ export class GlobalShaderOverlay {
 		});
 	}
 
+	/**
+	 * Returns the current warp parameters needed for pointer-coordinate remapping.
+	 * Returns null when the shader pipeline has not yet initialised.
+	 *
+	 * @returns {{ W: number, H: number, crtWarp: object|null, zoom: object|null }|null}
+	 */
+	getWarpParams() {
+		if (!this._shaderEffects) return null;
+
+		const cfg = this._shaderEffects.effectsConfig;
+		return {
+			W: window.innerWidth,
+			H: window.innerHeight,
+			crtWarp: cfg.crtWarp ?? null,
+			zoom: cfg.zoom ?? null,
+		};
+	}
+
 	destroy() {
 		this._destroyed = true;
+		if (_overlayInstance === this) _overlayInstance = null;
 
 		if (this._p5Instance) {
 			this._p5Instance.remove();
@@ -530,6 +561,7 @@ export class GlobalShaderOverlay {
 		this._captureReady = false;
 		this._domSnapshotCanvas = null;
 		this._domSnapshotInFlight = false;
+		this._shaderEffects = null;
 	}
 }
 

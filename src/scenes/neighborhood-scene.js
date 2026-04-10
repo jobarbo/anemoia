@@ -14,6 +14,7 @@ import {sceneNavigate} from "../lib/scene-nav.js";
 import {initMouseParallax, initScrollParallax} from "../scripts/parallax.js";
 import {initHeadTrackingParallax} from "../scripts/head-tracking.js";
 import {refreshGlobalAudioPlayer, tryPlayGlobalAudio} from "../lib/global-audio-ui.js";
+import {installPointerRemap} from "../lib/input-remap.js";
 
 export async function mount(container, params, data) {
 	const {slug} = params;
@@ -141,9 +142,13 @@ export async function mount(container, params, data) {
 	// ── Audio ──────────────────────────────────────────────────────────────────
 	handleAudio(neighborhood.audioSrc ?? null);
 
+	// ── Pointer remapping (aligns click areas with CRT-warped visuals) ──────────
+	const cleanupPointerRemap = installPointerRemap(container);
+
 	return {
 		unmount() {
 			cleanupParallax();
+			cleanupPointerRemap();
 			snowInstance?.remove();
 			handleAudio(null);
 		},
