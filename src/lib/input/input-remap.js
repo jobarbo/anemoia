@@ -14,7 +14,7 @@
  *   screen → inverse crtWarp (barrel) → inverse zoom → logical game coords
  */
 
-import {getGlobalShaderOverlay} from "./global-shader-overlay.js";
+import {getGlobalShaderOverlay} from "../shaders/global-shader-overlay.js";
 
 // ── Inverse barrel distortion ────────────────────────────────────────────────
 

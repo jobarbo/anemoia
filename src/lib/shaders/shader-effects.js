@@ -28,8 +28,8 @@
  *   });
  * Or call applyEffectsConfig({ grain: { enabled: true } }) to append passes at runtime.
  */
-import {ShaderManager} from "./shaderManager.js";
-import {ShaderPipeline} from "./shaderPipeline.js";
+import {ShaderManager} from "./shader-manager.js";
+import {ShaderPipeline} from "./shader-pipeline.js";
 
 /**
  * @param {Record<string, object>} target

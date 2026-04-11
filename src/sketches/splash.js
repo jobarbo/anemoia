@@ -16,8 +16,8 @@
  *
  * Rendering: P2D offscreen buffer → ShaderEffects → visible WEBGL canvas (CRT-style post).
  */
-import {ShaderEffects} from "../lib/p5/sketch-shaders.js";
-import {THEME, drawScanLines, drawVignette, drawTitleAberration, tickBlink} from "../lib/retro-theme.js";
+import {ShaderEffects} from "../lib/shaders/shader-effects.js";
+import {THEME, drawScanLines, drawVignette, drawTitleAberration, tickBlink} from "../lib/utils/retro-theme.js";
 
 export default function (container) {
 	/** P2D offscreen buffer — all 2D drawing (gradients, text, scan lines). */

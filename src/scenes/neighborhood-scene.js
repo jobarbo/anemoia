@@ -9,17 +9,17 @@
  * On unmount, all event listeners and p5 instances are cleaned up.
  */
 
-/** @type {Partial<import('../lib/global-shader-overlay.js').DEFAULT_EFFECTS>} */
+/** @type {Partial<import('../lib/shaders/global-shader-overlay.js').DEFAULT_EFFECTS>} */
 export const SCENE_EFFECTS = {
 	crtDisplay: {brightness: 0.0},
 };
 import p5 from "p5";
-import {fetchNeighborhoodManifest} from "../lib/scene-data.js";
-import {sceneNavigate} from "../lib/scene-nav.js";
-import {initMouseParallax, initScrollParallax} from "../scripts/parallax.js";
-import {initHeadTrackingParallax} from "../scripts/head-tracking.js";
-import {refreshGlobalAudioPlayer, tryPlayGlobalAudio} from "../lib/global-audio-ui.js";
-import {installPointerRemap} from "../lib/input-remap.js";
+import {fetchNeighborhoodManifest} from "../lib/data/scene-data.js";
+import {sceneNavigate} from "../lib/router/scene-nav.js";
+import {initMouseParallax, initScrollParallax} from "../lib/input/parallax.js";
+import {initHeadTrackingParallax} from "../lib/input/head-tracking.js";
+import {refreshGlobalAudioPlayer, tryPlayGlobalAudio} from "../lib/audio/global-audio-ui.js";
+import {installPointerRemap} from "../lib/input/input-remap.js";
 
 export async function mount(container, params, data) {
 	const {slug} = params;

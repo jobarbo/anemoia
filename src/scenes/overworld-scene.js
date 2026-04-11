@@ -1,8 +1,12 @@
 /**
  * Overworld scene — wraps overworld.js p5 sketch for the SPA scene router.
  */
+
+/** Use global shader defaults. */
+export const SCENE_EFFECTS = {};
+
 import p5 from "p5";
-import {installPointerRemap} from "../lib/input-remap.js";
+import {installPointerRemap} from "../lib/input/input-remap.js";
 
 export async function mount(container, _params, data) {
 	const sketchMod = await import("../sketches/overworld.js");

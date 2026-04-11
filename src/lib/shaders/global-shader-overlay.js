@@ -27,8 +27,8 @@
  */
 import p5 from "p5";
 import {toCanvas} from "html-to-image";
-import {drawElementLikeObjectFit} from "./canvas-object-fit-draw.js";
-import {ShaderEffects} from "./p5/sketch-shaders.js";
+import {drawElementLikeObjectFit} from "../utils/canvas-object-fit-draw.js";
+import {ShaderEffects} from "./shader-effects.js";
 
 /** Min delay between successful DOM snapshots (html-to-image is heavy). */
 const DOM_SNAPSHOT_INTERVAL_MS = 1000;

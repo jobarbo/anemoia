@@ -2,7 +2,7 @@
  * Pure pose extraction from ML5 face detection results.
  * No DOM side effects, no ml5 dependencies.
  */
-import {clamp} from "../lib/utils.js";
+import {clamp} from "../utils/utils.js";
 
 const LANDMARK_SMOOTHING = 0.2;
 const DEADZONE = 0.04;

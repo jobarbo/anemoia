@@ -1,5 +1,5 @@
 import gsap from "gsap";
-import {clamp, evaluateCubicBezier} from "../lib/utils.js";
+import {clamp, evaluateCubicBezier} from "../utils/utils.js";
 
 /** Set `true` to skip mouse, head, and scroll-driven layer offsets (layout / PSD alignment tests). */
 export const DEBUG_DISABLE_PARALLAX = false;

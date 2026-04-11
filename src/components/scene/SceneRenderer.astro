@@ -48,8 +48,8 @@ const totalLayers = manifest.layers.length;
 </style>
 
 <script>
-	import {DEBUG_DISABLE_PARALLAX, initMouseParallax, initScrollParallax} from "../../scripts/parallax.js";
-	import {initHeadTrackingParallax} from "../../scripts/head-tracking.js";
+	import {DEBUG_DISABLE_PARALLAX, initMouseParallax, initScrollParallax} from "../../lib/input/parallax.js";
+	import {initHeadTrackingParallax} from "../../lib/input/head-tracking.js";
 
 	const parallaxCleanupByScene = new WeakMap();
 	const initTokenByScene = new WeakMap();

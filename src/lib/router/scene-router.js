@@ -18,7 +18,7 @@
  *   the DOM inside #game-container, then a beam expand (power on). Shader runs uninterrupted.
  */
 
-import {getNeighborhoods, getStory} from "./scene-data.js";
+import {getNeighborhoods, getStory} from "../data/scene-data.js";
 
 /** Vertical phosphor “tube off / on” timing — feels like old CRT input switching */
 const CRT_OUT_MS = 220;
@@ -196,13 +196,13 @@ function buildTitle(route, params) {
 async function loadSceneModule(route) {
 	switch (route) {
 		case "splash":
-			return import("../scenes/splash-scene.js");
+			return import("../../scenes/splash-scene.js");
 		case "overworld":
-			return import("../scenes/overworld-scene.js");
+			return import("../../scenes/overworld-scene.js");
 		case "neighborhood":
-			return import("../scenes/neighborhood-scene.js");
+			return import("../../scenes/neighborhood-scene.js");
 		case "story":
-			return import("../scenes/story-scene.js");
+			return import("../../scenes/story-scene.js");
 		default:
 			throw new Error(`[SceneRouter] Unknown route: "${route}"`);
 	}

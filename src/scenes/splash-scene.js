@@ -1,8 +1,12 @@
 /**
  * Splash scene — wraps the existing splash.js p5 sketch for the SPA scene router.
  */
+
+/** Use global shader defaults — splash.js manages its own internal ShaderEffects pipeline. */
+export const SCENE_EFFECTS = {};
+
 import p5 from "p5";
-import {sceneNavigate} from "../lib/scene-nav.js";
+import {sceneNavigate} from "../lib/router/scene-nav.js";
 
 export async function mount(container) {
 	const sketchMod = await import("../sketches/splash.js");

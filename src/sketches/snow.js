@@ -2,7 +2,7 @@
  * p5.js sketch: full-viewport snow overlay with optional post-process (grain via ShaderEffects).
  * Pattern: offscreen WEBGL buffer (mainCanvas) → ShaderPipeline → visible WEBGL canvas.
  */
-import { ShaderEffects } from "../lib/p5/sketch-shaders.js";
+import { ShaderEffects } from "../lib/shaders/shader-effects.js";
 
 export default function (container) {
 	const shaders = new ShaderEffects({

@@ -3,7 +3,7 @@
  * Pure logic; delegates to face-pose.js and ml5-face-mesh.js for implementation details.
  */
 import {createParallaxUpdater, initMouseParallax, initParallaxFromInput} from "./parallax.js";
-import {clamp} from "../lib/utils.js";
+import {clamp} from "../utils/utils.js";
 import {initMl5Source} from "./ml5-face-mesh.js";
 
 const HEAD_TRACKING_PREFERENCE_KEY = "anemoia.headTracking.enabled";
