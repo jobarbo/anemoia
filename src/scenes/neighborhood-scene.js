@@ -8,6 +8,11 @@
  *
  * On unmount, all event listeners and p5 instances are cleaned up.
  */
+
+/** @type {Partial<import('../lib/global-shader-overlay.js').DEFAULT_EFFECTS>} */
+export const SCENE_EFFECTS = {
+	crtDisplay: {brightness: 0.0},
+};
 import p5 from "p5";
 import {fetchNeighborhoodManifest} from "../lib/scene-data.js";
 import {sceneNavigate} from "../lib/scene-nav.js";
@@ -382,7 +387,7 @@ function whenImageReady(img) {
 			() => {
 				void decodeImageSafe(img).finally(() => resolve());
 			},
-			{once: true}
+			{once: true},
 		);
 		img.addEventListener("error", () => resolve(), {once: true});
 	});

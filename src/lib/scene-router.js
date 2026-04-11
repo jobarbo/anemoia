@@ -113,14 +113,19 @@ export class SceneRouter {
 
 		// Mount new scene
 		let unmountFn = () => {};
+		let sceneEffects = {};
 		try {
 			const mod = await loadSceneModule(route);
+			sceneEffects = mod.SCENE_EFFECTS ?? {};
 			const data = buildSceneData(route, params);
 			const result = await mod.mount(this._container, params, data);
 			if (result?.unmount) unmountFn = result.unmount;
 		} catch (e) {
 			console.error("[SceneRouter] mount error for route:", route, e);
 		}
+
+		// Apply per-scene shader overrides (or reset to defaults if none defined)
+		this._overlay.setEffects(sceneEffects);
 
 		// Tell the overlay to point at the (possibly re-populated) container
 		this._overlay.setContainer(this._container);

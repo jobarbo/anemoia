@@ -76,7 +76,7 @@ const DEFAULT_EFFECTS = {
 		blend: 1,
 		strength: 1.0,
 		scale: 0.1,
-		colorMode: 1,
+		colorMode: 0,
 	},
 	zoom: {
 		enabled: true,
@@ -87,13 +87,13 @@ const DEFAULT_EFFECTS = {
 	},
 	crtDisplay: {
 		enabled: true,
-		brightness: 0.0,
-		cellSize: 2.0,
-		gapOpacity: 0.9,
-		rgbOpacity: 0.1,
+		brightness: 0.95,
+		cellSize: 2,
+		gapOpacity: 0.1,
+		rgbOpacity: 0.4,
 		rgbGain: [1.0, 1.0, 1.0],
-		dotRadius: 0.5,
-		dotFalloff: 0.2,
+		dotRadius: 0.1,
+		dotFalloff: 0.4,
 		filterMode: 0.0,
 	},
 
@@ -470,6 +470,33 @@ export class GlobalShaderOverlay {
 		this._domSnapshotInFlight = false;
 		this._lastDomSnapshotStartedAt = 0;
 		this._captureReady = false;
+	}
+
+	/**
+	 * Apply per-scene shader effect overrides on top of DEFAULT_EFFECTS.
+	 * Each key in `overrides` is shallow-merged into the corresponding effect group.
+	 * Call with no argument (or empty object) to reset to defaults.
+	 *
+	 * @param {Partial<typeof DEFAULT_EFFECTS>} overrides
+	 */
+	setEffects(overrides = {}) {
+		// Build a fully-merged config (defaults first, then scene overrides) so that
+		// a single applyEffectsConfig call both resets stale values and applies new ones.
+		/** @type {Record<string, object>} */
+		const merged = {};
+		for (const [key, defaults] of Object.entries(DEFAULT_EFFECTS)) {
+			merged[key] = {...defaults, ...(overrides[key] ?? {})};
+		}
+
+		// Update the backing object so constructor-time reads stay consistent
+		for (const [key, val] of Object.entries(merged)) {
+			Object.assign(this._effects[key], val);
+		}
+
+		// Apply to the live pipeline if it's already running
+		if (this._shaderEffects) {
+			this._shaderEffects.applyEffectsConfig(merged);
+		}
 	}
 
 	/**

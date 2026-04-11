@@ -69,7 +69,7 @@ export default function (container) {
 			[PHASE.SUBTITLE]: 1.5,
 		};
 
-		const PARTICLE_COUNT = 13360;
+		const PARTICLE_COUNT = 1360;
 		const BLINK_INTERVAL_MS = 600;
 
 		// ── State ─────────────────────────────────────────────────────────────────

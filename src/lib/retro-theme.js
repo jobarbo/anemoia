@@ -56,7 +56,7 @@ export function drawVignette(buf) {
 	const r = Math.max(cx, cy) * 1.03;
 	const grad = ctx.createRadialGradient(cx, cy, r * 0.2, cx, cy, r);
 	grad.addColorStop(0, "rgba(0,0,0,0)");
-	grad.addColorStop(1, "rgba(0,0,0,0.82)");
+	grad.addColorStop(1, "rgba(0,0,0,0.4)");
 	ctx.fillStyle = grad;
 	ctx.fillRect(0, 0, buf.width, buf.height);
 }
