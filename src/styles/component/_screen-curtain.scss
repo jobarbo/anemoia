@@ -31,13 +31,7 @@
 		content: "";
 		position: absolute;
 		inset: 0;
-		background: repeating-linear-gradient(
-			to bottom,
-			transparent 0,
-			transparent 3px,
-			rgba(0, 14, 4, 0.22) 3px,
-			rgba(0, 14, 4, 0.22) 4px
-		);
+		background: repeating-linear-gradient(to bottom, transparent 0, transparent 3px, rgba(0, 14, 4, 0.22) 3px, rgba(0, 14, 4, 0.22) 4px);
 		pointer-events: none;
 	}
 }

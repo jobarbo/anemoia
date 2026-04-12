@@ -31,7 +31,7 @@ import {drawElementLikeObjectFit} from "../utils/canvas-object-fit-draw.js";
 import {ShaderEffects} from "./shader-effects.js";
 
 /** Min delay between successful DOM snapshots (html-to-image is heavy). */
-const DOM_SNAPSHOT_INTERVAL_MS = 1000;
+const DOM_SNAPSHOT_INTERVAL_MS = 100;
 
 /**
  * @param {HTMLElement} domNode

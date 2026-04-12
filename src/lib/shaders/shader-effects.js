@@ -810,9 +810,7 @@ export class ShaderEffects {
 		// Build ordered pass list: effectPassOrder first, then any enabled effects not in the list
 		// (fallback for effects enabled programmatically after construction via setEffectEnabled/addEffect)
 		const ordered = this.effectPassOrder.filter((name) => this.effectsConfig[name]?.enabled);
-		const extra = Object.keys(this.effectsConfig).filter(
-			(name) => this.effectsConfig[name].enabled && !this.effectPassOrder.includes(name),
-		);
+		const extra = Object.keys(this.effectsConfig).filter((name) => this.effectsConfig[name].enabled && !this.effectPassOrder.includes(name));
 		const currentEnabledEffects = [...ordered, ...extra];
 
 		if (JSON.stringify(this.lastEnabledEffects) !== JSON.stringify(currentEnabledEffects)) {

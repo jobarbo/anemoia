@@ -60,7 +60,7 @@ const audioAttrs = typeof audioSrc === "string" && audioSrc.length > 0 ? {src: a
 		<div id='screen-curtain' class='is-booting'></div>
 
 		<slot />
-		<audio id='global-audio' loop transition:persist='global-audio' {...audioAttrs} />
+		<audio id='global-audio' loop transition:persist='global-audio' {...audioAttrs}></audio>
 		<div data-html2canvas-ignore='true'>
 			<AudioPlayer />
 		</div>
@@ -115,7 +115,7 @@ const audioAttrs = typeof audioSrc === "string" && audioSrc.length > 0 ? {src: a
 							window.location.href = href;
 						}, 240);
 					},
-					true
+					true,
 				);
 			})();
 		</script>
