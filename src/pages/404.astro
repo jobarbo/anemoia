@@ -1,98 +1,21 @@
 ---
-/**
- * SPA catch-all for static hosting.
- *
- * Static hosts (Netlify, Vercel, GitHub Pages, etc.) serve this page
- * for any URL that doesn't match a static file. The SPA router reads
- * location.pathname at boot and mounts the correct scene.
- *
- * This is identical in function to index.html — the router handles routing.
- */
 import GameLayout from "../layouts/GameLayout.astro";
-import {getCollection} from "astro:content";
-
-const neighborhoods = await getCollection("neighborhoods");
-const storiesCollection = await getCollection("stories");
-
-function parseMarkdownBlocks(md) {
-	const blocks = [];
-	const lines = md.replace(/\r\n/g, "\n").split("\n");
-	let paraLines = [];
-
-	const flushPara = () => {
-		const text = paraLines.join(" ").trim();
-		if (text) blocks.push({type: "p", text});
-		paraLines = [];
-	};
-
-	for (const raw of lines) {
-		const line = raw.trim();
-		if (!line || /^---+$/.test(line)) { flushPara(); continue; }
-
-		const h1 = line.match(/^#\s+(.+)/);
-		if (h1) { flushPara(); blocks.push({type: "h1", text: h1[1].trim()}); continue; }
-
-		const h2 = line.match(/^#{2,3}\s+(.+)/);
-		if (h2) { flushPara(); blocks.push({type: "h2", text: h2[1].trim()}); continue; }
-
-		const cleaned = line
-			.replace(/!\[.*?\]\(.*?\)/g, "")
-			.replace(/\[(.+?)\]\(.*?\)/g, "$1")
-			.replace(/`([^`]+)`/g, "$1")
-			.replace(/\*\*(.+?)\*\*/g, "$1")
-			.replace(/\*(.+?)\*/g, "$1")
-			.replace(/_(.+?)_/g, "$1");
-
-		if (cleaned.trim()) paraLines.push(cleaned.trim());
-		else flushPara();
-	}
-	flushPara();
-	return blocks;
-}
-
-const storiesMap = Object.fromEntries(
-	storiesCollection.map((story) => [
-		story.id,
-		{
-			id: story.id,
-			title: story.data.title,
-			neighborhood: story.data.neighborhood,
-			audioSrc: story.data.audioSrc ?? null,
-			order: story.data.order,
-			blocks: parseMarkdownBlocks(story.body),
-		},
-	])
-);
-
-const gameData = {
-	neighborhoods: neighborhoods.map((n) => n.data),
-	stories: storiesMap,
-};
 ---
 
-<GameLayout title="Anemoia">
-	<main id='game-container' data-game-screen='splash'></main>
-	<script type='application/json' id='game-data' set:html={JSON.stringify(gameData)}></script>
+<GameLayout title="Anemoia — Introuvable">
+	<main id='game-container' data-game-screen='not-found' data-dom-snapshot>
+		<section class='splash-scene splash-scene--not-found'>
+			<div class='splash-scene__inner'>
+				<p class='splash-scene__eyebrow'>404</p>
+				<h1 class='splash-scene__title'>Page introuvable</h1>
+				<a class='splash-scene__action' href='/'>Retour a l'accueil</a>
+			</div>
+		</section>
+	</main>
 </GameLayout>
 
 <script>
-	import {GlobalShaderOverlay} from "../lib/shaders/global-shader-overlay.js";
-	import {SceneRouter} from "../lib/router/scene-router.js";
+	import {mountDomOverlay} from "../lib/shaders/mount-dom-overlay.js";
 
-	const container = document.getElementById("game-container") as HTMLElement;
-	const overlay = new GlobalShaderOverlay();
-	overlay.mount(container);
-
-	const router = new SceneRouter({container, overlay});
-	router.bootFromUrl();
+	mountDomOverlay("#game-container");
 </script>
-
-<style lang='scss'>
-	#game-container {
-		width: 100vw;
-		height: 100vh;
-		overflow: hidden;
-		position: relative;
-		background: #000;
-	}
-</style>

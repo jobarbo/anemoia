@@ -1,0 +1,19 @@
+---
+import {getCollection} from "astro:content";
+import GameLayout from "../layouts/GameLayout.astro";
+import OverworldScene from "../components/scenes/OverworldScene.astro";
+
+const neighborhoods = (await getCollection("neighborhoods")).map((entry) => entry.data);
+---
+
+<GameLayout title="Anemoia — Carte">
+	<main id='game-container' data-game-screen='overworld' data-dom-snapshot>
+		<OverworldScene neighborhoods={neighborhoods} />
+	</main>
+</GameLayout>
+
+<script>
+	import {mountDomOverlay} from "../lib/shaders/mount-dom-overlay.js";
+
+	mountDomOverlay("#game-container");
+</script>

@@ -1,15 +1,9 @@
 /**
- * Scene data access for the SPA router.
+ * Client-side helpers for neighborhood scene assets.
  *
- * At build time, `index.astro` embeds all content (neighborhoods, stories, manifest paths)
- * into a `<script type="application/json" id="game-data">` element.
- * This module reads that JSON and provides typed accessors to the rest of the app.
- *
- * Manifests (scene layer data) are loaded lazily via fetch() from public/.
+ * The neighborhood route mounts a DOM scene and fetches its layer manifest
+ * lazily from public assets.
  */
-
-/** @type {{ neighborhoods: NeighborhoodData[], stories: Record<string, StoryData> } | null} */
-let _cache = null;
 
 /**
  * @typedef {{
@@ -32,35 +26,6 @@ let _cache = null;
  *   blocks: Array<{ type: 'h1'|'h2'|'p', text: string }>
  * }} StoryData
  */
-
-function loadCache() {
-	if (_cache) return _cache;
-	const el = document.getElementById("game-data");
-	if (!el) throw new Error("[scene-data] #game-data element not found in DOM");
-	_cache = JSON.parse(el.textContent);
-	return _cache;
-}
-
-/** @returns {NeighborhoodData[]} */
-export function getNeighborhoods() {
-	return loadCache().neighborhoods;
-}
-
-/**
- * @param {string} slug
- * @returns {NeighborhoodData | undefined}
- */
-export function getNeighborhood(slug) {
-	return loadCache().neighborhoods.find((n) => n.slug === slug);
-}
-
-/**
- * @param {string} slug
- * @returns {StoryData | undefined}
- */
-export function getStory(slug) {
-	return loadCache().stories[slug];
-}
 
 /**
  * Fetch and parse the scene manifest for a neighborhood.

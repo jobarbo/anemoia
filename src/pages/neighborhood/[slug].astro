@@ -1,0 +1,40 @@
+---
+import {getCollection} from "astro:content";
+import GameLayout from "../../layouts/GameLayout.astro";
+
+export async function getStaticPaths() {
+	const neighborhoods = await getCollection("neighborhoods");
+
+	return neighborhoods.map((entry) => ({
+		params: {slug: entry.data.slug},
+		props: {neighborhood: entry.data},
+	}));
+}
+
+const {neighborhood} = Astro.props;
+---
+
+<GameLayout title={`Anemoia — ${neighborhood.name}`} audioSrc={neighborhood.audioSrc ?? undefined}>
+	<main id='game-container' data-game-screen='neighborhood'></main>
+	<script type='application/json' id='neighborhood-data' set:html={JSON.stringify(neighborhood)}></script>
+</GameLayout>
+
+<script>
+	import {mountDomOverlay} from "../../lib/shaders/mount-dom-overlay.js";
+	import {mount as mountNeighborhoodScene} from "../../scenes/neighborhood-scene.js";
+
+	const container = document.getElementById("game-container");
+	const neighborhoodData = JSON.parse(document.getElementById("neighborhood-data")?.textContent ?? "{}");
+
+	const overlayCleanup = mountDomOverlay(container);
+	const scene = await mountNeighborhoodScene(container, {slug: neighborhoodData.slug}, neighborhoodData);
+
+	window.addEventListener(
+		"pagehide",
+		() => {
+			scene?.unmount?.();
+			overlayCleanup?.();
+		},
+		{once: true},
+	);
+</script>

@@ -55,6 +55,6 @@ const audioAttrs = typeof audioSrc === "string" && audioSrc.length > 0 ? {src: a
 		<div data-html2canvas-ignore='true'>
 			<AudioPlayer />
 		</div>
-		<!-- GlobalShaderOverlay is bootstrapped in index.astro (SPA mode) -->
+		<!-- GlobalShaderOverlay is bootstrapped by each route that needs it. -->
 	</body>
 </html>

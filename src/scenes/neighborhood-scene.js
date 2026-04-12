@@ -15,7 +15,6 @@ export const SCENE_EFFECTS = {
 };
 import p5 from "p5";
 import {fetchNeighborhoodManifest} from "../lib/data/scene-data.js";
-import {sceneNavigate} from "../lib/router/scene-nav.js";
 import {initMouseParallax, initScrollParallax} from "../lib/input/parallax.js";
 import {initHeadTrackingParallax} from "../lib/input/head-tracking.js";
 import {refreshGlobalAudioPlayer, tryPlayGlobalAudio} from "../lib/audio/global-audio-ui.js";
@@ -34,7 +33,7 @@ export async function mount(container, params, data) {
 	container.style.cssText = "height:100vh;background:#000;overflow-y:auto;overflow-x:visible;position:relative;";
 
 	// Back button (above shader overlay)
-	const backWrapper = createBackButton(slug);
+	const backWrapper = createBackButton();
 	container.appendChild(backWrapper);
 
 	// Scene root — mirrors <div class="scene neighborhood-scene" data-scene-renderer …>
@@ -83,7 +82,7 @@ export async function mount(container, params, data) {
 
 		// Interactive zone
 		if (layer.interactive && layer.interaction) {
-			layerContainer.appendChild(createInteractiveZone(layer, slug));
+			layerContainer.appendChild(createInteractiveZone(layer));
 		}
 
 		// Slot outlet for canvas sketches
@@ -162,7 +161,7 @@ export async function mount(container, params, data) {
 
 // ── DOM helpers ───────────────────────────────────────────────────────────────
 
-function createBackButton(slug) {
+function createBackButton() {
 	const wrapper = document.createElement("div");
 	wrapper.dataset.html2canvasIgnore = "true";
 	Object.assign(wrapper.style, {
@@ -190,7 +189,7 @@ function createBackButton(slug) {
 
 	link.addEventListener("click", (e) => {
 		e.preventDefault();
-		sceneNavigate("overworld");
+		navigateTo("/overworld");
 	});
 
 	wrapper.appendChild(link);
@@ -290,7 +289,7 @@ function createLayerMedia(layer, parentLayer, scenePath) {
 	return wrapper;
 }
 
-function createInteractiveZone(layer, currentSlug) {
+function createInteractiveZone(layer) {
 	const style = `
 		--layer-center-left: ${layer.position.centerLeft}%;
 		--layer-center-top: ${layer.position.centerTop}%;
@@ -322,9 +321,9 @@ function createInteractiveZone(layer, currentSlug) {
 			// Detect story navigation (/story/:slug)
 			const storyMatch = target.match(/^\/story\/([^/]+)/);
 			if (storyMatch) {
-				sceneNavigate("story", {slug: storyMatch[1]});
+				navigateTo(`/story/${storyMatch[1]}`);
 			} else {
-				sceneNavigate("overworld");
+				navigateTo("/overworld");
 			}
 		});
 
@@ -347,6 +346,11 @@ function distributeSlottedContent(scene) {
 		const target = scene.querySelector(`[data-slot-outlet="${targetName}"]`);
 		if (target) target.appendChild(child);
 	});
+}
+
+/** @param {string} path */
+function navigateTo(path) {
+	window.location.href = path;
 }
 
 /** @param {number} n */

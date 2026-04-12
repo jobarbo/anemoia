@@ -1,0 +1,25 @@
+---
+type NeighborhoodSummary = {name: string; slug: string; description?: string};
+
+const {neighborhoods = []} = Astro.props as {neighborhoods?: NeighborhoodSummary[]};
+---
+
+<section class='overworld-scene'>
+	<div class='overworld-scene__inner'>
+		<header class='overworld-scene__header'>
+			<p class='overworld-scene__eyebrow'>Carte</p>
+			<h1 class='overworld-scene__title'>Minimal map starting point.</h1>
+		</header>
+
+		<ul class='overworld-scene__list'>
+			{neighborhoods.map((neighborhood: NeighborhoodSummary) => (
+				<li class='overworld-scene__item'>
+					<a class='overworld-scene__link' href={`/neighborhood/${neighborhood.slug}`}>
+						<span>{neighborhood.name}</span>
+						<span>{neighborhood.description ?? "Open neighborhood"}</span>
+					</a>
+				</li>
+			))}
+		</ul>
+	</div>
+</section>

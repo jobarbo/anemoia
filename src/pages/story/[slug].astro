@@ -1,0 +1,96 @@
+---
+import {getCollection} from "astro:content";
+import GameLayout from "../../layouts/GameLayout.astro";
+import StoryScene from "../../components/scenes/StoryScene.astro";
+
+type StoryBlock = {type: "h1" | "h2" | "p"; text: string};
+type StoryPageData = {
+	id: string;
+	title: string;
+	neighborhood: string;
+	audioSrc?: string | null;
+	order: number;
+	blocks: StoryBlock[];
+};
+
+export async function getStaticPaths() {
+	const stories = await getCollection("stories");
+
+	function parseMarkdownBlocks(md: string) {
+		const blocks: StoryBlock[] = [];
+		const lines = md.replace(/\r\n/g, "\n").split("\n");
+		let paraLines: string[] = [];
+
+		const flushPara = () => {
+			const text = paraLines.join(" ").trim();
+			if (text) blocks.push({type: "p", text});
+			paraLines = [];
+		};
+
+		for (const raw of lines) {
+			const line = raw.trim();
+			if (!line || /^---+$/.test(line)) {
+				flushPara();
+				continue;
+			}
+
+			const h1 = line.match(/^#\s+(.+)/);
+			if (h1) {
+				flushPara();
+				blocks.push({type: "h1", text: h1[1].trim()});
+				continue;
+			}
+
+			const h2 = line.match(/^#{2,3}\s+(.+)/);
+			if (h2) {
+				flushPara();
+				blocks.push({type: "h2", text: h2[1].trim()});
+				continue;
+			}
+
+			const cleaned = line
+				.replace(/!\[.*?\]\(.*?\)/g, "")
+				.replace(/\[(.+?)\]\(.*?\)/g, "$1")
+				.replace(/`([^`]+)`/g, "$1")
+				.replace(/\*\*(.+?)\*\*/g, "$1")
+				.replace(/\*(.+?)\*/g, "$1")
+				.replace(/_(.+?)_/g, "$1");
+
+			if (cleaned.trim()) paraLines.push(cleaned.trim());
+			else flushPara();
+		}
+
+		flushPara();
+		return blocks;
+	}
+
+	return stories.map((story) => ({
+		params: {slug: story.id},
+		props: {
+			story: {
+				id: story.id,
+				title: story.data.title,
+				neighborhood: story.data.neighborhood,
+				audioSrc: story.data.audioSrc ?? null,
+				order: story.data.order,
+				blocks: parseMarkdownBlocks(story.body ?? ""),
+			},
+		},
+	}));
+}
+
+const {story} = Astro.props as {story: StoryPageData};
+const backHref = story.neighborhood ? `/neighborhood/${story.neighborhood}` : "/overworld";
+---
+
+<GameLayout title={`Anemoia — ${story.title}`} audioSrc={story.audioSrc ?? undefined}>
+	<main id='game-container' data-game-screen='story' data-dom-snapshot>
+		<StoryScene story={story} backHref={backHref} />
+	</main>
+</GameLayout>
+
+<script>
+	import {mountDomOverlay} from "../../lib/shaders/mount-dom-overlay.js";
+
+	mountDomOverlay("#game-container");
+</script>

@@ -1,0 +1,31 @@
+---
+type StoryBlock = {type: "h1" | "h2" | "p"; text: string};
+type StoryContent = {neighborhood: string; title: string; blocks: StoryBlock[]};
+
+const {story, backHref} = Astro.props as {story: StoryContent; backHref: string};
+---
+
+<section class='story-scene'>
+	<div class='story-scene__inner'>
+		<a class='story-scene__back' href={backHref}>Retour</a>
+
+		<header class='story-scene__header'>
+			<p class='story-scene__eyebrow'>{story.neighborhood}</p>
+			<h1 class='story-scene__title'>{story.title}</h1>
+		</header>
+
+		<div class='story-scene__body'>
+			{story.blocks.map((block: StoryBlock) => {
+				if (block.type === "h1") {
+					return <h2 class='story-scene__block story-scene__block--h1'>{block.text}</h2>;
+				}
+
+				if (block.type === "h2") {
+					return <h3 class='story-scene__block story-scene__block--h2'>{block.text}</h3>;
+				}
+
+				return <p class='story-scene__block story-scene__block--p'>{block.text}</p>;
+			})}
+		</div>
+	</div>
+</section>

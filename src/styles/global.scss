@@ -1,5 +1,8 @@
 @use "base/reset";
 @use "base/typography";
+@use "component/splash-scene";
+@use "component/overworld-scene";
+@use "component/story-scene";
 @use "component/scene-renderer";
 @use "component/scene-layer";
 @use "component/interactive-zone";
