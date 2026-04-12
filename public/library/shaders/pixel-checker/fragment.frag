@@ -4,8 +4,9 @@ varying vec2 vTexCoord;
 
 uniform sampler2D uTexture;
 uniform vec2 uResolution;
+uniform float uPixelRatio; // Device pixel ratio (logical → physical pixel scale)
 uniform float uBrightness; // Brightness boost
-uniform float uCellSize; // Size of CRT cells (pixels)
+uniform float uCellSize; // Size of CRT cells in logical (CSS) pixels
 uniform float uGapOpacity; // Gap opacity between phosphor dots (0.0 = no gaps, 1.0 = full dark gaps)
 uniform float uRgbOpacity; // RGB color separation opacity (0.0 = no separation, 1.0 = full isolation)
 uniform float uDotRadius; // Size of phosphor dots (0.0-0.5)
@@ -16,8 +17,9 @@ uniform vec3 uRgbGain; // Per-channel multiplier on final CRT color (default 1,1
 void main() {
 	vec2 uv = vTexCoord;
 	
-	// Get pixel coordinates
-	vec2 pixelCoord = uv * uResolution;
+	// Convert to logical (CSS) resolution so CRT sizing is stable across DPR values.
+	vec2 logicalResolution = uResolution / max(uPixelRatio, 1.0);
+	vec2 pixelCoord = uv * logicalResolution;
 
 	// CRT DISPLAY: Each cell contains RGB phosphor dots arranged horizontally
 	// with alternating vertical offset (staggered pattern)
@@ -41,7 +43,7 @@ void main() {
 	vec2 cellCenterCoord = (cellIndex + vec2(0.5)) * uCellSize;
 	// Unapply the vertical offset to get back to original coordinate space
 	vec2 originalCellCenter = vec2(cellCenterCoord.x, cellCenterCoord.y + verticalOffset);
-	vec2 cellCenterUV = originalCellCenter / uResolution;
+	vec2 cellCenterUV = originalCellCenter / logicalResolution;
 	
 	// Interpolate between actual UV position (filter mode) and cell center (true pixel mode)
 	vec2 sampleUV = mix(cellCenterUV, uv, uFilterMode);

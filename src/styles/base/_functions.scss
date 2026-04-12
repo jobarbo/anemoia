@@ -1,0 +1,173 @@
+@use "sass:math";
+@use "sass:list";
+@use "sass:map";
+@use "sass:meta";
+@use "variables" as *;
+
+// ==========================================================================
+// MIXINS - Functions
+// ==========================================================================
+
+// - - - Strip units - - -
+@function strip-unit($value) {
+	@if meta.type-of($value) == "number" and math.unit($value) != "" {
+		@return math.div($value, ($value * 0 + 1));
+	}
+	@return $value;
+}
+
+// - - - PX to EM - - -
+// divide by 16
+@function em($px) {
+	@return #{strip-unit(math.div($px, $function-size-default))}em;
+}
+
+// - - - EM to PX - - -
+// multiply by 16
+@function px($em) {
+	@return #{strip-unit($em * $function-size-default)}px;
+}
+
+// - - - PX to REM - - -
+// divide by 16
+@function rem($px) {
+	$px: strip-unit($px);
+	@return calc($px / $function-size-default) + rem;
+}
+
+@function get-padding($breakpoint, $size: "base") {
+	@return map.get(map.get($padding, $breakpoint), $size);
+}
+
+// Function to get breakpoints
+@function breakpoint($device, $type: "full") {
+	@return map.get(map.get($breakpoints, $device), $type);
+}
+
+@function transition($type: "default") {
+	@return map.get($transitions, $type);
+}
+
+@function header-height($device, $type: "full") {
+	@return map.get(map.get($header-heights, $device), $type);
+}
+
+@function normalize-number($value) {
+	@if meta.type-of($value) == "list" and list.length($value) == 1 {
+		@return list.nth($value, 1);
+	}
+
+	@return $value;
+}
+
+@function to-vw($px, $clamp: true, $clamp-min: null, $clamp-max: null) {
+	$px: normalize-number($px);
+	$initial-value: $px;
+	@if $clamp {
+		@if $clamp-min {
+			$clamp-min: $clamp-min;
+		} @else {
+			$clamp-min: math.div($initial-value, 2);
+		}
+		@if $clamp-max {
+			$clamp-max: $clamp-max;
+		} @else {
+			$clamp-max: $initial-value * 2;
+		}
+		$vw-value: math.div($px, $max-width-stripped) * 100;
+		@return clamp(#{$clamp-min}px, #{$vw-value}vw, #{$clamp-max}px);
+	} @else {
+		@return math.div($px, $max-width-stripped) * 100 + vw;
+	}
+}
+
+@function to-vh($px, $clamp: true, $clamp-min: calc($px / 1.5), $clamp-max: calc($px * 1.5), $stripped: false) {
+	$px: normalize-number($px);
+	$initial-value: $px;
+
+	@if $clamp {
+		@if $clamp-min {
+			$clamp-min: $clamp-min;
+		} @else {
+			$clamp-min: $initial-value;
+		}
+		@if $clamp-max {
+			$clamp-max: $clamp-max;
+		} @else {
+			$clamp-max: $initial-value * 2;
+		}
+		$vh-value: math.div($px, $max-height-stripped) * 100;
+		@return clamp(#{$clamp-min}px, #{$vh-value}vh, #{$clamp-max}px);
+	} @else {
+		@return math.div($px, $max-height-stripped) * 100 + vh;
+	}
+}
+
+@function vw-to-px($vw) {
+	@return $vw * math.div($max-width-stripped, 100);
+}
+
+// Convert rem to vw using the default font size (16px)
+@function rem-to-vw($rem) {
+	$px: $rem * $function-size-default;
+	@return math.div($px, $design-width-stripped) * 100 + vw;
+}
+
+@function rem-to-vh($rem) {
+	$px: $rem * $function-size-default;
+	@return math.div($px, $design-height-stripped) * 100 + vh;
+}
+
+@function em-to-vw($em, $context: $function-size-default) {
+	$px: $em * $context;
+	@return math.div($px, $design-width-stripped) * 100 + vw;
+}
+
+@function em-to-vh($em, $context: $function-size-default) {
+	$px: $em * $context;
+	@return math.div($px, $design-height-stripped) * 100 + vh;
+}
+
+// Mixins handle the responsive fallback
+@mixin responsive-rem-vw($property, $rem) {
+	$px: $rem * $function-size-default;
+	#{$property}: math.div($px, $design-width-stripped) * 100 + vw;
+
+	@media all and (max-width: 1024px) {
+		#{$property}: $px + px;
+	}
+}
+
+@mixin responsive-em-vw($property, $em, $context: $function-size-default) {
+	$px: $em * $context;
+	#{$property}: math.div($px, $design-width-stripped) * 100 + vw;
+
+	@media all and (max-width: 1024px) {
+		#{$property}: $px + px;
+	}
+}
+
+// Mixin with responsive fallback
+@mixin responsive-to-vw($property, $px, $stripped: false) {
+	#{$property}: to-vw($px, $stripped);
+
+	@media all and (max-width: 1024px) {
+		#{$property}: $px + px;
+	}
+}
+
+@mixin responsive-to-vh($property, $px, $stripped: false) {
+	#{$property}: to-vh($px, $stripped);
+
+	@media all and (max-width: 1024px) {
+		#{$property}: $px;
+	}
+}
+
+@function map-deep-get($map, $keys...) {
+	$value: $map;
+	@each $key in $keys {
+		$value: map.get($value, $key);
+	}
+	@return $value;
+}

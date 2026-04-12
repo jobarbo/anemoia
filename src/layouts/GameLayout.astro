@@ -50,11 +50,74 @@ const audioAttrs = typeof audioSrc === "string" && audioSrc.length > 0 ? {src: a
 				};
 			})();
 		</script>
+		<!--
+			Screen curtain — full-viewport black overlay that sits above the shader
+			canvas (z 9001).  The `is-booting` class triggers the CRT power-on CSS
+			animation on every page load, hiding the brief "unshadered DOM" flash.
+			The inline script below intercepts link clicks to play a matching
+			screen-off animation before navigating.
+		-->
+		<div id='screen-curtain' class='is-booting'></div>
+
 		<slot />
-		<audio id='global-audio' loop transition:persist='global-audio' {...audioAttrs}></audio>
+		<audio id='global-audio' loop transition:persist='global-audio' {...audioAttrs} />
 		<div data-html2canvas-ignore='true'>
 			<AudioPlayer />
 		</div>
 		<!-- GlobalShaderOverlay is bootstrapped by each route that needs it. -->
+
+		<script>
+			// Screen-curtain exit animation.
+			// Intercepts clicks on internal <a> links, fades the curtain to black,
+			// then navigates — so the destination page always boots from black.
+			(function () {
+				const curtain = document.getElementById("screen-curtain");
+				if (!curtain) return;
+
+				document.addEventListener(
+					"click",
+					function (e) {
+						const link = (e.target as Element | null)?.closest("a[href]") as HTMLAnchorElement | null;
+						if (!link) return;
+
+						const href = link.getAttribute("href");
+						if (!href) return;
+
+						// Skip external, hash-only, protocol links, and explicit new-tab links
+						if (
+							href.startsWith("http") ||
+							href.startsWith("//") ||
+							href.startsWith("#") ||
+							href.startsWith("mailto:") ||
+							href.startsWith("tel:") ||
+							link.hasAttribute("target") ||
+							link.hasAttribute("download")
+						)
+							return;
+
+						e.preventDefault();
+
+						// Cancel the boot animation (if still running), force full-screen
+						// black instantly, then fade it in over 220 ms.
+						curtain.style.animation = "none";
+						curtain.style.transform = "none";
+						curtain.style.transition = "none";
+						curtain.style.opacity = "0";
+
+						// Force reflow so the browser records the opacity:0 baseline
+						// before we switch on the transition.
+						void curtain.offsetHeight;
+
+						curtain.style.transition = "opacity 0.22s ease-in";
+						curtain.style.opacity = "1";
+
+						setTimeout(function () {
+							window.location.href = href;
+						}, 240);
+					},
+					true
+				);
+			})();
+		</script>
 	</body>
 </html>

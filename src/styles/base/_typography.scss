@@ -1,22 +1,853 @@
+@use "sass:map";
+@use "sass:meta";
 @use "variables" as *;
+@use "functions" as *;
+@use "mediaqueries" as *;
+@use "sass:math";
 
-body {
-	font-family: $font-primary;
-	line-height: 1.6;
+// 0. mixins
+// ==========================================================================
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Overpass+Mono:wght@300..700&display=swap");
+
+@mixin font-face($name, $path, $weight: null, $style: null, $exts: eot woff2 woff ttf svg) {
+	$src: null;
+
+	$extmods: (
+		eot: "?",
+		svg: "#" + str-replace($name, " ", "_"),
+	);
+
+	$formats: (
+		otf: "opentype",
+		ttf: "truetype",
+	);
+
+	@font-face {
+		font-family: $name;
+		font-weight: $weight;
+		font-style: $style;
+		src:
+			url("#{$path}.eot?#iefix") format("embedded-opentype"),
+			url("#{$path}.woff2") format("woff2"),
+			url("#{$path}.woff") format("woff");
+	}
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-	margin-top: 0;
-	margin-bottom: 0.5rem;
-	font-weight: 600;
+// 1. Variables
+// ==========================================================================
+
+$font-family-default: "IBM Plex Mono";
+$font-family-title: "IBM Plex Mono";
+$font-family-button: $font-family-title, "IBM Plex Mono", monospace;
+$function-size-default: 16;
+$font-size-default: 16px;
+$line-height-default: 1.5;
+$font-weight-default: 400;
+$text-color-default: $white;
+$title-multiplier: 1.5;
+$text-multiplier: 1.35;
+$title-divider: 1.5;
+$text-divider: 1.35;
+
+// Font weight presets
+$font-weight: (
+	thin: 100,
+	extralight: 200,
+	light: 300,
+	regular: 400,
+	medium: 500,
+	semibold: 600,
+	bold: 700,
+	extrabold: 800,
+	xbold: 900,
+);
+
+// 2. Title Configurations Map
+// ==========================================================================
+$titles: (
+	1: (
+		color: $white,
+		size: 60,
+		weight: map.get($font-weight, bold),
+		line-height: 1.41667,
+		letter-spacing: 0em,
+		fs_min: math.div(60, $title-divider),
+		fs_max: 60 * $title-multiplier,
+		scale: (
+			map.get($breakpoints, tablet, stripped): 0.65,
+			map.get($breakpoints, mobile, stripped): 0.45,
+			map.get($breakpoints, tiny, stripped): 0.4,
+		),
+	),
+	2: (
+		color: $white,
+		size: 43,
+		weight: map.get($font-weight, bold),
+		line-height: 1.27,
+		letter-spacing: 0em,
+		fs_min: math.div(43, $title-divider),
+		fs_max: 43 * $title-multiplier,
+		scale: (
+			map.get($breakpoints, tablet, stripped): 0.65,
+			map.get($breakpoints, mobile, stripped): 0.5,
+			map.get($breakpoints, tiny, stripped): 0.45,
+		),
+	),
+	3: (
+		color: $white,
+		size: 30,
+		weight: map.get($font-weight, bold),
+		line-height: 1.5,
+		letter-spacing: 0em,
+		fs_min: math.div(30, $title-divider),
+		fs_max: 30 * $title-multiplier,
+		scale: (
+			map.get($breakpoints, tablet, stripped): 0.75,
+			map.get($breakpoints, mobile, stripped): 0.65,
+			map.get($breakpoints, tiny, stripped): 0.5,
+		),
+	),
+	4: (
+		color: $white,
+		size: 25,
+		weight: map.get($font-weight, bold),
+		line-height: 1.666,
+		letter-spacing: 0em,
+		fs_min: math.div(25, $title-divider),
+		fs_max: 25 * $title-multiplier,
+		scale: (
+			map.get($breakpoints, tablet, stripped): 0.8,
+			map.get($breakpoints, mobile, stripped): 0.7,
+			map.get($breakpoints, tiny, stripped): 0.65,
+		),
+	),
+	5: (
+		color: $white,
+		size: 20,
+		weight: map.get($font-weight, bold),
+		line-height: 1.4,
+		letter-spacing: 0em,
+		fs_min: math.div(20, $title-divider),
+		fs_max: 20 * $title-multiplier,
+		scale: (
+			map.get($breakpoints, tablet, stripped): 0.9,
+			map.get($breakpoints, mobile, stripped): 0.7,
+			map.get($breakpoints, tiny, stripped): 0.65,
+		),
+	),
+	6: (
+		color: $white,
+		size: 18,
+		weight: map.get($font-weight, bold),
+		line-height: 1.4,
+		letter-spacing: 0em,
+		fs_min: math.div(18, $title-divider),
+		fs_max: 18 * $title-multiplier,
+		scale: (
+			map.get($breakpoints, tablet, stripped): 0.9,
+			map.get($breakpoints, mobile, stripped): 0.85,
+			map.get($breakpoints, tiny, stripped): 0.65,
+		),
+	),
+);
+
+// Default typography presets
+$text-presets: (
+	small: (
+		size: 14,
+		weight: map.get($font-weight, regular),
+		line-height: 1,
+		letter-spacing: 0em,
+		fs_min: math.div(14, $text-divider),
+		fs_max: 14 * $text-multiplier,
+	),
+	base: (
+		size: 16,
+		weight: map.get($font-weight, regular),
+		line-height: 1,
+		letter-spacing: 0em,
+		fs_min: math.div(16, $text-divider),
+		fs_max: 16 * $text-multiplier,
+	),
+	medium: (
+		size: 18,
+		weight: map.get($font-weight, regular),
+		line-height: 1.35,
+		letter-spacing: 0em,
+		fs_min: math.div(18, $text-divider),
+		fs_max: 18 * $text-multiplier,
+	),
+	large: (
+		size: 20,
+		weight: map.get($font-weight, regular),
+		line-height: 1,
+		letter-spacing: 0em,
+		fs_min: math.div(20, $text-divider),
+		fs_max: 20 * $text-multiplier,
+	),
+);
+
+// 3. Mixins
+// ==========================================================================
+@mixin font-face($family, $path, $weight: normal, $style: normal) {
+	@font-face {
+		font-family: $family;
+		src:
+			url("#{$path}.eot?#iefix") format("embedded-opentype"),
+			url("#{$path}.woff2") format("woff2"),
+			url("#{$path}.woff") format("woff");
+		font-weight: $weight;
+		font-style: $style;
+	}
 }
+
+@mixin title(
+	$level,
+	$color: null,
+	$fs_min: null,
+	$fs_max: null,
+	$fs: null,
+	$tfs: null,
+	$mfs: null,
+	$fw: null,
+	$lh: null,
+	$ls: null,
+	$mt: 0,
+	$mb: 0,
+	$ta: null,
+	$tt: null,
+	$mw: null,
+	$relative_fs: true,
+	$style: normal,
+	$variant: normal,
+	$family: $font-family-title,
+	$apply_base: true
+) {
+	$config: map.get($titles, $level);
+
+	@if $apply_base {
+		// Base implementation - set all properties
+		$base_fs: if(
+			sass($fs): $fs; else: map.get($config, size),
+		);
+		$base-size: strip-unit($base_fs); // Store the base size for mobile/tablet calculations
+
+		// If custom $fs is provided but min/max are not, calculate them based on $fs
+		@if $fs != null and $fs_min == null and $fs_max == null {
+			$fs_min: math.div(strip-unit($base_fs), $title-divider);
+			$fs_max: strip-unit($base_fs) * $title-multiplier;
+		} @else {
+			$fs_min: if(
+				sass($fs_min): $fs_min; else: map.get($config, fs_min),
+			);
+			$fs_max: if(
+				sass($fs_max): $fs_max; else: map.get($config, fs_max),
+			);
+		}
+
+		$base_fw: if(
+			sass($fw): $fw; else: map.get($config, weight),
+		);
+		$base_lh: if(
+			sass($lh): $lh; else: map.get($config, line-height),
+		);
+		$base_ls: if(
+			sass($ls): $ls; else: map.get($config, letter-spacing),
+		);
+		$base_color: if(
+			sass($color): $color; else: map.get($config, color),
+		);
+
+		// Convert to responsive units
+		$font_size_value: if(
+			sass($relative_fs): to-vw(strip-unit($base_fs)) ; else: rem($base_fs),
+		);
+		$font_size_value: clamp(#{$fs_min}px, #{$font_size_value}, #{$fs_max}px);
+		$max_width_value: if(
+			sass($mw): if(
+					sass($relative_fs): to-vw(strip-unit($mw)) ; else: $mw,
+				)
+				;
+				else: null,
+		);
+
+		// Store initial px values for margins (only for simple numeric values)
+		$mt-is-number: meta.type-of($mt) == "number";
+		$mb-is-number: meta.type-of($mb) == "number";
+		$mt-px: if(
+			sass($mt-is-number and $mt != 0): strip-unit($mt) ; else: null,
+		);
+		$mb-px: if(
+			sass($mb-is-number and $mb != 0): strip-unit($mb) ; else: null,
+		);
+
+		// Set all properties
+		font: $style $variant $base_fw $font_size_value $family;
+		line-height: $base_lh;
+		letter-spacing: $base_ls;
+		color: $base_color;
+		margin-top: $mt;
+		margin-bottom: $mb;
+
+		@if $ta != null {
+			text-align: $ta;
+		}
+
+		@if $tt != null {
+			text-transform: $tt;
+		}
+
+		@if $max_width_value != null {
+			max-width: $max_width_value;
+		}
+
+		// Apply responsive scaling from config or custom values
+		@if $tfs != null or $mfs != null {
+			// Custom responsive font sizes provided
+			@include tablet-only {
+				@if $tfs != null {
+					font-size: #{$tfs}px;
+				} @else {
+					font-size: #{math.floor(math.div($base-size, $title-divider))}px;
+				}
+				// Only override margins if they were simple numbers (not clamp/calc)
+				@if $mt-px != null {
+					margin-top: #{$mt-px}px;
+				}
+				@if $mb-px != null {
+					margin-bottom: #{$mb-px}px;
+				}
+			}
+			@include mobile-only {
+				@if $mfs != null {
+					font-size: #{$mfs}px;
+				} @else {
+					font-size: #{math.floor(math.div($base-size, $title-divider))}px;
+				}
+				// Only override margins if they were simple numbers (not clamp/calc)
+				@if $mt-px != null {
+					margin-top: #{$mt-px}px;
+				}
+				@if $mb-px != null {
+					margin-bottom: #{$mb-px}px;
+				}
+			}
+		} @else {
+			// Use the scale map from config
+			$scale: map.get($config, scale);
+			@each $breakpoint, $value in $scale {
+				@media all and (max-width: #{$breakpoint}px) {
+					@if meta.type-of($value) == "map" {
+						font-size: if(sass(map.get($value, fixed)): map.get($value, size) ; else: rem(map.get($value, size)));
+					} @else {
+						font-size: calc(#{rem(map.get($config, size))} * #{$value});
+					}
+				}
+			}
+		}
+
+		@media all and (max-width: 1024px) {
+			br {
+				display: none;
+			}
+		}
+	} @else {
+		// Custom properties only - much simpler output
+		@if $color != null {
+			color: $color;
+		}
+
+		// Store initial px values for margins (only for simple numeric values)
+		$mt-is-number: meta.type-of($mt) == "number";
+		$mb-is-number: meta.type-of($mb) == "number";
+		$mt-px: if(
+			sass($mt-is-number and $mt != 0): strip-unit($mt) ; else: null,
+		);
+		$mb-px: if(
+			sass($mb-is-number and $mb != 0): strip-unit($mb) ; else: null,
+		);
+
+		@if $mb != 0 {
+			margin-bottom: $mb;
+		}
+
+		@if $mt != 0 {
+			margin-top: $mt;
+		}
+
+		@if $ta != null {
+			text-align: $ta;
+		}
+
+		@if $tt != null {
+			text-transform: $tt;
+		}
+
+		@if $lh != null {
+			line-height: $lh;
+		}
+
+		@if $ls != 0em {
+			letter-spacing: $ls;
+		}
+
+		@if $fw != null {
+			font-weight: $fw;
+		}
+
+		// Always set font-size based on level preset or custom value
+		$custom_fs: if(
+			sass($fs != null): $fs; else: map.get($config, size),
+		);
+		$base-size: strip-unit($custom_fs); // Store the base size for mobile/tablet calculations
+
+		// If custom $fs is provided but min/max are not, calculate them based on $fs
+		@if $fs != null and $fs_min == null and $fs_max == null {
+			$fs_min: math.div(strip-unit($custom_fs), $title-divider);
+			$fs_max: strip-unit($custom_fs) * $title-multiplier;
+		} @else {
+			$fs_min: if(
+				sass($fs_min != null): $fs_min; else: map.get($config, fs_min),
+			);
+			$fs_max: if(
+				sass($fs_max != null): $fs_max; else: map.get($config, fs_max),
+			);
+		}
+
+		$custom_fs_value: if(
+			sass($relative_fs): to-vw(strip-unit($custom_fs)) ; else: rem($custom_fs),
+		);
+		font-size: clamp(#{$fs_min}px, #{$custom_fs_value}, #{$fs_max}px);
+
+		@if $mw != null {
+			max-width: if(sass($relative_fs): to-vw(strip-unit($mw)) ; else: $mw);
+		}
+
+		@if $style != normal or $variant != normal {
+			font-style: $style;
+			font-variant: $variant;
+		}
+
+		// Responsive font sizes
+		@include tablet-only {
+			@if $tfs != null {
+				font-size: #{$tfs}px;
+			} @else {
+				font-size: #{math.floor(math.div($base-size, $title-divider))}px;
+			}
+			// Only override margins if they were simple numbers (not clamp/calc)
+			@if $mt-px != null {
+				margin-top: #{$mt-px}px;
+			}
+			@if $mb-px != null {
+				margin-bottom: #{$mb-px}px;
+			}
+		}
+		@include mobile-only {
+			@if $mfs != null {
+				font-size: #{$mfs}px;
+			} @else {
+				font-size: #{math.floor(math.div($base-size, $title-divider))}px;
+			}
+			// Only override margins if they were simple numbers (not clamp/calc)
+			@if $mt-px != null {
+				margin-top: #{$mt-px}px;
+			}
+			@if $mb-px != null {
+				margin-bottom: #{$mb-px}px;
+			}
+		}
+	}
+}
+
+// Can be used with a preset name or with custom values
+@mixin text(
+	$preset: null,
+	$fs: null,
+	$tfs: 14,
+	$mfs: 14,
+	$fw: null,
+	$color: $text-color-default,
+	$lh: null,
+	$ls: -0.04em,
+	$ta: null,
+	$tt: null,
+	$td: null,
+	$mb: 0,
+	$style: normal,
+	$variant: normal,
+	$mw: null,
+	$relative_fs: true,
+	$fs_min: null,
+	$fs_max: null,
+	$family: $font-family-default,
+	$apply_base: true
+) {
+	// Check if a preset was passed and use it as base
+	$config: null;
+	@if $preset != null and map.has-key($text-presets, $preset) {
+		$config: map.get($text-presets, $preset);
+	} @else {
+		// Default to base preset
+		$config: map.get($text-presets, base);
+	}
+
+	@if $apply_base {
+		// Override preset with any custom values
+		$font-size: if(
+			sass($fs != null): $fs; else: map.get($config, size),
+		);
+		$base-size: strip-unit($font-size); // Store the base size for mobile/tablet calculations
+		$font-weight: if(
+			sass($fw != null): $fw; else: map.get($config, weight),
+		);
+		$line-height: if(
+			sass($lh != null): $lh; else: map.get($config, line-height),
+		);
+		$letter-spacing: if(
+			sass($ls != 0em): $ls; else: map.get($config, letter-spacing),
+		);
+
+		// If custom $fs is provided but min/max are not, calculate them based on $fs
+		@if $fs != null and $fs_min == null and $fs_max == null {
+			$fs_min: math.div(strip-unit($font-size), $text-divider);
+			$fs_max: strip-unit($font-size) * $text-multiplier;
+		} @else {
+			$fs_min: if(
+				sass($fs_min != null): $fs_min; else: map.get($config, fs_min),
+			);
+			$fs_max: if(
+				sass($fs_max != null): $fs_max; else: map.get($config, fs_max),
+			);
+		}
+
+		// Convert to vw if $relative_fs is true
+		@if $relative_fs {
+			@if ($mw != null) {
+				$mw: to-vw(strip-unit($mw));
+			}
+			$font-size: to-vw(strip-unit($font-size));
+		} @else {
+			$font-size: rem($font-size);
+		}
+
+		$font-size: clamp(#{$fs_min}px, #{$font-size}, #{$fs_max}px);
+
+		// Store initial px values for margins (only for simple numeric values)
+		$mb-is-number: meta.type-of($mb) == "number";
+		$mb-px: if(
+			sass($mb-is-number and $mb != 0): strip-unit($mb) ; else: null,
+		);
+
+		// Use the font shorthand property
+		font: #{$style} #{$variant} #{$font-weight} #{$font-size}/#{$line-height} $family;
+		letter-spacing: $letter-spacing;
+		color: $color;
+		text-align: $ta;
+		text-transform: $tt;
+		text-decoration: $td;
+		margin-bottom: $mb;
+		max-width: if(sass($mw): $mw; else: null);
+
+		&:last-child {
+			margin-bottom: 0;
+		}
+
+		@include tablet-only {
+			max-width: 100%;
+			@if $tfs != null {
+				font-size: #{$tfs}px;
+			} @else {
+				font-size: #{math.floor(math.div($base-size, $text-divider))}px;
+			}
+			// Only override margin if it was a simple number (not clamp/calc)
+			@if $mb-px != null {
+				margin-bottom: #{$mb-px}px;
+			}
+		}
+		@include mobile-only {
+			@if $mfs != null {
+				font-size: #{$mfs}px;
+			} @else {
+				font-size: #{math.floor(math.div($base-size, $text-divider))}px;
+			}
+			// Only override margin if it was a simple number (not clamp/calc)
+			@if $mb-px != null {
+				margin-bottom: #{$mb-px}px;
+			}
+		}
+	} @else {
+		// Custom properties only - much simpler output
+		@if $color != $text-color-default {
+			color: $color;
+		}
+
+		// Store initial px values for margins (only for simple numeric values)
+		$mb-is-number: meta.type-of($mb) == "number";
+		$mb-px: if(
+			sass($mb-is-number and $mb != 0): strip-unit($mb) ; else: null,
+		);
+
+		@if $mb != 0 {
+			margin-bottom: $mb;
+		}
+
+		@if $ta != null {
+			text-align: $ta;
+		}
+
+		@if $tt != null {
+			text-transform: $tt;
+		}
+
+		@if $ls != 0em {
+			letter-spacing: $ls;
+		}
+
+		@if $fw != null {
+			font-weight: $fw;
+		}
+
+		@if $lh != null {
+			line-height: $lh;
+		}
+
+		// Always set font-size based on preset or custom value
+		$custom-fs: if(
+			sass($fs != null): $fs; else: map.get($config, size),
+		);
+		$base-size: strip-unit($custom-fs); // Store the base size for mobile/tablet calculations
+
+		// If custom $fs is provided but min/max are not, calculate them based on $fs
+		@if $fs != null and $fs_min == null and $fs_max == null {
+			$fs_min: math.div(strip-unit($custom-fs), $text-divider);
+			$fs_max: strip-unit($custom-fs) * $text-multiplier;
+		} @else {
+			$fs_min: if(
+				sass($fs_min != null): $fs_min; else: map.get($config, fs_min),
+			);
+			$fs_max: if(
+				sass($fs_max != null): $fs_max; else: map.get($config, fs_max),
+			);
+		}
+
+		$custom-fs-value: if(
+			sass($relative_fs): to-vw(strip-unit($custom-fs)) ; else: rem($custom-fs),
+		);
+
+		font-size: clamp(#{$fs_min}px, #{$custom-fs-value}, #{$fs_max}px);
+
+		@if $mw != null {
+			max-width: if(sass($relative_fs): to-vw(strip-unit($mw)) ; else: $mw);
+		}
+
+		@if $style != normal or $variant != normal {
+			font-style: $style;
+			font-variant: $variant;
+		}
+
+		// Responsive font sizes
+		@include tablet-only {
+			@if $tfs != null {
+				font-size: #{$tfs}px;
+			} @else {
+				font-size: #{math.floor(math.div($base-size, $text-divider))}px;
+			}
+			// Only override margin if it was a simple number (not clamp/calc)
+			@if $mb-px != null {
+				margin-bottom: #{$mb-px}px;
+			}
+		}
+		@include mobile-only {
+			@if $mfs != null {
+				font-size: #{$mfs}px;
+			} @else {
+				font-size: #{math.floor(math.div($base-size, $text-divider))}px;
+			}
+			// Only override margin if it was a simple number (not clamp/calc)
+			@if $mb-px != null {
+				margin-bottom: #{$mb-px}px;
+			}
+		}
+	}
+}
+
+// Define a mixin for list styles
+@mixin list-styles($direction: row, $margin-bottom: 0em, $content: "", $padding-left: 0px, $margin-right: 0.5em, $preset: base, $fs: null, $fs_min: null, $fs_max: null) {
+	margin: 0;
+	display: flex;
+	flex-direction: $direction;
+	list-style: none;
+	li,
+	.list-item {
+		margin-bottom: $margin-bottom;
+		position: relative;
+		padding-left: $padding-left;
+		@if $fs != null {
+			@include text($fs: $fs, $fs_min: if(sass($fs_min): $fs_min; else: 14), $fs_max: if(sass($fs_max): $fs_max; else: $fs * 2), $apply_base: true);
+		} @else {
+			@include text($preset: $preset, $apply_base: true);
+		}
+
+		&::before {
+			content: $content;
+			margin-right: $margin-right;
+			position: absolute;
+			left: 0;
+		}
+	}
+}
+
+@mixin wysiwyg($color: $white) {
+	h1 {
+		@include title(1, $color: $color, $mb: 1em, $mt: 1.25em);
+	}
+
+	h2 {
+		@include title(2, $color: $color, $mb: 1em, $mt: 1.25em);
+	}
+
+	h3 {
+		@include title(3, $color: $color, $mb: 1em, $mt: 1.25em);
+	}
+
+	h4 {
+		@include title(4, $color: $color, $mb: 1em, $mt: 1.25em);
+	}
+
+	h5 {
+		@include title(5, $color: $color, $mb: 1em, $mt: 1.25em);
+	}
+
+	h6 {
+		@include title(6, $color: $color, $mb: 1em, $mt: 1.25em);
+	}
+
+	p,
+	span {
+		@include text($preset: base, $color: $color, $mb: 0.25em);
+
+		@include tablet-only {
+			margin-bottom: 1em;
+		}
+	}
+
+	// Custom paragraph classes from TinyMCE
+	.paragraph {
+		a {
+			line-height: 1.25;
+		}
+		@include text($preset: base, $color: $color, $mb: 2em, $relative_fs: false, $apply_base: true, $lh: 1.1);
+	}
+
+	.paragraph-small {
+		a {
+			line-height: 1.25;
+		}
+		@include text($preset: small, $color: $color, $mb: 2em, $relative_fs: false, $apply_base: true);
+	}
+
+	.paragraph-medium {
+		a {
+			line-height: 1.25;
+		}
+		@include text($preset: medium, $color: $color, $mb: 2em, $relative_fs: false, $apply_base: true);
+	}
+
+	.paragraph-large {
+		a {
+			line-height: 1.25;
+		}
+		@include text($preset: large, $color: $color, $mb: 2em, $relative_fs: false, $apply_base: true);
+	}
+
+	strong {
+		@include text($preset: base, $fw: 600, $color: $color);
+	}
+
+	ul,
+	ol {
+		@include list-styles($direction: column, $content: "- ", $padding-left: 1.5em);
+		li {
+			@include text($preset: base, $color: $color, $mb: 0.5em);
+		}
+	}
+
+	a {
+		margin-bottom: 0;
+	}
+}
+
+// 4. Base Typography Placeholders
+// ==========================================================================
+%base-text {
+	font: normal $font-weight-default #{$font-size-default}/#{$line-height-default} $font-family-default;
+	color: $text-color-default;
+	letter-spacing: 0em;
+	font-optical-sizing: auto;
+	text-decoration: none;
+}
+
+// 5. Element Base Styles
+// ==========================================================================
+strong,
+p,
+a,
+li,
+span,
+div {
+	@extend %base-text;
+}
+
+// 6. Specific Element Styles
+// ==========================================================================
 
 p {
-	margin-top: 0;
-	margin-bottom: 1rem;
+	@include text($preset: base, $apply_base: true);
+}
+
+ul:not([class]),
+ol:not([class]) {
+	@include list-styles();
+	li {
+		@include text($preset: base, $apply_base: true);
+	}
+}
+
+// 7. Generated Title Classes
+// ==========================================================================
+@for $i from 1 through 6 {
+	h#{$i},
+	.title-#{$i} {
+		@include title($i, $apply_base: true);
+	}
+}
+
+// 8. Utility Classes
+// ==========================================================================
+.paragraph,
+.link,
+.unordered-list,
+.ordered-list {
+	@include text($preset: base, $apply_base: true, $lh: 1.1);
+}
+
+// Text size utility classes
+@each $name, $config in $text-presets {
+	.text-#{$name} {
+		@include text($preset: $name, $apply_base: true);
+	}
+}
+
+// Font weight utility classes
+@each $name, $weight in $font-weight {
+	.fw-#{$name} {
+		font-weight: $weight;
+	}
+}
+
+// Use the mixin for unordered and ordered lists
+.unordered-list,
+.ordered-list {
+	@include list-styles();
 }

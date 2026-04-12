@@ -88,12 +88,12 @@ const DEFAULT_EFFECTS = {
 	crtDisplay: {
 		enabled: true,
 		brightness: 0.95,
-		cellSize: 2,
-		gapOpacity: 0.1,
-		rgbOpacity: 0.4,
+		cellSize: 1,
+		gapOpacity: 0.9,
+		rgbOpacity: 0.0,
 		rgbGain: [1.0, 1.0, 1.0],
-		dotRadius: 0.1,
-		dotFalloff: 0.4,
+		dotRadius: 0.49,
+		dotFalloff: 0.1,
 		filterMode: 0.0,
 	},
 

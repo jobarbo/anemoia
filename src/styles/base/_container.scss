@@ -1,0 +1,95 @@
+// ==========================================================================
+// MIXINS - Grid and Containers
+// ==========================================================================
+@use "sass:map";
+@use "sass:meta";
+@use "sass:math";
+@use "variables" as *;
+@use "functions" as *;
+
+// Helper function to ensure padding values are clamped for large screens
+@function ensure-clamped($value) {
+	// For single pixel values, convert to clamped vw
+	@if meta.type-of($value) == "number" and math.unit($value) == "px" {
+		@return to-vw(strip-unit($value), true);
+	}
+
+	// For already processed values (vw, function calls, etc.), return as-is
+	// Note: Developers should use to-vw($px, true) in their custom padding for clamping
+	@return $value;
+}
+
+@mixin container(
+	$padding: (
+		xlarge: get-padding("xlarge", "base"),
+		desktop: get-padding("desktop", "base"),
+		tablet: get-padding("tablet", "base"),
+		mobile: get-padding("mobile", "base"),
+	),
+	$is-max-width: false
+) {
+	// Base styles
+	width: 100%;
+	margin-left: auto;
+	margin-right: auto;
+	// Convert single value to map if needed
+	@if meta.type-of($padding) != "map" {
+		$padding: (
+			xlarge: $padding,
+			desktop: $padding,
+			tablet: $padding,
+			mobile: $padding,
+		);
+	}
+
+	// Apply responsive padding
+	// Large desktops (default)
+	$desktop-value: map.get($padding, desktop);
+	padding: $desktop-value;
+
+	@if $is-max-width {
+		max-width: $max-width;
+	}
+
+	// Extra large screens - automatically apply clamping to prevent infinite scaling
+	@media all and (min-width: $design-width) {
+		$xlarge-value: map.get($padding, xlarge);
+
+		// Handle different types of padding values
+		@if meta.type-of($xlarge-value) == "list" {
+			// For shorthand padding (e.g., "top right bottom left"), process each value
+			$processed-values: ();
+			@each $val in $xlarge-value {
+				@if meta.type-of($val) == "number" and math.unit($val) == "px" {
+					$processed-values: append($processed-values, to-vw(strip-unit($val), true));
+				} @else {
+					$processed-values: append($processed-values, ensure-clamped($val));
+				}
+			}
+			padding: $processed-values;
+		} @else if meta.type-of($xlarge-value) == "number" and math.unit($xlarge-value) == "px" {
+			// Convert single px values to clamped vw automatically
+			padding: to-vw(strip-unit($xlarge-value), true);
+		} @else {
+			// For non-px values (like existing vw or function calls), ensure they're clamped
+			padding: ensure-clamped($xlarge-value);
+		}
+	}
+
+	// Tablets
+	@media all and (max-width: map.get($breakpoints, tablet, full)) {
+		$tablet-value: map.get($padding, tablet);
+		padding: $tablet-value;
+	}
+
+	// Mobile
+	@media all and (max-width: 700px) {
+		$mobile-value: map.get($padding, mobile);
+		padding: $mobile-value;
+	}
+}
+
+// Container class
+.container {
+	@include container();
+}

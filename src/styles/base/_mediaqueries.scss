@@ -1,0 +1,79 @@
+// ==========================================================================
+// MIXINS - Media queries
+// ==========================================================================
+
+@use "sass:map";
+@use "sass:math";
+@use "functions" as *;
+
+@mixin screen($minmax: max, $width: rem(1024)) {
+	@media only screen and (#{$minmax}-width: $width) {
+		@content;
+	}
+}
+
+@mixin min-width($width) {
+	@media only screen and (min-width: $width) {
+		@content;
+	}
+}
+
+@mixin max-width($width) {
+	@media only screen and (max-width: $width) {
+		@content;
+	}
+}
+
+@mixin between-width($min, $max) {
+	@media only screen and (min-width: $min) and (max-width: $max) {
+		@content;
+	}
+}
+
+@mixin min-height($height) {
+	@media only screen and (min-height: $height) {
+		@content;
+	}
+}
+
+@mixin max-height($height) {
+	@media only screen and (max-height: $height) {
+		@content;
+	}
+}
+
+@mixin desktop-only {
+	@media only screen and (min-width: breakpoint(tablet)) {
+		@content;
+	}
+}
+
+@mixin tablet-only {
+	@media only screen and (max-width: breakpoint(tablet)) {
+		@content;
+	}
+}
+
+@mixin mobile-only {
+	@media only screen and (max-width: breakpoint(mobile)) {
+		@content;
+	}
+}
+
+@mixin tiny-only {
+	@media only screen and (max-width: breakpoint(tiny)) {
+		@content;
+	}
+}
+
+@mixin print {
+	@media only print {
+		@content;
+	}
+}
+
+@mixin retina($ratio: 2) {
+	@media only screen and (-webkit-min-device-pixel-ratio: $ratio), only screen and (min-device-pixel-ratio: $ratio) {
+		@content;
+	}
+}

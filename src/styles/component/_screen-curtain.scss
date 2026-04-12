@@ -1,0 +1,90 @@
+// ==========================================================================
+//  Screen Curtain — CRT transition overlay
+//
+//  A position:fixed black panel that sits above the shader canvas (z 9000+1)
+//  and everything else in the viewport.
+//
+//  On every page load it starts opaque (hiding the unshadered DOM flash) and
+//  plays a CRT "power-on" animation:
+//    1. Hold full black while shader pipeline initialises         (~400 ms)
+//    2. Curtain collapses vertically to a thin phosphor beam      (~350 ms)
+//    3. Beam glows green and fades out                            (~400 ms)
+//
+//  On navigation the JS in GameLayout intercepts <a> clicks, cross-fades
+//  the curtain to black, then performs window.location.href — so the next
+//  page always boots cleanly from black.
+// ==========================================================================
+
+#screen-curtain {
+	position: fixed;
+	inset: 0;
+	// Sits one layer above the shader canvas; below the debug overlay (9999)
+	z-index: calc(var(--game-shader-overlay-z) + 1);
+	background: #000;
+	pointer-events: none;
+	transform-origin: center center;
+	will-change: transform, opacity;
+
+	// Subtle CRT scanline texture — barely visible through the black but adds
+	// depth when the curtain collapses to a thin beam and the contrast peaks
+	&::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		background: repeating-linear-gradient(
+			to bottom,
+			transparent 0,
+			transparent 3px,
+			rgba(0, 14, 4, 0.22) 3px,
+			rgba(0, 14, 4, 0.22) 4px
+		);
+		pointer-events: none;
+	}
+}
+
+// Boot state: added by default in GameLayout HTML so the animation begins
+// the moment CSS is parsed — before any JS runs.
+#screen-curtain.is-booting {
+	animation: crt-boot 1.15s ease-out 0s both;
+}
+
+// ── Keyframes ─────────────────────────────────────────────────────────────
+//
+// crt-boot: simulates a CRT monitor powering on.
+//
+//   0 – 35%  Hold full black (shader warms up)
+//  35 – 72%  Curtain collapses vertically → thin horizontal beam
+//  72 – 84%  Beam glows with phosphor-green halo
+//  84 – 100% Beam fades to transparent (screen now fully shader-rendered)
+//
+// The box-shadow at scaleY(~0) is applied to the ultra-thin remaining strip
+// and bleeds upward/downward as a green horizontal glow line.
+//
+@keyframes crt-boot {
+	0%,
+	35% {
+		transform: scaleY(1);
+		opacity: 1;
+		box-shadow: none;
+	}
+
+	72% {
+		transform: scaleY(0.004);
+		opacity: 1;
+		box-shadow:
+			0 0 32px 14px rgba(80, 230, 120, 0.8),
+			0 0 72px 36px rgba(40, 155, 68, 0.35);
+	}
+
+	84% {
+		transform: scaleY(0.004);
+		opacity: 0.7;
+		box-shadow: 0 0 18px 7px rgba(80, 230, 120, 0.45);
+	}
+
+	100% {
+		transform: scaleY(0.003);
+		opacity: 0;
+		box-shadow: none;
+	}
+}

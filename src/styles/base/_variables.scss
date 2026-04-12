@@ -1,6 +1,133 @@
-// SPA + shader overlay: keep viewport black — light bg caused visible flashes between scenes
-$color-bg: #000000;
-$color-text: #333;
-$color-accent: teal;
+// ==========================================================================
+//  VARIABLES
+// ==========================================================================
 
-$font-primary: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+@use "sass:map";
+
+// Colors
+// ==========================================================================
+$white: #fff;
+$black: #221f20;
+$gray-50: #f5f5f5;
+$grey-50: #f5f5f5;
+$grey-100: #d8d6d6;
+$gray-100: #d8d6d6;
+$grey-200: #d9d9d9;
+$gray-200: #d9d9d9;
+$grey-300: #c1c1c1;
+$gray-300: #c1c1c1;
+$gray-400: #a1a1a1;
+$gray-500: #808080;
+$gray-600: #606060;
+$gray-700: #404040;
+$gray-800: #202020;
+$gray-900: #000000;
+$concrete: #c1c1c1;
+$charcoal: #4c4748;
+$red: #c02731;
+$orange: #ff4b09;
+$lime: #d7f284;
+$deep-teal: #084750;
+$teal: #0c5d69;
+$powder: #bad9dd;
+$frost: #e1ebed;
+
+// Typography defaults
+// ==========================================================================
+$function-size-default: 16;
+
+// Max width
+$design-width: 1920px;
+$design-width-stripped: 1920;
+$max-width: 1920px;
+$max-width-stripped: 1920;
+
+// Max height
+$design-height: 1080px;
+$design-height-stripped: 1080;
+$max-height: 1080px;
+$max-height-stripped: 1080;
+
+// Header Heights
+// ==========================================================================
+$header-heights: (
+	mobile: (
+		full: 80px,
+		stripped: 80,
+	),
+	tablet: (
+		full: 90px,
+		stripped: 90,
+	),
+	desktop: (
+		full: 210px,
+		stripped: 210,
+	),
+);
+
+// Transitions
+// ==========================================================================
+$transitions: (
+	short: 0.2s,
+	default: 0.3s ease-in-out,
+);
+
+// Breakpoints
+// ==========================================================================
+$breakpoints: (
+	tiny: (
+		full: 320px,
+		stripped: 320,
+	),
+	mobile: (
+		full: 720px,
+		stripped: 720,
+	),
+	tablet: (
+		full: 1024px,
+		stripped: 1024,
+	),
+	xlarge: (
+		full: 1920px,
+		stripped: 1920,
+	),
+);
+
+// Padding System with dynamic fluid calculations
+$base-paddings: (
+	tiny: 40px,
+	base: 80px,
+	medium: 130px,
+	large: 180px,
+	xl: 220px,
+);
+$padding: (
+	mobile: (
+		tiny: 10px,
+		base: 14px,
+		medium: 18px,
+		large: 26px,
+		xl: 45px,
+	),
+	tablet: (
+		tiny: 12px,
+		base: 18px,
+		medium: 24px,
+		large: 42px,
+		xl: 80px,
+	),
+	desktop: (
+		tiny: map.get($base-paddings, tiny),
+		base: map.get($base-paddings, base),
+		medium: map.get($base-paddings, medium),
+		large: map.get($base-paddings, large),
+		xl: map.get($base-paddings, xl),
+	),
+	xlarge: (
+		tiny: map.get($base-paddings, tiny),
+		base: map.get($base-paddings, base),
+		medium: map.get($base-paddings, medium),
+		large: map.get($base-paddings, large),
+		xl: map.get($base-paddings, xl),
+	),
+);
