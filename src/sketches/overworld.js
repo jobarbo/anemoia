@@ -9,13 +9,12 @@
  *   - Title "CARTE DE LA VILLE" with chromatic aberration
  *   - Neighborhood pins as glowing dots with labels
  *   - "[ RETOUR AU MENU ]" back nav
- *   - Scan lines + vignette (retro-theme)
  *
  * Captured frame-perfectly by GlobalShaderOverlay via flat mode (drawImage on canvas).
  */
 
 import {sceneNavigate} from "../lib/router/scene-nav.js";
-import {THEME, drawScanLines, drawVignette, drawTitleAberration, drawButton, hitTest, tickBlink} from "../lib/utils/retro-theme.js";
+import {THEME, drawTitleAberration, drawButton, tickBlink} from "../lib/utils/retro-theme.js";
 
 export default function (container) {
 	const raw = container.dataset.sketchData;
@@ -25,13 +24,8 @@ export default function (container) {
 		/** P2D offscreen buffer — all drawing happens here, GlobalShaderOverlay handles GLSL. */
 		let artBuffer;
 
-		/** Hit rects computed each frame for click detection. */
-		let pinRects = [];
-		let backRect = null;
-
-		/** Hover state */
-		let hoveredPin = -1;
-		let backHovered = false;
+		/** Keyboard selection index: 0..neighborhoods.length-1 = a pin, neighborhoods.length = back button */
+		let selectedPin = 0;
 
 		/** Blinking state for back button */
 		let blinkVisible = true;
@@ -77,70 +71,48 @@ export default function (container) {
 			drawTitleAberration(artBuffer, "CARTE DE LA VILLE", w / 2, titleH / 2, titleSz, 255, sketch);
 
 			// ── Neighborhood pins ─────────────────────────────────────────────────
-			pinRects = [];
 			for (let i = 0; i < neighborhoods.length; i++) {
 				const hood = neighborhoods[i];
 				const px = mapX + (hood.position.x / 100) * mapW;
 				const py = mapY + (hood.position.y / 100) * mapH;
-				const hovered = hoveredPin === i;
-
-				drawPin(artBuffer, px, py, hood.name, hovered, sketch);
-
-				// Hit rect around label for click
-				const labelSz = w * 0.013;
-				const lw = artBuffer.textWidth(hood.name) + labelSz * 2;
-				const lh = labelSz * 2.5;
-				pinRects.push({x: px - lw / 2, y: py - lh / 2, w: lw, h: lh, slug: hood.slug});
+				drawPin(artBuffer, px, py, hood.name, selectedPin === i, sketch);
 			}
 
 			// ── Back button ───────────────────────────────────────────────────────
 			const backSz = w * 0.016;
 			const backY = h - footerH / 2;
-			backRect = drawButton(artBuffer, "[ RETOUR AU MENU ]", w / 2, backY, backSz, backHovered || blinkVisible, sketch);
+			const backSelected = selectedPin === neighborhoods.length;
+			drawButton(artBuffer, "[ RETOUR AU MENU ]", w / 2, backY, backSz, backSelected || blinkVisible, sketch);
 
-			// ── Post-processing ───────────────────────────────────────────────────
-			drawScanLines(artBuffer, now, sketch);
-			drawVignette(artBuffer);
+			// Key hint
+			const hintSz = w * 0.011;
+			artBuffer.textAlign(sketch.RIGHT, sketch.CENTER);
+			artBuffer.textSize(hintSz);
+			artBuffer.fill(...THEME.GREEN_SUBTLE, 120);
+			artBuffer.text("↑↓ SELECT   ENTER CONFIRM   ESC BACK", w - w * 0.04, h - footerH / 2);
 
 			// Blit artBuffer onto output canvas
 			sketch.clear();
 			sketch.image(artBuffer, 0, 0);
-
-			// Update cursor
-			const anyHover = hoveredPin >= 0 || backHovered;
-			container.style.cursor = anyHover ? "pointer" : "default";
 		};
 
-		sketch.mouseMoved = () => {
-			const mx = sketch.mouseX;
-			const my = sketch.mouseY;
-			hoveredPin = -1;
-			backHovered = false;
-
-			for (let i = 0; i < pinRects.length; i++) {
-				if (hitTest(mx, my, pinRects[i])) {
-					hoveredPin = i;
-					return;
+		sketch.keyPressed = () => {
+			const total = neighborhoods.length + 1; // pins + back
+			const key = sketch.keyCode;
+			if (key === sketch.UP_ARROW || key === sketch.LEFT_ARROW) {
+				selectedPin = (selectedPin - 1 + total) % total;
+			} else if (key === sketch.DOWN_ARROW || key === sketch.RIGHT_ARROW) {
+				selectedPin = (selectedPin + 1) % total;
+			} else if (key === sketch.ENTER || key === sketch.RETURN) {
+				if (selectedPin < neighborhoods.length) {
+					sceneNavigate("neighborhood", {slug: neighborhoods[selectedPin].slug});
+				} else {
+					sceneNavigate("splash");
 				}
-			}
-			if (backRect && hitTest(mx, my, backRect)) {
-				backHovered = true;
-			}
-		};
-
-		sketch.mousePressed = () => {
-			const mx = sketch.mouseX;
-			const my = sketch.mouseY;
-
-			for (const rect of pinRects) {
-				if (hitTest(mx, my, rect)) {
-					sceneNavigate("neighborhood", {slug: rect.slug});
-					return;
-				}
-			}
-			if (backRect && hitTest(mx, my, backRect)) {
+			} else if (key === sketch.ESCAPE) {
 				sceneNavigate("splash");
 			}
+			return false; // prevent default browser scroll
 		};
 
 		sketch.windowResized = () => {
