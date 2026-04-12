@@ -1,0 +1,11 @@
+.back-btn {
+	position: fixed;
+	top: 2rem;
+	left: 2rem;
+	z-index: var(--game-ui-above-shader-z, 9500);
+	color: #fff;
+	text-decoration: none;
+	background: rgba(0, 0, 0, 0.5);
+	padding: 0.5rem 1rem;
+	border-radius: 4px;
+}

@@ -1,0 +1,37 @@
+---
+import type {SceneLayer} from "../../types/manifest";
+
+interface Props {
+	zone: SceneLayer;
+	depth?: number;
+}
+
+const {zone} = Astro.props as Props;
+const {depth = 0.5} = Astro.props as Props;
+
+const style = `
+  --layer-center-left: ${zone.position.centerLeft}%;
+  --layer-center-top: ${zone.position.centerTop}%;
+  --layer-width: ${zone.position.width}%;
+  --layer-height: ${zone.position.height}%;
+  --layer-z: ${zone.zIndex + 1};
+`;
+
+const isNavigation = zone.interaction.type === "navigate";
+---
+
+{
+	isNavigation ? (
+		<a href={zone.interaction.target} class='zone zone--navigate' data-zone-type={zone.interaction.type} style={style}>
+			{zone.interaction.hoverImage && <img src={zone.interaction.hoverImage} class='zone__hover' alt={`Go to ${zone.interaction.target}`} />}
+		</a>
+	) : (
+		<button class='zone zone--state' data-zone-type={zone.interaction.type} style={style}>
+			{/* State toggling logic via JS */}
+		</button>
+	)
+}
+
+<style lang='scss'>
+	@use "../../styles/component/interactive-zone";
+</style>

@@ -1,0 +1,12 @@
+@use "base/reset";
+@use "base/typography";
+@use "component/scene-renderer";
+@use "component/scene-layer";
+@use "component/interactive-zone";
+@use "component/sketch-canvas";
+
+// Stacking: GlobalShaderOverlay (fixed WebGL canvas) vs UI chrome
+:root {
+	--game-shader-overlay-z: 9000;
+	--game-ui-above-shader-z: 9500;
+}

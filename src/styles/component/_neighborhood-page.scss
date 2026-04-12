@@ -1,0 +1,13 @@
+.neighborhood-container {
+	height: 100vh;
+	background: #000;
+	overflow-y: auto;
+	/* Horizontal bleed matches compositor (body keeps overflow-x: hidden on the document). */
+	overflow-x: visible;
+	position: relative;
+}
+
+.neighborhood-scene {
+	width: 100%;
+	height: auto;
+}

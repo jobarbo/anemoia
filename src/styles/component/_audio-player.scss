@@ -1,0 +1,22 @@
+.audio-player {
+	position: fixed;
+	bottom: 2rem;
+	right: 2rem;
+	z-index: var(--game-ui-above-shader-z, 9500);
+
+	button {
+		background: rgba(255, 255, 255, 0.2);
+		border: 1px solid rgba(255, 255, 255, 0.5);
+		color: white;
+		width: 48px;
+		height: 48px;
+		border-radius: 50%;
+		cursor: pointer;
+		backdrop-filter: blur(4px);
+		transition: background 0.3s;
+	}
+
+	button:hover {
+		background: rgba(255, 255, 255, 0.4);
+	}
+}

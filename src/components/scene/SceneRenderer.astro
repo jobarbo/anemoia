@@ -1,0 +1,169 @@
+---
+import type {SceneManifest, SceneLayer} from "../../types/manifest";
+import SceneLayerComponent from "./SceneLayer.astro";
+import InteractiveZone from "./InteractiveZone.astro";
+
+interface Props {
+	manifest: SceneManifest;
+	class?: string;
+	sceneSlug: string;
+	viewportAspectRatio?: boolean;
+	enableHeadTracking?: boolean;
+}
+
+const {manifest, class: className, sceneSlug, viewportAspectRatio = false, enableHeadTracking = false} = Astro.props as Props;
+const layerMap = Object.fromEntries(manifest.layers.map((l: any) => [l.name, l]));
+const totalLayers = manifest.layers.length;
+---
+
+<div
+	class={`scene ${className ?? ""}`}
+	data-scene-renderer
+	data-viewport-aspect={viewportAspectRatio ? "true" : "false"}
+	data-head-tracking={enableHeadTracking ? "true" : "false"}
+	data-depth-curve={manifest.depthCurve ? JSON.stringify(manifest.depthCurve) : undefined}
+	data-scroll-depth-curve={manifest.scrollDepthCurve ? JSON.stringify(manifest.scrollDepthCurve) : undefined}
+	style={`aspect-ratio: ${manifest.canvas.width} / ${manifest.canvas.height}`}>
+	{
+		manifest.layers.map((layer: SceneLayer, index: number) => {
+			const parentLayer = layer.clipped && layer.clippedTo ? layerMap[layer.clippedTo] : null;
+			const layerDepth = totalLayers > 1 ? index / (totalLayers - 1) : 0.5;
+			return (
+				<div class='scene__layer-container' style={`z-index: ${layer.zIndex}`} data-parallax-speed={layer.parallaxSpeed} data-parallax-depth={layerDepth}>
+					<SceneLayerComponent layer={layer} parentLayer={parentLayer} scenePath={`/assets/scenes/${sceneSlug}/layers`} layerDepth={layerDepth} />
+
+					{layer.interactive && layer.interaction && <InteractiveZone zone={layer} depth={layerDepth} />}
+					<div class='scene__layer-slot-outlet' data-slot-outlet={layer.name} />
+				</div>
+			);
+		})
+	}
+	<div class='scene__slotted' data-scene-slotted>
+		<slot />
+	</div>
+</div>
+
+<style lang='scss'>
+	@use "../../styles/component/scene-renderer";
+</style>
+
+<script>
+	import {DEBUG_DISABLE_PARALLAX, initMouseParallax, initScrollParallax} from "../../lib/input/parallax.js";
+	import {initHeadTrackingParallax} from "../../lib/input/head-tracking.js";
+
+	const parallaxCleanupByScene = new WeakMap();
+	const initTokenByScene = new WeakMap();
+
+	/**
+	 * Move slotted content into the layer outlet that matches its data-slot.
+	 * Layer names come from the manifest (e.g. Photoshop JSON).
+	 */
+	function distributeSlottedContent(scene: Element) {
+		const outlet = scene.querySelector("[data-scene-slotted]");
+		if (!outlet) return;
+		const layerName = (el: Element) => el.getAttribute("data-slot") ?? el.getAttribute("slot");
+		Array.from(outlet.children).forEach((child) => {
+			const targetName = layerName(child);
+			if (!targetName) return;
+			const target = scene.querySelector(`[data-slot-outlet="${targetName}"]`);
+			if (target) target.appendChild(child);
+		});
+	}
+
+	function cleanupParallax(scene: Element) {
+		const cleanup = parallaxCleanupByScene.get(scene);
+		if (typeof cleanup === "function") {
+			cleanup();
+		}
+		parallaxCleanupByScene.delete(scene);
+	}
+
+	function attachScrollParallaxIfNeeded(scene: Element, layers: NodeListOf<Element>) {
+		if (scene.getAttribute("data-viewport-aspect") !== "true") {
+			return () => {};
+		}
+		const container = scene.parentElement;
+		if (!container) {
+			return () => {};
+		}
+		return initScrollParallax(layers, container);
+	}
+
+	function combineCleanups(...cleanups: Array<(() => void) | undefined>) {
+		return () => {
+			for (const fn of cleanups) {
+				if (typeof fn === "function") fn();
+			}
+		};
+	}
+
+	function initializeParallax(scene: Element, layers: NodeListOf<Element>) {
+		cleanupParallax(scene);
+
+		if (DEBUG_DISABLE_PARALLAX) {
+			parallaxCleanupByScene.set(scene, () => {});
+			return;
+		}
+
+		const initToken = Symbol("parallax-init");
+		initTokenByScene.set(scene, initToken);
+		const useHeadTracking = scene.getAttribute("data-head-tracking") === "true";
+		const scrollCleanup = attachScrollParallaxIfNeeded(scene, layers);
+		const headScrollContainer =
+			scene.getAttribute("data-viewport-aspect") === "true" ? scene.parentElement : null;
+
+		if (!useHeadTracking) {
+			parallaxCleanupByScene.set(scene, combineCleanups(initMouseParallax(layers), scrollCleanup));
+			return;
+		}
+
+		initHeadTrackingParallax(layers, {
+			allowDeviceOrientationFallback: true,
+			allowMouseFallback: true,
+			scrollContainer: headScrollContainer,
+		})
+			.then((cleanup) => {
+				if (initTokenByScene.get(scene) !== initToken || !document.contains(scene)) {
+					if (typeof cleanup === "function") cleanup();
+					scrollCleanup();
+					return;
+				}
+				parallaxCleanupByScene.set(scene, combineCleanups(cleanup, scrollCleanup));
+			})
+			.catch(() => {
+				if (initTokenByScene.get(scene) !== initToken || !document.contains(scene)) {
+					return;
+				}
+				parallaxCleanupByScene.set(scene, combineCleanups(initMouseParallax(layers), scrollCleanup));
+			});
+	}
+
+	document.addEventListener("astro:before-preparation", () => {
+		document.querySelectorAll("[data-scene-renderer]").forEach((scene) => {
+			cleanupParallax(scene);
+		});
+	});
+
+	document.addEventListener("astro:page-load", () => {
+		document.querySelectorAll("[data-scene-renderer]").forEach((scene) => {
+			distributeSlottedContent(scene);
+			const layers = scene.querySelectorAll(".scene__layer-container");
+			if (layers.length > 0) {
+				initializeParallax(scene, layers as NodeListOf<Element>);
+			} else {
+				cleanupParallax(scene);
+			}
+
+			// When rendering a scene that should fit viewport width, start at the bottom of the scene
+			// so the user can scroll up to reveal the top (matching PSD bottom alignment).
+			if (scene.getAttribute("data-viewport-aspect") === "true") {
+				const container = scene.parentElement;
+				if (container && container.scrollHeight > container.clientHeight) {
+					requestAnimationFrame(() => {
+						container.scrollTop = container.scrollHeight;
+					});
+				}
+			}
+		});
+	});
+</script>

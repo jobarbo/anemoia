@@ -1,13 +1,107 @@
 ---
-import Welcome from "../components/Welcome.astro";
-import Scene from "../components/Scene.astro";
-import Layout from "../layouts/Layout.astro";
+/**
+ * SPA shell — single page that hosts all scenes.
+ *
+ * The GlobalShaderOverlay is mounted ONCE on #game-container and never destroyed.
+ * Scene transitions happen by swapping content inside the container while the
+ * shader pipeline keeps running — eliminating the "flash of unfiltered content".
+ *
+ * All content data (neighborhoods, stories) is embedded as JSON at build time
+ * so the client-side scene router can access it without extra fetches.
+ */
+import GameLayout from "../layouts/GameLayout.astro";
+import {getCollection} from "astro:content";
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+const neighborhoods = await getCollection("neighborhoods");
+const storiesCollection = await getCollection("stories");
+
+// ── Serialize story blocks at build time ─────────────────────────────────────
+
+function parseMarkdownBlocks(md) {
+	const blocks = [];
+	const lines = md.replace(/\r\n/g, "\n").split("\n");
+	let paraLines = [];
+
+	const flushPara = () => {
+		const text = paraLines.join(" ").trim();
+		if (text) blocks.push({type: "p", text});
+		paraLines = [];
+	};
+
+	for (const raw of lines) {
+		const line = raw.trim();
+		if (!line || /^---+$/.test(line)) { flushPara(); continue; }
+
+		const h1 = line.match(/^#\s+(.+)/);
+		if (h1) { flushPara(); blocks.push({type: "h1", text: h1[1].trim()}); continue; }
+
+		const h2 = line.match(/^#{2,3}\s+(.+)/);
+		if (h2) { flushPara(); blocks.push({type: "h2", text: h2[1].trim()}); continue; }
+
+		const cleaned = line
+			.replace(/!\[.*?\]\(.*?\)/g, "")
+			.replace(/\[(.+?)\]\(.*?\)/g, "$1")
+			.replace(/`([^`]+)`/g, "$1")
+			.replace(/\*\*(.+?)\*\*/g, "$1")
+			.replace(/\*(.+?)\*/g, "$1")
+			.replace(/_(.+?)_/g, "$1");
+
+		if (cleaned.trim()) paraLines.push(cleaned.trim());
+		else flushPara();
+	}
+	flushPara();
+	return blocks;
+}
+
+const storiesMap = Object.fromEntries(
+	storiesCollection.map((story) => [
+		story.id,
+		{
+			id: story.id,
+			title: story.data.title,
+			neighborhood: story.data.neighborhood,
+			audioSrc: story.data.audioSrc ?? null,
+			order: story.data.order,
+			blocks: parseMarkdownBlocks(story.body),
+		},
+	])
+);
+
+const gameData = {
+	neighborhoods: neighborhoods.map((n) => n.data),
+	stories: storiesMap,
+};
 ---
 
-<Layout>
-	<Welcome />
-	<Scene />
-</Layout>
+<GameLayout title="Anemoia">
+	<!-- SPA game container: shader overlay composites this element continuously -->
+	<main id='game-container' data-game-screen='splash'></main>
+
+	<!-- Content data embedded at build time for scene-data.js -->
+	<script type='application/json' id='game-data' set:html={JSON.stringify(gameData)}></script>
+</GameLayout>
+
+<script>
+	import {GlobalShaderOverlay} from "../lib/shaders/global-shader-overlay.js";
+	import {SceneRouter} from "../lib/router/scene-router.js";
+
+	const container = document.getElementById("game-container") as HTMLElement;
+
+	// Mount overlay ONCE — never destroyed during the session
+	const overlay = new GlobalShaderOverlay();
+	overlay.mount(container);
+
+	// Boot the router — reads current URL and mounts the correct scene
+	const router = new SceneRouter({container, overlay});
+	router.bootFromUrl();
+</script>
+
+<style lang='scss'>
+	#game-container {
+		width: 100vw;
+		height: 100vh;
+		overflow: hidden;
+		position: relative;
+		background: #000;
+	}
+</style>

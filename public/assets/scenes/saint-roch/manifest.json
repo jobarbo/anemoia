@@ -1,0 +1,312 @@
+{
+  "canvas": {
+    "width": 1920,
+    "height": 7000
+  },
+  "layers": [
+    {
+      "name": "skybox",
+      "file": "skybox.png",
+      "zIndex": 0,
+      "position": {
+        "centerLeft": 49.192708333333336,
+        "centerTop": 50,
+        "width": 108.38541666666666,
+        "height": 100
+      },
+      "parallaxSpeed": 0,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "ubisoft",
+      "file": "ubisoft.png",
+      "zIndex": 1,
+      "position": {
+        "centerLeft": 9.921875,
+        "centerTop": 75.20714285714286,
+        "width": 61.71875,
+        "height": 18.614285714285714
+      },
+      "parallaxSpeed": 0.005884576894715622,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "brunet",
+      "file": "brunet.png",
+      "zIndex": 2,
+      "position": {
+        "centerLeft": 90.10416666666666,
+        "centerTop": 72.63571428571429,
+        "width": 50.416666666666664,
+        "height": 12.957142857142856
+      },
+      "parallaxSpeed": 0.017838701372449566,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "grue-centre",
+      "file": "grue-centre.png",
+      "zIndex": 3,
+      "position": {
+        "centerLeft": 54.817708333333336,
+        "centerTop": 44.635714285714286,
+        "width": 44.739583333333336,
+        "height": 13.47142857142857
+      },
+      "parallaxSpeed": 0.03412787518465364,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "beenox",
+      "file": "beenox.png",
+      "zIndex": 4,
+      "position": {
+        "centerLeft": 49.192708333333336,
+        "centerTop": 55.471428571428575,
+        "width": 37.135416666666664,
+        "height": 11.771428571428572
+      },
+      "parallaxSpeed": 0.05407683039050717,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "grue-droite",
+      "file": "grue-droite.png",
+      "zIndex": 5,
+      "position": {
+        "centerLeft": 73.515625,
+        "centerTop": 53.449999999999996,
+        "width": 44.739583333333336,
+        "height": 13.47142857142857
+      },
+      "parallaxSpeed": 0.07728002415561282,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "fresk",
+      "file": "fresk.png",
+      "zIndex": 6,
+      "position": {
+        "centerLeft": 59.27083333333333,
+        "centerTop": 65.4,
+        "width": 51.354166666666664,
+        "height": 17.542857142857144
+      },
+      "parallaxSpeed": 0.10345637159435729,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "grue-gauche",
+      "file": "grue-gauche.png",
+      "zIndex": 7,
+      "position": {
+        "centerLeft": 22.161458333333332,
+        "centerTop": 58.75,
+        "width": 44.739583333333336,
+        "height": 13.47142857142857
+      },
+      "parallaxSpeed": 0.13239515922248266,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "eglise",
+      "file": "eglise.png",
+      "zIndex": 8,
+      "position": {
+        "centerLeft": 40.859375,
+        "centerTop": 63.5,
+        "width": 53.28125,
+        "height": 15.228571428571428
+      },
+      "parallaxSpeed": 0.16393029537452936,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "pur",
+      "file": "pur.png",
+      "zIndex": 9,
+      "position": {
+        "centerLeft": 36.5625,
+        "centerTop": 66.93571428571428,
+        "width": 52.5,
+        "height": 12.671428571428573
+      },
+      "parallaxSpeed": 0.1979261866159341,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "tour-fresk",
+      "file": "tour-fresk.png",
+      "zIndex": 10,
+      "position": {
+        "centerLeft": 58.984375,
+        "centerTop": 69.01428571428572,
+        "width": 54.947916666666664,
+        "height": 16.54285714285714
+      },
+      "parallaxSpeed": 0.2342692257459722,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "bord-e",
+      "file": "bord-e.png",
+      "zIndex": 11,
+      "position": {
+        "centerLeft": 71.875,
+        "centerTop": 77.75,
+        "width": 72.39583333333334,
+        "height": 15.271428571428572
+      },
+      "parallaxSpeed": 0.27286230183619026,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "fabrique",
+      "file": "fabrique.png",
+      "zIndex": 12,
+      "position": {
+        "centerLeft": 46.145833333333336,
+        "centerTop": 70.69285714285715,
+        "width": 68.64583333333333,
+        "height": 15.014285714285712
+      },
+      "parallaxSpeed": 0.31362107267324624,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "cgi",
+      "file": "cgi.png",
+      "zIndex": 13,
+      "position": {
+        "centerLeft": 9.609375,
+        "centerTop": 88.42857142857142,
+        "width": 73.07291666666667,
+        "height": 16.34285714285714
+      },
+      "parallaxSpeed": 0.3564713295215002,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "donjon-rouge",
+      "file": "donjon-rouge.png",
+      "zIndex": 14,
+      "position": {
+        "centerLeft": 84.11458333333334,
+        "centerTop": 90.13571428571429,
+        "width": 64.0625,
+        "height": 12.1
+      },
+      "parallaxSpeed": 0.4013470723185978,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "appartement",
+      "file": "appartement.png",
+      "zIndex": 15,
+      "position": {
+        "centerLeft": 61.588541666666664,
+        "centerTop": 83.42142857142856,
+        "width": 63.59375000000001,
+        "height": 13.414285714285715
+      },
+      "parallaxSpeed": 0.4481890653885709,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "appartement-dep",
+      "file": "appartement-dep.png",
+      "zIndex": 16,
+      "position": {
+        "centerLeft": 32.604166666666664,
+        "centerTop": 77.19285714285714,
+        "width": 54.895833333333336,
+        "height": 14.757142857142858
+      },
+      "parallaxSpeed": 0.49694372890423405,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "appartement-arago",
+      "file": "appartement-arago.png",
+      "zIndex": 17,
+      "position": {
+        "centerLeft": 46.770833333333336,
+        "centerTop": 86.37857142857143,
+        "width": 122.60416666666667,
+        "height": 34.957142857142856
+      },
+      "parallaxSpeed": 0.5475622714724542,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    },
+    {
+      "name": "velos",
+      "file": "velos.png",
+      "zIndex": 18,
+      "position": {
+        "centerLeft": 49.86979166666667,
+        "centerTop": 98.44285714285715,
+        "width": 112.65624999999999,
+        "height": 15.285714285714286
+      },
+      "parallaxSpeed": 0.6,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false
+    }
+  ]
+}

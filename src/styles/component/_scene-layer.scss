@@ -1,0 +1,21 @@
+/* Block: layer (réservé à SceneLayer) — styles propres au bloc */
+.layer {
+	position: absolute;
+	left: var(--layer-center-left);
+	top: var(--layer-center-top);
+	transform: translate(-50%, -50%);
+	width: var(--layer-width);
+	height: var(--layer-height);
+	/* Global reset caps img/video at 100% — scene layers use manifest % (often >100). */
+	max-width: none;
+	max-height: none;
+	object-fit: cover;
+	opacity: var(--layer-opacity);
+	mix-blend-mode: var(--layer-blend);
+	overflow: visible;
+}
+
+.clipped-wrapper {
+	position: absolute;
+	overflow: hidden;
+}

@@ -1,0 +1,97 @@
+---
+import type {SceneLayer as SceneLayerType} from "../../types/manifest";
+
+interface Props {
+	layer: SceneLayerType;
+	parentLayer?: SceneLayerType | null;
+	scenePath: string;
+	layerDepth?: number;
+}
+
+const {layer, scenePath} = Astro.props as Props;
+const {parentLayer} = Astro.props as Props;
+const {layerDepth = 0.5} = Astro.props as Props;
+
+const clipMaskPath = layer.clipped && parentLayer ? (parentLayer.file.startsWith("/") || parentLayer.file.startsWith("http") ? parentLayer.file : `${scenePath}/${parentLayer.file}`) : null;
+
+const style = `
+	--layer-center-left: ${layer.position.centerLeft}%;
+	--layer-center-top: ${layer.position.centerTop}%;
+	--layer-width: ${layer.position.width}%;
+	--layer-height: ${layer.position.height}%;
+	--layer-opacity: ${typeof layer.opacity === "number" ? layer.opacity : 1};
+	--layer-blend: ${layer.blendMode ?? "normal"};
+`;
+
+// Handle both standard file names (appended to scenePath) and absolute/imported paths (starting with /)
+const imagePath = layer.file.startsWith("/") || layer.file.startsWith("http") ? layer.file : `${scenePath}/${layer.file}`;
+
+const isClipped = Boolean(layer.clipped && parentLayer);
+
+// Convert center to corner position (for wrapper positioning)
+const centerToCornerLeft = (centerLeft: number, width: number) => centerLeft - width / 2;
+const centerToCornerTop = (centerTop: number, height: number) => centerTop - height / 2;
+
+const parentLeftCorner = parentLayer ? centerToCornerLeft(parentLayer.position.centerLeft, parentLayer.position.width) : 0;
+const parentTopCorner = parentLayer ? centerToCornerTop(parentLayer.position.centerTop, parentLayer.position.height) : 0;
+
+// For clipped layers: calculate relative position of child center within parent
+const childRelCenterLeft = isClipped ? ((layer.position.centerLeft - parentLayer.position.centerLeft) / parentLayer.position.width) * 100 : layer.position.centerLeft;
+const childRelCenterTop = isClipped ? ((layer.position.centerTop - parentLayer.position.centerTop) / parentLayer.position.height) * 100 : layer.position.centerTop;
+const childRelWidth = isClipped ? (layer.position.width / parentLayer.position.width) * 100 : layer.position.width;
+const childRelHeight = isClipped ? (layer.position.height / parentLayer.position.height) * 100 : layer.position.height;
+
+const clipWrapperStyle = isClipped
+	? `
+	position: absolute;
+	left: ${parentLeftCorner}%;
+	top: ${parentTopCorner}%;
+	width: ${parentLayer.position.width}%;
+	height: ${parentLayer.position.height}%;
+	overflow: hidden;
+	-webkit-mask-image: url(${clipMaskPath});
+	mask-image: url(${clipMaskPath});
+	-webkit-mask-mode: luminance;
+	mask-mode: luminance;
+	-webkit-mask-repeat: no-repeat;
+	mask-repeat: no-repeat;
+	-webkit-mask-size: 100% 100%;
+	mask-size: 100% 100%;
+	-webkit-mask-position: left top;
+	mask-position: left top;
+`
+	: "";
+
+const childStyle = isClipped
+	? `
+	position: absolute;
+	left: ${childRelCenterLeft}%;
+	top: ${childRelCenterTop}%;
+	transform: translate(-50%, -50%);
+	width: ${childRelWidth}%;
+	height: ${childRelHeight}%;
+	opacity: ${typeof layer.opacity === "number" ? layer.opacity : 1};
+	mix-blend-mode: ${layer.blendMode ?? "normal"};
+`
+	: style;
+---
+
+{
+	isClipped ? (
+		<div class='clipped-wrapper' style={clipWrapperStyle}>
+			{layer.type === "video" ? (
+				<video src={imagePath} autoplay loop muted playsinline class='layer layer--video' style={childStyle} />
+			) : (
+				<img src={imagePath} alt={layer.name} class='layer layer--image' style={childStyle} />
+			)}
+		</div>
+	) : layer.type === "video" ? (
+		<video src={imagePath} autoplay loop muted playsinline class='layer layer--video' style={style} />
+	) : (
+		<img src={imagePath} alt={layer.name} class='layer layer--image' style={style} />
+	)
+}
+
+<style lang='scss'>
+	@use "../../styles/component/scene-layer";
+</style>
