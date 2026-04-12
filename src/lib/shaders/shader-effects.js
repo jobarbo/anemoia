@@ -387,7 +387,7 @@ export class ShaderEffects {
 			crtDisplay: {
 				enabled: false,
 				brightness: 0.99, // Brightness boost (0.0 = none, higher = brighter)
-				cellSize: 3.0, // Size of CRT cells/pixels (2-10 typical range)
+				cellSize: 3.0, // Size of CRT cells in logical (CSS) pixels (2-10 typical range)
 				gapOpacity: 0.6, // Gap opacity between phosphor dots (0.0 = no gaps, 1.0 = full dark gaps)
 				rgbOpacity: 0.6, // RGB color separation opacity (0.0 = no separation, 1.0 = full RGB isolation)
 				dotRadius: 0.8, // Size of phosphor dots (0.0-0.5, smaller = larger gaps)
@@ -396,6 +396,7 @@ export class ShaderEffects {
 				rgbGain: [1.0, 1.0, 1.0], // Per-channel multiplier on phosphor output
 				uniforms: {
 					uResolution: "[width, height]",
+					uPixelRatio: "devicePixelRatio",
 					uBrightness: "brightness",
 					uCellSize: "cellSize",
 					uGapOpacity: "gapOpacity",
@@ -777,6 +778,7 @@ export class ShaderEffects {
 			if (value === "shaderSeed") return this.shaderSeed;
 			if (value === "width") return this.mainCanvas.width;
 			if (value === "height") return this.mainCanvas.height;
+			if (value === "devicePixelRatio") return window.devicePixelRatio ?? 1;
 
 			// Try to evaluate as a simple variable reference
 			try {
@@ -808,9 +810,7 @@ export class ShaderEffects {
 		// Build ordered pass list: effectPassOrder first, then any enabled effects not in the list
 		// (fallback for effects enabled programmatically after construction via setEffectEnabled/addEffect)
 		const ordered = this.effectPassOrder.filter((name) => this.effectsConfig[name]?.enabled);
-		const extra = Object.keys(this.effectsConfig).filter(
-			(name) => this.effectsConfig[name].enabled && !this.effectPassOrder.includes(name),
-		);
+		const extra = Object.keys(this.effectsConfig).filter((name) => this.effectsConfig[name].enabled && !this.effectPassOrder.includes(name));
 		const currentEnabledEffects = [...ordered, ...extra];
 
 		if (JSON.stringify(this.lastEnabledEffects) !== JSON.stringify(currentEnabledEffects)) {
