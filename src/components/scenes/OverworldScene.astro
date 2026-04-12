@@ -12,14 +12,16 @@ const {neighborhoods = []} = Astro.props as {neighborhoods?: NeighborhoodSummary
 		</header>
 
 		<ul class='overworld-scene__list'>
-			{neighborhoods.map((neighborhood: NeighborhoodSummary) => (
-				<li class='overworld-scene__item'>
-					<a class='overworld-scene__link' href={`/neighborhood/${neighborhood.slug}`}>
-						<span>{neighborhood.name}</span>
-						<span>{neighborhood.description ?? "Open neighborhood"}</span>
-					</a>
-				</li>
-			))}
+			{
+				neighborhoods.map((neighborhood: NeighborhoodSummary) => (
+					<li class='overworld-scene__item'>
+						<a class='overworld-scene__link' href={`/neighborhood/${neighborhood.slug}`}>
+							<span>{neighborhood.name}</span>
+							<span>{neighborhood.description ?? "Open neighborhood"}</span>
+						</a>
+					</li>
+				))
+			}
 		</ul>
 	</div>
 </section>

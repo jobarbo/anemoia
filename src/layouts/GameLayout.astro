@@ -51,7 +51,7 @@ const audioAttrs = typeof audioSrc === "string" && audioSrc.length > 0 ? {src: a
 			})();
 		</script>
 		<slot />
-		<audio id='global-audio' loop transition:persist='global-audio' {...audioAttrs} />
+		<audio id='global-audio' loop transition:persist='global-audio' {...audioAttrs}></audio>
 		<div data-html2canvas-ignore='true'>
 			<AudioPlayer />
 		</div>

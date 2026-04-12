@@ -40,10 +40,7 @@
  * @returns {Promise<object>}
  */
 export async function fetchNeighborhoodManifest(scenePath, slug) {
-	const [manifestRes, configRes] = await Promise.all([
-		fetch(scenePath),
-		fetch(scenePath.replace("manifest.json", "parallax-config.json")),
-	]);
+	const [manifestRes, configRes] = await Promise.all([fetch(scenePath), fetch(scenePath.replace("manifest.json", "parallax-config.json"))]);
 
 	if (!manifestRes.ok) throw new Error(`[scene-data] Failed to fetch manifest: ${scenePath}`);
 

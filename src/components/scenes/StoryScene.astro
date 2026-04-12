@@ -15,17 +15,19 @@ const {story, backHref} = Astro.props as {story: StoryContent; backHref: string}
 		</header>
 
 		<div class='story-scene__body'>
-			{story.blocks.map((block: StoryBlock) => {
-				if (block.type === "h1") {
-					return <h2 class='story-scene__block story-scene__block--h1'>{block.text}</h2>;
-				}
+			{
+				story.blocks.map((block: StoryBlock) => {
+					if (block.type === "h1") {
+						return <h2 class='story-scene__block story-scene__block--h1'>{block.text}</h2>;
+					}
 
-				if (block.type === "h2") {
-					return <h3 class='story-scene__block story-scene__block--h2'>{block.text}</h3>;
-				}
+					if (block.type === "h2") {
+						return <h3 class='story-scene__block story-scene__block--h2'>{block.text}</h3>;
+					}
 
-				return <p class='story-scene__block story-scene__block--p'>{block.text}</p>;
-			})}
+					return <p class='story-scene__block story-scene__block--p'>{block.text}</p>;
+				})
+			}
 		</div>
 	</div>
 </section>
