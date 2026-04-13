@@ -1,107 +1,162 @@
 /**
- * LOGIN phase — automated terminal login sequence.
- * Typewriter-animates username, password asterisks, authentication dots,
- * and a final "ACCESS GRANTED" message, then signals completion.
+ * LOGIN phase — semi-interactive terminal login sequence.
+ *
+ * - Username "Archiviste" is auto-typed.
+ * - Password must be entered by the user (correct: "ketchup").
+ *   Each character is echoed as "*". Backspace removes the last char.
+ *   Enter submits. Wrong password shows an error and clears the field.
+ * - On success: animated "Authenticating..." → "ACCESS GRANTED" → isDone().
  *
  * Interface:
- *   createLoginPhase(sketch, artBuffer) → { draw(now), isDone(), reset() }
+ *   createLoginPhase(sketch, artBuffer) → { draw(now), isDone(), onKeyPressed(keyCode, key), reset() }
  */
 
 import {THEME} from "../../lib/utils/retro-theme.js";
 
-const BG = [...THEME.BG];
+const BG = [0, 8, 8];
 
-// ── Step definitions ──────────────────────────────────────────────────────────
-// Each step has a label (static prefix), typed content, and inter-char delay.
 const STEPS = {
-	USERNAME:      0,
-	PASSWORD:      1,
-	AUTH_DOTS:     2,
-	GRANTED:       3,
-	DONE:          4,
+	USERNAME_TYPING: 0,
+	PASSWORD_PROMPT: 1,
+	AUTH_DOTS: 2,
+	GRANTED: 3,
+	DONE: 4,
 };
 
-const USERNAME_STR  = "guest";
-const PASSWORD_MASK = "••••••••";
-const AUTH_BASE     = "Authenticating";
-const GRANTED_STR   = "ACCESS GRANTED — Welcome, guest.";
+const USERNAME_STR = "Archiviste";
+const PASSWORD = "ketchup";
+const AUTH_BASE = "Authenticating";
+const GRANTED_STR = "ACCESS GRANTED — Bienvenue, Archiviste.";
 
-const CHAR_MS       = 80;
-const PASSWORD_MS   = 110;
-const DOT_MS        = 320;
-const POST_GRANT_MS = 800; // pause after GRANTED before isDone()
+const CHAR_MS = 80;
+const DOT_MS = 320;
+const POST_GRANT_MS = 900; // pause after GRANTED before isDone()
 
 /**
  * @param {import('p5')} sketch
  * @param {import('p5').Graphics} artBuffer
  */
 export function createLoginPhase(sketch, artBuffer) {
-	let step       = STEPS.USERNAME;
-	let charIdx    = 0;
-	let lastChar   = 0;
-	let dotCount   = 0;
-	let grantedAt  = null;
+	let step = STEPS.USERNAME_TYPING;
+	let charIdx = 0; // for auto-typing username
+	let lastChar = 0; // timer for auto-type
+	let dotCount = 0; // for AUTH_DOTS
+	let grantedAt = null;
 
-	// Accumulated display lines
-	let lines      = [];
+	/** User's typed password input (plaintext, compared on Enter) */
+	let passwordInput = "";
+
+	/** Committed display lines (shown above the active prompt) */
+	let lines = [];
+
 	let blinkVisible = true;
-	let lastBlink  = 0;
+	let lastBlink = 0;
+
+	// auto-type state for GRANTED line
+	let grantedCharIdx = 0;
+	let lastGrantedChar = 0;
 
 	function reset() {
-		step        = STEPS.USERNAME;
-		charIdx     = 0;
-		lastChar    = 0;
-		dotCount    = 0;
-		grantedAt   = null;
-		lines       = [];
+		step = STEPS.USERNAME_TYPING;
+		charIdx = 0;
+		lastChar = 0;
+		dotCount = 0;
+		grantedAt = null;
+		passwordInput = "";
+		lines = [];
 		blinkVisible = true;
-		lastBlink   = 0;
+		lastBlink = 0;
+		grantedCharIdx = 0;
+		lastGrantedChar = 0;
 	}
 
 	function isDone() {
 		return grantedAt !== null && sketch.millis() - grantedAt > POST_GRANT_MS;
 	}
 
-	function advance(now) {
-		const delay = step === STEPS.PASSWORD ? PASSWORD_MS : step === STEPS.AUTH_DOTS ? DOT_MS : CHAR_MS;
-		if (now - lastChar < delay) return;
+	// ── Password key handler (called by orchestrator) ─────────────────────────
+
+	/**
+	 * Forward p5 keyPressed events here during the PASSWORD_PROMPT step.
+	 * @param {number} keyCode - sketch.keyCode
+	 * @param {string} key     - sketch.key
+	 */
+	function onKeyPressed(keyCode, key) {
+		if (step !== STEPS.PASSWORD_PROMPT) return;
+
+		const BACKSPACE = 8;
+		const ENTER = 13;
+		const RETURN = sketch.RETURN ?? 13;
+
+		if (keyCode === BACKSPACE) {
+			passwordInput = passwordInput.slice(0, -1);
+		} else if (keyCode === ENTER || keyCode === RETURN) {
+			_submitPassword();
+		} else if (key && key.length === 1) {
+			// printable char — max length guard
+			if (passwordInput.length < 32) passwordInput += key;
+		}
+	}
+
+	function _submitPassword() {
+		const masked = "*".repeat(passwordInput.length);
+		if (passwordInput === PASSWORD) {
+			// Correct — commit and move to auth
+			lines.push("Password: " + masked);
+			lines.push("");
+			passwordInput = "";
+			step = STEPS.AUTH_DOTS;
+			dotCount = 0;
+		} else {
+			// Wrong — show masked attempt + error, clear, stay at prompt
+			lines.push("Password: " + masked);
+			lines.push("  Login incorrect. Veuillez réessayer.");
+			lines.push("");
+			passwordInput = "";
+		}
+	}
+
+	// ── Auto-advance (username typing, auth dots, granted) ─────────────────────
+
+	function tickAuto(now) {
+		if (now - lastChar < CHAR_MS) return;
 		lastChar = now;
 
-		if (step === STEPS.USERNAME) {
+		if (step === STEPS.USERNAME_TYPING) {
 			charIdx++;
 			if (charIdx >= USERNAME_STR.length) {
 				lines.push("login: " + USERNAME_STR);
-				step = STEPS.PASSWORD;
+				step = STEPS.PASSWORD_PROMPT;
 				charIdx = 0;
-			}
-		} else if (step === STEPS.PASSWORD) {
-			charIdx++;
-			if (charIdx >= PASSWORD_MASK.length) {
-				lines.push("Password: " + PASSWORD_MASK);
-				lines.push("");
-				step = STEPS.AUTH_DOTS;
-				charIdx = 0;
-				dotCount = 0;
 			}
 		} else if (step === STEPS.AUTH_DOTS) {
 			dotCount++;
-			if (dotCount >= 3) {
+			if (dotCount > 3) {
 				lines.push(AUTH_BASE + "...");
 				step = STEPS.GRANTED;
-				charIdx = 0;
-			}
-		} else if (step === STEPS.GRANTED) {
-			charIdx++;
-			if (charIdx >= GRANTED_STR.length) {
-				lines.push(GRANTED_STR);
-				step = STEPS.DONE;
-				grantedAt = sketch.millis();
+				grantedCharIdx = 0;
+				lastGrantedChar = now;
 			}
 		}
 	}
 
+	function tickGranted(now) {
+		if (step !== STEPS.GRANTED) return;
+		if (now - lastGrantedChar < CHAR_MS) return;
+		lastGrantedChar = now;
+		grantedCharIdx++;
+		if (grantedCharIdx >= GRANTED_STR.length) {
+			lines.push(GRANTED_STR);
+			step = STEPS.DONE;
+			grantedAt = now;
+		}
+	}
+
+	// ── Draw ──────────────────────────────────────────────────────────────────
+
 	function draw(now) {
-		advance(now);
+		tickAuto(now);
+		tickGranted(now);
 
 		// Blink
 		if (now - lastBlink > THEME.BLINK_MS) {
@@ -139,59 +194,62 @@ export function createLoginPhase(sketch, artBuffer) {
 		buf.fill(...THEME.GREEN_SUBTLE, 180);
 		buf.text("CONNECTED TO: ANEMOIA-SRV-01", padLeft, sepY + fontSize * 0.8);
 
-		// ── Terminal lines ─────────────────────────────────────────────────────
+		// ── Committed lines ───────────────────────────────────────────────────
 		const termStartY = sepY + fontSize * 3.2;
 
 		for (let i = 0; i < lines.length; i++) {
 			const line = lines[i];
-			const y = termStartY + i * lineH;
 			if (line === "") continue;
+			const y = termStartY + i * lineH;
 
 			if (line === GRANTED_STR) {
 				buf.fill(...THEME.GREEN_PRIMARY, 255);
+			} else if (line.startsWith("  Login incorrect")) {
+				buf.fill(220, 80, 80); // red-tinted error
 			} else {
 				buf.fill(...THEME.GREEN_MID);
 			}
 			buf.text(line, padLeft, y);
 		}
 
-		// ── Current in-progress line ───────────────────────────────────────────
+		// ── Active / in-progress line ─────────────────────────────────────────
 		const currentY = termStartY + lines.length * lineH;
 
-		if (step === STEPS.USERNAME) {
+		if (step === STEPS.USERNAME_TYPING) {
 			const partial = "login: " + USERNAME_STR.slice(0, charIdx);
 			buf.fill(...THEME.GREEN_MID);
 			buf.text(partial, padLeft, currentY);
-			// cursor
-			if (blinkVisible) {
-				const cx = padLeft + buf.textWidth(partial);
-				buf.fill(...THEME.GREEN_PRIMARY);
-				buf.rect(cx + 1, currentY + fontSize * 0.1, fontSize * 0.55, fontSize * 0.85);
-			}
-		} else if (step === STEPS.PASSWORD) {
-			const partial = "Password: " + PASSWORD_MASK.slice(0, charIdx);
+			if (blinkVisible) _drawCursor(buf, partial, padLeft, currentY, fontSize);
+		} else if (step === STEPS.PASSWORD_PROMPT) {
+			const masked = "Password: " + "*".repeat(passwordInput.length);
 			buf.fill(...THEME.GREEN_MID);
-			buf.text(partial, padLeft, currentY);
-			if (blinkVisible) {
-				const cx = padLeft + buf.textWidth(partial);
-				buf.fill(...THEME.GREEN_PRIMARY);
-				buf.rect(cx + 1, currentY + fontSize * 0.1, fontSize * 0.55, fontSize * 0.85);
+			buf.text(masked, padLeft, currentY);
+			if (blinkVisible) _drawCursor(buf, masked, padLeft, currentY, fontSize);
+
+			// Keyboard hint on first attempt (no lines yet after the login line)
+			if (lines.length === 1) {
+				buf.textAlign(sketch.LEFT, sketch.TOP);
+				buf.textSize(Math.max(10, Math.round(w * 0.012)));
+				buf.fill(...THEME.GREEN_SUBTLE, 100);
+				buf.text("Entrez le mot de passe et appuyez sur ENTRÉE", padLeft, currentY + lineH);
 			}
 		} else if (step === STEPS.AUTH_DOTS) {
-			const partial = AUTH_BASE + ".".repeat(dotCount);
+			const partial = AUTH_BASE + ".".repeat(Math.min(dotCount, 3));
 			buf.fill(...THEME.GREEN_MID);
 			buf.text(partial, padLeft, currentY);
 		} else if (step === STEPS.GRANTED) {
-			const partial = GRANTED_STR.slice(0, charIdx);
+			const partial = GRANTED_STR.slice(0, grantedCharIdx);
 			buf.fill(...THEME.GREEN_PRIMARY, 255);
 			buf.text(partial, padLeft, currentY);
-			if (blinkVisible) {
-				const cx = padLeft + buf.textWidth(partial);
-				buf.fill(...THEME.GREEN_PRIMARY);
-				buf.rect(cx + 1, currentY + fontSize * 0.1, fontSize * 0.55, fontSize * 0.85);
-			}
+			if (blinkVisible) _drawCursor(buf, partial, padLeft, currentY, fontSize);
 		}
 	}
 
-	return {draw, isDone, reset};
+	function _drawCursor(buf, text, padLeft, y, fontSize) {
+		const cx = padLeft + buf.textWidth(text);
+		buf.fill(...THEME.GREEN_PRIMARY);
+		buf.rect(cx + 1, y + fontSize * 0.1, fontSize * 0.55, fontSize * 0.85);
+	}
+
+	return {draw, isDone, onKeyPressed, reset};
 }

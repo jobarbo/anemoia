@@ -54,19 +54,19 @@ const DEFAULT_EFFECTS = {
 		timeMultiplier: 0.0,
 	},
 	pixelGrid: {
-		enabled: false,
+		enabled: true,
 		gridCols: 660.0,
 		gridRows: 620.0,
 		cellRatio: 1.0,
-		mode: 0.0,
-		diffuse: 0.0,
+		mode: 1.0,
+		diffuse: 1.0,
 		gapSize: 0.0,
 		gapBrightness: 1.0,
 	},
 
 	colorQuantize: {
-		enabled: false,
-		levelsPerChannel: 12.0,
+		enabled: true,
+		levelsPerChannel: 64.0,
 		blend: 1,
 	},
 	dither: {

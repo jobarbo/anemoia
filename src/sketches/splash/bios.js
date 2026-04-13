@@ -23,11 +23,13 @@ const LINES = [
 ];
 
 /** Milliseconds between revealing each character */
-const CHAR_MS = 22;
+const CHAR_MS = 12;
+/** Pause after each line finishes before starting the next */
+const LINE_PAUSE_MS = 580;
 /** Extra pause after all lines are revealed before isDone() returns true */
 const DONE_PAUSE_MS = 700;
 
-const BG = [0, 0, 0];
+const BG = [0, 8, 8];
 const FG = [...THEME.GREEN_MID];
 const DIM = [...THEME.GREEN_SUBTLE];
 
@@ -39,6 +41,7 @@ export function createBiosPhase(sketch, artBuffer) {
 	let lineIdx = 0;
 	let charIdx = 0;
 	let lastCharTime = 0;
+	let linePauseUntil = 0; // timestamp until which we pause between lines
 	let allDoneTime = null;
 	let blinkVisible = true;
 	let lastBlink = 0;
@@ -47,6 +50,7 @@ export function createBiosPhase(sketch, artBuffer) {
 		lineIdx = 0;
 		charIdx = 0;
 		lastCharTime = 0;
+		linePauseUntil = 0;
 		allDoneTime = null;
 		blinkVisible = true;
 		lastBlink = 0;
@@ -59,12 +63,14 @@ export function createBiosPhase(sketch, artBuffer) {
 	function draw(now) {
 		// Advance typewriter
 		if (allDoneTime === null) {
-			if (now - lastCharTime > CHAR_MS) {
+			if (now > linePauseUntil && now - lastCharTime > CHAR_MS) {
 				lastCharTime = now;
 				const currentLine = LINES[lineIdx] ?? "";
 				if (charIdx < currentLine.length) {
 					charIdx++;
 				} else {
+					// Line finished — pause before advancing to next
+					linePauseUntil = now + LINE_PAUSE_MS;
 					lineIdx++;
 					charIdx = 0;
 					if (lineIdx >= LINES.length) {

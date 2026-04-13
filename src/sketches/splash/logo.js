@@ -11,9 +11,9 @@
 
 import {THEME, drawTitleAberration} from "../../lib/utils/retro-theme.js";
 
-const AUTO_ADVANCE_MS = 6000;
+const AUTO_ADVANCE_MS = 60000000;
 
-const BG = [0, 0, 0];
+const BG = [0, 8, 8];
 
 /**
  * @param {import('p5')} sketch
@@ -88,16 +88,35 @@ export function createLogoPhase(sketch, artBuffer) {
 		// Draws a chunky capital B in a 7-wide × 9-tall pixel grid
 		const MARK_PIXELS = [
 			// col 0 (left vertical bar)
-			[0,0],[0,1],[0,2],[0,3],[0,4],[0,5],[0,6],[0,7],[0,8],
+			[0, 0],
+			[0, 1],
+			[0, 2],
+			[0, 3],
+			[0, 4],
+			[0, 5],
+			[0, 6],
+			[0, 7],
+			[0, 8],
 			// top bump
-			[1,0],[2,0],[3,0],
-			[4,1],[4,2],
-			[1,3],[2,3],[3,3],
+			[1, 0],
+			[2, 0],
+			[3, 0],
+			[4, 1],
+			[4, 2],
+			[1, 3],
+			[2, 3],
+			[3, 3],
 			// bottom bump
-			[4,4],[4,5],[4,6],
-			[1,7],[2,7],[3,7],
+			[4, 4],
+			[4, 5],
+			[4, 6],
+			[1, 7],
+			[2, 7],
+			[3, 7],
 			// col 1 horizontal connectors
-			[1,4],[1,5],[1,6],
+			[1, 4],
+			[1, 5],
+			[1, 6],
 		];
 
 		const markGridW = 7;

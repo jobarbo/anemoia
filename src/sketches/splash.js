@@ -12,8 +12,8 @@
  * and the artBuffer → visible canvas pipeline.
  */
 
-import {createBiosPhase}  from "./splash/bios.js";
-import {createLogoPhase}  from "./splash/logo.js";
+import {createBiosPhase} from "./splash/bios.js";
+import {createLogoPhase} from "./splash/logo.js";
 import {createLoginPhase} from "./splash/login.js";
 
 const PHASE = {BIOS: 0, LOGO: 1, LOGIN: 2, EXIT: 3};
@@ -26,11 +26,16 @@ export default function (container) {
 	let exitFlashFrames = 0;
 
 	/** Phase instances — created in setup once artBuffer is ready. */
-	let bios  = null;
-	let logo  = null;
+	let bios = null;
+	let logo = null;
 	let login = null;
 
 	return (sketch) => {
+		// ── preload ──────────────────────────────────────────────────────────────
+		sketch.preload = () => {
+			// No external assets to load, but this is where we'd do it if we had any.
+		};
+
 		// ── Setup ──────────────────────────────────────────────────────────────
 
 		sketch.setup = () => {
@@ -42,8 +47,8 @@ export default function (container) {
 			artBuffer = sketch.createGraphics(w, h);
 			artBuffer.noStroke();
 
-			bios  = createBiosPhase(sketch, artBuffer);
-			logo  = createLogoPhase(sketch, artBuffer);
+			bios = createBiosPhase(sketch, artBuffer);
+			logo = createLogoPhase(sketch, artBuffer);
 			login = createLoginPhase(sketch, artBuffer);
 		};
 
@@ -53,16 +58,24 @@ export default function (container) {
 			const now = sketch.millis();
 
 			// Advance state machine
-			if (phase === PHASE.BIOS  && bios.isDone())  phase = PHASE.LOGO;
-			if (phase === PHASE.LOGO  && logo.isDone())  phase = PHASE.LOGIN;
+			if (phase === PHASE.BIOS && bios.isDone()) phase = PHASE.LOGO;
+			if (phase === PHASE.LOGO && logo.isDone()) phase = PHASE.LOGIN;
 			if (phase === PHASE.LOGIN && login.isDone()) phase = PHASE.EXIT;
 
 			// Delegate drawing to active phase
 			switch (phase) {
-				case PHASE.BIOS:  bios.draw(now);  break;
-				case PHASE.LOGO:  logo.draw(now);  break;
-				case PHASE.LOGIN: login.draw(now); break;
-				case PHASE.EXIT:  drawExit();       break;
+				case PHASE.BIOS:
+					bios.draw(now);
+					break;
+				case PHASE.LOGO:
+					logo.draw(now);
+					break;
+				case PHASE.LOGIN:
+					login.draw(now);
+					break;
+				case PHASE.EXIT:
+					drawExit();
+					break;
 			}
 
 			// Blit artBuffer onto visible canvas
@@ -87,6 +100,7 @@ export default function (container) {
 
 		sketch.keyPressed = () => {
 			if (phase === PHASE.LOGO) logo.onKeyPressed();
+			if (phase === PHASE.LOGIN) login.onKeyPressed(sketch.keyCode, sketch.key);
 			return false; // prevent default browser scroll
 		};
 
@@ -100,4 +114,3 @@ export default function (container) {
 		};
 	};
 }
-
