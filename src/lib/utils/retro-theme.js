@@ -72,14 +72,15 @@ export function drawVignette(buf) {
  * @param {number} size - font size in px
  * @param {number} alpha - 0–255
  * @param {p5} p - p5 instance (for constants)
+ * @param {string | p5.Font} [fontOverride] - optional font/family for this draw
  */
-export function drawTitleAberration(buf, text, x, y, size, alpha, p) {
+export function drawTitleAberration(buf, text, x, y, size, alpha, p, fontOverride) {
 	const ctx = buf.drawingContext;
 	const offset = Math.max(2, size * 0.015);
 
 	buf.textAlign(p.CENTER, p.CENTER);
 	buf.textSize(size);
-	buf.textFont(THEME.FONT);
+	buf.textFont(fontOverride ?? THEME.FONT);
 	buf.textStyle(p.BOLD);
 
 	ctx.globalCompositeOperation = "screen";

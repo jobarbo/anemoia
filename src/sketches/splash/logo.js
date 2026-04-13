@@ -6,20 +6,21 @@
  * Auto-advances after AUTO_ADVANCE_MS if no input.
  *
  * Interface:
- *   createLogoPhase(sketch, artBuffer) → { draw(now), isDone(), onKeyPressed(), reset() }
+ *   createLogoPhase(sketch, artBuffer, fontApi) → { draw(now), isDone(), onKeyPressed(), reset() }
  */
 
 import {THEME, drawTitleAberration} from "../../lib/utils/retro-theme.js";
 
 const AUTO_ADVANCE_MS = 60000000;
 
-const BG = [0, 8, 8];
+const BG = [...THEME.BG];
 
 /**
  * @param {import('p5')} sketch
  * @param {import('p5').Graphics} artBuffer
+ * @param {{ getCanvasFont?: () => string | import('p5').Font }} [fontApi]
  */
-export function createLogoPhase(sketch, artBuffer) {
+export function createLogoPhase(sketch, artBuffer, fontApi) {
 	let startTime = null;
 	let advanced = false;
 	let blinkVisible = true;
@@ -53,6 +54,7 @@ export function createLogoPhase(sketch, artBuffer) {
 		const buf = artBuffer;
 		const w = buf.width;
 		const h = buf.height;
+		const canvasFont = fontApi?.getCanvasFont?.() ?? "monospace";
 
 		buf.background(...BG);
 		buf.noStroke();
@@ -133,13 +135,13 @@ export function createLogoPhase(sketch, artBuffer) {
 		// ── Title ─────────────────────────────────────────────────────────────
 		const titleSz = Math.round(w * 0.055);
 		const titleY = markY + markGridH * px + titleSz * 0.7;
-		drawTitleAberration(buf, "BOOT-BOY OS", cx, titleY, titleSz, 255, sketch);
+		drawTitleAberration(buf, "BOOT-BOY OS", cx, titleY, titleSz, 255, sketch, canvasFont);
 
 		// ── Subtitle ──────────────────────────────────────────────────────────
 		const subSz = Math.round(w * 0.022);
 		buf.textAlign(sketch.CENTER, sketch.CENTER);
 		buf.textSize(subSz);
-		buf.textFont("monospace");
+		buf.textFont(canvasFont);
 		buf.fill(0, 200, 240, 200);
 		buf.text("RELEASE  3.0", cx, titleY + titleSz * 0.85);
 
@@ -148,6 +150,7 @@ export function createLogoPhase(sketch, artBuffer) {
 		const infoY = boxY + boxH + infoSz * 1.6;
 		buf.textAlign(sketch.CENTER, sketch.CENTER);
 		buf.textSize(infoSz);
+		buf.textFont(canvasFont);
 		buf.fill(...THEME.GREEN_SUBTLE, 180);
 		buf.text("Version 3.0.1   Build 9804", cx, infoY);
 		buf.fill(...THEME.GREEN_SUBTLE, 120);

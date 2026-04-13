@@ -66,7 +66,7 @@ const DEFAULT_EFFECTS = {
 
 	colorQuantize: {
 		enabled: true,
-		levelsPerChannel: 64.0,
+		levelsPerChannel: 12.0,
 		blend: 1,
 	},
 	dither: {
@@ -80,7 +80,7 @@ const DEFAULT_EFFECTS = {
 	},
 	zoom: {
 		enabled: true,
-		zoomAmount: 0.9,
+		zoomAmount: 0.85,
 		zoomSpeed: 0.8,
 		animateZoom: 0.0,
 		easingMode: 4.0,
@@ -88,24 +88,24 @@ const DEFAULT_EFFECTS = {
 	crtDisplay: {
 		enabled: true,
 		brightness: 0.95,
-		cellSize: 1,
-		gapOpacity: 0.1,
-		rgbOpacity: 0.4,
+		cellSize: 3.0,
+		gapOpacity: 0.9,
+		rgbOpacity: 0.1,
 		rgbGain: [1.0, 1.0, 1.0],
-		dotRadius: 0.1,
+		dotRadius: 0.41,
 		dotFalloff: 0.4,
-		filterMode: 0.0,
+		filterMode: 1.0,
 	},
 
 	crtWarp: {
 		enabled: true,
 		warpAmount: 0.2,
-		aspectCorrect: 0.0,
+		aspectCorrect: 1.0,
 		borderColor: 2.0,
 		vignette: 0.0,
 		cornerSmooth: 0.015,
 		cornerRadius: 0.2,
-		boundsInset: 0.05,
+		boundsInset: 0.1,
 	},
 
 	blur: {

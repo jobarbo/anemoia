@@ -3,7 +3,7 @@
  * with a per-character typewriter effect, like a late-90s POST screen.
  *
  * Interface:
- *   createBiosPhase(sketch, artBuffer) → { draw(now), isDone(), reset() }
+ *   createBiosPhase(sketch, artBuffer, fontApi) → { draw(now), isDone(), reset() }
  */
 
 import {THEME} from "../../lib/utils/retro-theme.js";
@@ -29,15 +29,16 @@ const LINE_PAUSE_MS = 580;
 /** Extra pause after all lines are revealed before isDone() returns true */
 const DONE_PAUSE_MS = 700;
 
-const BG = [0, 8, 8];
+const BG = [...THEME.BG];
 const FG = [...THEME.GREEN_MID];
 const DIM = [...THEME.GREEN_SUBTLE];
 
 /**
  * @param {import('p5')} sketch
  * @param {import('p5').Graphics} artBuffer
+ * @param {{ getCanvasFont?: () => string | import('p5').Font }} [fontApi]
  */
-export function createBiosPhase(sketch, artBuffer) {
+export function createBiosPhase(sketch, artBuffer, fontApi) {
 	let lineIdx = 0;
 	let charIdx = 0;
 	let lastCharTime = 0;
@@ -93,10 +94,11 @@ export function createBiosPhase(sketch, artBuffer) {
 		const lineHeight = fontSize * 1.55;
 		const padLeft = w * 0.06;
 		const padTop = h * 0.1;
+		const canvasFont = fontApi?.getCanvasFont?.() ?? "monospace";
 
 		buf.background(...BG);
 		buf.noStroke();
-		buf.textFont("monospace");
+		buf.textFont(canvasFont);
 		buf.textSize(fontSize);
 		buf.textAlign(sketch.LEFT, sketch.TOP);
 

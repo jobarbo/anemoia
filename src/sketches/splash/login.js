@@ -8,12 +8,12 @@
  * - On success: animated "Authenticating..." → "ACCESS GRANTED" → isDone().
  *
  * Interface:
- *   createLoginPhase(sketch, artBuffer) → { draw(now), isDone(), onKeyPressed(keyCode, key), reset() }
+ *   createLoginPhase(sketch, artBuffer, fontApi) → { draw(now), isDone(), onKeyPressed(keyCode, key), reset() }
  */
 
 import {THEME} from "../../lib/utils/retro-theme.js";
 
-const BG = [0, 8, 8];
+const BG = [...THEME.BG];
 
 const STEPS = {
 	USERNAME_TYPING: 0,
@@ -35,8 +35,9 @@ const POST_GRANT_MS = 900; // pause after GRANTED before isDone()
 /**
  * @param {import('p5')} sketch
  * @param {import('p5').Graphics} artBuffer
+ * @param {{ getCanvasFont?: () => string | import('p5').Font }} [fontApi]
  */
-export function createLoginPhase(sketch, artBuffer) {
+export function createLoginPhase(sketch, artBuffer, fontApi) {
 	let step = STEPS.USERNAME_TYPING;
 	let charIdx = 0; // for auto-typing username
 	let lastChar = 0; // timer for auto-type
@@ -170,10 +171,11 @@ export function createLoginPhase(sketch, artBuffer) {
 		const fontSize = Math.max(12, Math.round(w * 0.018));
 		const lineH = fontSize * 1.6;
 		const padLeft = w * 0.06;
+		const canvasFont = fontApi?.getCanvasFont?.() ?? "monospace";
 
 		buf.background(...BG);
 		buf.noStroke();
-		buf.textFont("monospace");
+		buf.textFont(canvasFont);
 
 		// ── Header ────────────────────────────────────────────────────────────
 		const headerY = h * 0.09;
