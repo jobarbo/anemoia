@@ -73,15 +73,18 @@ export function drawVignette(buf) {
  * @param {number} alpha - 0–255
  * @param {p5} p - p5 instance (for constants)
  * @param {string | p5.Font} [fontOverride] - optional font/family for this draw
+ * @param {string | number} [fontWeight="700"] - optional font weight for this draw
  */
-export function drawTitleAberration(buf, text, x, y, size, alpha, p, fontOverride) {
+export function drawTitleAberration(buf, text, x, y, size, alpha, p, fontOverride, fontWeight = "700") {
 	const ctx = buf.drawingContext;
 	const offset = Math.max(2, size * 0.015);
+	const family = fontOverride ?? THEME.FONT;
 
 	buf.textAlign(p.CENTER, p.CENTER);
 	buf.textSize(size);
-	buf.textFont(fontOverride ?? THEME.FONT);
+	buf.textFont(family);
 	buf.textStyle(p.BOLD);
+	ctx.font = `normal ${fontWeight} ${size}px "${family}"`;
 
 	ctx.globalCompositeOperation = "screen";
 	buf.fill(50, 50, 50, alpha * 0.55);

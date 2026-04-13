@@ -175,12 +175,12 @@ export function createLoginPhase(sketch, artBuffer, fontApi) {
 
 		buf.background(...BG);
 		buf.noStroke();
-		buf.textFont(canvasFont);
+		fontApi?.applyCanvasFont?.(buf, fontSize) ?? buf.textFont(canvasFont);
 
 		// ── Header ────────────────────────────────────────────────────────────
 		const headerY = h * 0.09;
 		buf.textAlign(sketch.LEFT, sketch.TOP);
-		buf.textSize(Math.round(w * 0.022));
+		fontApi?.applyCanvasFont?.(buf, Math.round(w * 0.022)) ?? buf.textSize(Math.round(w * 0.022));
 		buf.fill(...THEME.GREEN_PRIMARY);
 		buf.text("Boot-Boy OS  3.0  —  ANEMOIA Interactive System", padLeft, headerY);
 
@@ -192,7 +192,7 @@ export function createLoginPhase(sketch, artBuffer, fontApi) {
 		buf.noStroke();
 
 		// Status line
-		buf.textSize(fontSize);
+		fontApi?.applyCanvasFont?.(buf, fontSize) ?? buf.textSize(fontSize);
 		buf.fill(...THEME.GREEN_SUBTLE, 180);
 		buf.text("CONNECTED TO: ANEMOIA-SRV-01", padLeft, sepY + fontSize * 0.8);
 
@@ -231,7 +231,7 @@ export function createLoginPhase(sketch, artBuffer, fontApi) {
 			// Keyboard hint on first attempt (no lines yet after the login line)
 			if (lines.length === 1) {
 				buf.textAlign(sketch.LEFT, sketch.TOP);
-				buf.textSize(Math.max(10, Math.round(w * 0.012)));
+				fontApi?.applyCanvasFont?.(buf, Math.max(10, Math.round(w * 0.012))) ?? buf.textSize(Math.max(10, Math.round(w * 0.012)));
 				buf.fill(...THEME.GREEN_SUBTLE, 100);
 				buf.text("Entrez le mot de passe et appuyez sur ENTRÉE", padLeft, currentY + lineH);
 			}

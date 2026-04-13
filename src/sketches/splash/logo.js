@@ -60,14 +60,15 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 		buf.noStroke();
 
 		// ── Box dimensions ────────────────────────────────────────────────────
-		const boxW = Math.min(w * 0.62, 640);
-		const boxH = Math.min(h * 0.52, 360);
+		const boxW = Math.min(w * 0.62, 1920);
+		const boxH = Math.min(h * 0.52, 1080);
 		const boxX = (w - boxW) / 2;
 		const boxY = (h - boxH) / 2 - h * 0.04;
 
 		// Box fill — dark teal, referencing the Bell Atlantic image vibe
 		buf.fill(12, 36, 72);
-		buf.noStroke();
+		buf.noFill();
+		buf.noStroke(0, 255, 0);
 		buf.rect(boxX, boxY, boxW, boxH);
 
 		// Box border (double-line effect: outer thick, inner thin)
@@ -135,13 +136,12 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 		// ── Title ─────────────────────────────────────────────────────────────
 		const titleSz = Math.round(w * 0.055);
 		const titleY = markY + markGridH * px + titleSz * 0.7;
-		drawTitleAberration(buf, "BOOT-BOY OS", cx, titleY, titleSz, 255, sketch, canvasFont);
+		drawTitleAberration(buf, "BOOT-BOY OS", cx, titleY, titleSz, 255, sketch, canvasFont, fontApi?.getCanvasFontWeight?.());
 
 		// ── Subtitle ──────────────────────────────────────────────────────────
 		const subSz = Math.round(w * 0.022);
 		buf.textAlign(sketch.CENTER, sketch.CENTER);
-		buf.textSize(subSz);
-		buf.textFont(canvasFont);
+		fontApi?.applyCanvasFont?.(buf, subSz) ?? (buf.textFont(canvasFont), buf.textSize(subSz));
 		buf.fill(0, 200, 240, 200);
 		buf.text("RELEASE  3.0", cx, titleY + titleSz * 0.85);
 
@@ -149,8 +149,7 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 		const infoSz = Math.max(10, Math.round(w * 0.013));
 		const infoY = boxY + boxH + infoSz * 1.6;
 		buf.textAlign(sketch.CENTER, sketch.CENTER);
-		buf.textSize(infoSz);
-		buf.textFont(canvasFont);
+		fontApi?.applyCanvasFont?.(buf, infoSz) ?? (buf.textFont(canvasFont), buf.textSize(infoSz));
 		buf.fill(...THEME.GREEN_SUBTLE, 180);
 		buf.text("Version 3.0.1   Build 9804", cx, infoY);
 		buf.fill(...THEME.GREEN_SUBTLE, 120);
@@ -160,7 +159,7 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 		if (blinkVisible) {
 			const promptSz = Math.max(10, Math.round(w * 0.016));
 			buf.textAlign(sketch.CENTER, sketch.CENTER);
-			buf.textSize(promptSz);
+			fontApi?.applyCanvasFont?.(buf, promptSz) ?? buf.textSize(promptSz);
 			buf.fill(...THEME.GREEN_MID, 210);
 			buf.text("[ PRESS ANY KEY TO CONTINUE ]", cx, h - h * 0.07);
 		}

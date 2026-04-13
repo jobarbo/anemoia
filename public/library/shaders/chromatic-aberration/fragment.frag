@@ -28,8 +28,8 @@ float noise(vec2 st, float seed) {
 
 float fbm(vec2 st, float seed) {
 	float value = 0.0;
-	float amplitude = 0.5;
-	for (int i = 0; i < 6; i++) {
+	float amplitude = 0.05;
+	for (int i = 0; i < 1; i++) {
 		value += amplitude * noise(st, seed);
 		st *= 2.0;
 		amplitude *= 0.5;

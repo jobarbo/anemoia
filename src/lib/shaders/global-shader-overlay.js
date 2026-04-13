@@ -48,15 +48,10 @@ function domCompositeFilter(domNode) {
 }
 
 const DEFAULT_EFFECTS = {
-	chromatic: {
-		enabled: true,
-		amount: 0.0005,
-		timeMultiplier: 0.0,
-	},
 	pixelGrid: {
-		enabled: true,
-		gridCols: 660.0,
-		gridRows: 620.0,
+		enabled: false,
+		gridCols: 1660.0,
+		gridRows: 6120.0,
 		cellRatio: 1.0,
 		mode: 1.0,
 		diffuse: 1.0,
@@ -65,7 +60,7 @@ const DEFAULT_EFFECTS = {
 	},
 
 	colorQuantize: {
-		enabled: true,
+		enabled: false,
 		levelsPerChannel: 12.0,
 		blend: 1,
 	},
@@ -80,7 +75,7 @@ const DEFAULT_EFFECTS = {
 	},
 	zoom: {
 		enabled: true,
-		zoomAmount: 0.85,
+		zoomAmount: 0.75,
 		zoomSpeed: 0.8,
 		animateZoom: 0.0,
 		easingMode: 4.0,
@@ -88,9 +83,9 @@ const DEFAULT_EFFECTS = {
 	crtDisplay: {
 		enabled: true,
 		brightness: 0.95,
-		cellSize: 3.0,
+		cellSize: 2.0,
 		gapOpacity: 0.9,
-		rgbOpacity: 0.1,
+		rgbOpacity: 0.9,
 		rgbGain: [1.0, 1.0, 1.0],
 		dotRadius: 0.41,
 		dotFalloff: 0.4,
@@ -99,7 +94,7 @@ const DEFAULT_EFFECTS = {
 
 	crtWarp: {
 		enabled: true,
-		warpAmount: 0.2,
+		warpAmount: 0.25,
 		aspectCorrect: 1.0,
 		borderColor: 2.0,
 		vignette: 0.0,
@@ -118,6 +113,11 @@ const DEFAULT_EFFECTS = {
 		blurCrt: 1.0,
 		blurCrtPower: 10.0,
 		blurMin: 0.0,
+	},
+	chromatic: {
+		enabled: true,
+		amount: 0.0025,
+		timeMultiplier: 0.0,
 	},
 };
 

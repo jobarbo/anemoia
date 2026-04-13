@@ -23,9 +23,9 @@ const LINES = [
 ];
 
 /** Milliseconds between revealing each character */
-const CHAR_MS = 12;
+const CHAR_MS = 1;
 /** Pause after each line finishes before starting the next */
-const LINE_PAUSE_MS = 580;
+const LINE_PAUSE_MS = 80;
 /** Extra pause after all lines are revealed before isDone() returns true */
 const DONE_PAUSE_MS = 700;
 
@@ -98,8 +98,7 @@ export function createBiosPhase(sketch, artBuffer, fontApi) {
 
 		buf.background(...BG);
 		buf.noStroke();
-		buf.textFont(canvasFont);
-		buf.textSize(fontSize);
+		fontApi?.applyCanvasFont?.(buf, fontSize) ?? (buf.textFont(canvasFont), buf.textSize(fontSize));
 		buf.textAlign(sketch.LEFT, sketch.TOP);
 
 		// First line gets a brighter header style
