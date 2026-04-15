@@ -85,7 +85,7 @@ const DEFAULT_EFFECTS = {
 		brightness: 0.95,
 		cellSize: 2.0,
 		gapOpacity: 0.9,
-		rgbOpacity: 0.9,
+		rgbOpacity: 0.7,
 		rgbGain: [1.0, 1.0, 1.0],
 		dotRadius: 0.41,
 		dotFalloff: 0.4,
@@ -163,6 +163,13 @@ function compositeLayerContainers(container, ctx, w, h) {
 		for (const el of layerEl.querySelectorAll("img, canvas, video")) {
 			drawCompositorDrawable(ctx, /** @type {HTMLElement} */ (el), w, h);
 		}
+	}
+
+	// Scene-wide overlays (slot fallback / explicit scene-level sketches) render above layers.
+	const sceneOutlet = /** @type {HTMLElement|null} */ (container.querySelector("[data-scene-slot-outlet]"));
+	if (!sceneOutlet) return;
+	for (const el of sceneOutlet.querySelectorAll("img, canvas, video")) {
+		drawCompositorDrawable(ctx, /** @type {HTMLElement} */ (el), w, h);
 	}
 }
 

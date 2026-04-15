@@ -16,7 +16,7 @@ export const SCENE_EFFECTS = {
 import p5 from "p5";
 import {fetchNeighborhoodManifest} from "../lib/data/scene-data.js";
 import {sceneNavigate} from "../lib/router/scene-nav.js";
-import {initMouseParallax, initScrollParallax} from "../lib/input/parallax.js";
+import {DEBUG_DISABLE_PARALLAX, initMouseParallax, initScrollParallax} from "../lib/input/parallax.js";
 import {initHeadTrackingParallax} from "../lib/input/head-tracking.js";
 import {refreshGlobalAudioPlayer, tryPlayGlobalAudio} from "../lib/audio/global-audio-ui.js";
 import {installPointerRemap} from "../lib/input/input-remap.js";
@@ -57,6 +57,10 @@ export async function mount(container, params, data) {
 	slotted.className = "scene__slotted";
 	slotted.dataset.sceneSlotted = "";
 	slotted.style.cssText = "position:absolute;width:0;height:0;overflow:hidden;";
+	const sceneSlotOutlet = document.createElement("div");
+	sceneSlotOutlet.className = "scene__scene-slot-outlet";
+	sceneSlotOutlet.dataset.sceneSlotOutlet = "";
+	sceneSlotOutlet.style.cssText = "position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:1000;";
 
 	const snowContainer = document.createElement("div");
 	snowContainer.className = "sketch-canvas";
@@ -75,7 +79,6 @@ export async function mount(container, params, data) {
 		name: neighborhood.name ?? slug,
 	});
 	slotted.appendChild(neighborhoodOverlayContainer);
-	scene.appendChild(slotted);
 
 	const scenePath = `/assets/scenes/${slug}/layers`;
 
@@ -108,6 +111,8 @@ export async function mount(container, params, data) {
 
 		scene.appendChild(layerContainer);
 	});
+	scene.appendChild(sceneSlotOutlet);
+	scene.appendChild(slotted);
 
 	container.appendChild(scene);
 
@@ -140,26 +145,28 @@ export async function mount(container, params, data) {
 	const layers = scene.querySelectorAll(".scene__layer-container");
 
 	let cleanupParallax = () => {};
-	const scrollCleanup = initScrollParallax(layers, container);
+	if (!DEBUG_DISABLE_PARALLAX) {
+		const scrollCleanup = initScrollParallax(layers, container);
 
-	initHeadTrackingParallax(layers, {
-		allowDeviceOrientationFallback: true,
-		allowMouseFallback: true,
-		scrollContainer: container,
-	})
-		.then((cleanup) => {
-			cleanupParallax = () => {
-				cleanup?.();
-				scrollCleanup?.();
-			};
+		initHeadTrackingParallax(layers, {
+			allowDeviceOrientationFallback: true,
+			allowMouseFallback: true,
+			scrollContainer: container,
 		})
-		.catch(() => {
-			const mouseCleanup = initMouseParallax(layers);
-			cleanupParallax = () => {
-				mouseCleanup?.();
-				scrollCleanup?.();
-			};
-		});
+			.then((cleanup) => {
+				cleanupParallax = () => {
+					cleanup?.();
+					scrollCleanup?.();
+				};
+			})
+			.catch(() => {
+				const mouseCleanup = initMouseParallax(layers);
+				cleanupParallax = () => {
+					mouseCleanup?.();
+					scrollCleanup?.();
+				};
+			});
+	}
 
 	// ── Audio ──────────────────────────────────────────────────────────────────
 	handleAudio(neighborhood.audioSrc ?? null);
@@ -357,12 +364,20 @@ function createInteractiveZone(layer, currentSlug) {
 
 function distributeSlottedContent(scene) {
 	const outlet = scene.querySelector("[data-scene-slotted]");
+	const sceneOutlet = scene.querySelector("[data-scene-slot-outlet]");
 	if (!outlet) return;
 	Array.from(outlet.children).forEach((child) => {
 		const targetName = child.dataset.slot;
-		if (!targetName) return;
+		if (!targetName) {
+			if (sceneOutlet) sceneOutlet.appendChild(child);
+			return;
+		}
 		const target = scene.querySelector(`[data-slot-outlet="${targetName}"]`);
-		if (target) target.appendChild(child);
+		if (target) {
+			target.appendChild(child);
+			return;
+		}
+		if (sceneOutlet) sceneOutlet.appendChild(child);
 	});
 }
 

@@ -32,6 +32,17 @@
 	pointer-events: none;
 }
 
+.scene__scene-slot-outlet {
+	/* Scene-wide modular canvases stay visible for the whole viewport while scrolling. */
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	pointer-events: none;
+	z-index: 1000;
+}
+
 .scene__slotted {
 	position: absolute;
 	width: 0;
