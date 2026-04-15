@@ -1,6 +1,6 @@
 /**
  * TITLE phase — prints the project title using the active splash font,
- * revealed row-by-row like a terminal/image load.
+ * revealed progressively across the word itself.
  *
  * Interface:
  *   createTitlePhase(sketch, artBuffer, fontApi) → { draw(now), isDone(), reset() }
@@ -11,8 +11,8 @@ import {THEME} from "../../lib/utils/retro-theme.js";
 const BG = [...THEME.BG];
 
 const TITLE_TEXT = "ANEMOIA";
-const ROW_HEIGHT_PX = 33;
-const ROW_STEP_MS = 692;
+const PROGRESS_STEP_COUNT = 30;
+const ROW_STEP_MS = 128;
 const DONE_HOLD_MS = 950;
 
 /**
@@ -40,27 +40,50 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 
 		const canvasFont = fontApi?.getCanvasFont?.() ?? "monospace";
 		const titleSize = Math.max(54, Math.round(w * 0.135));
+		const titleX = w / 2;
 		const titleY = h * 0.52;
 
-		titleLayer.textAlign(sketch.CENTER, sketch.CENTER);
+		titleLayer.textAlign(sketch.LEFT, sketch.BASELINE);
 		fontApi?.applyCanvasFont?.(titleLayer, titleSize, {weight: fontApi?.getCanvasFontWeight?.() ?? "700"}) ?? (titleLayer.textFont(canvasFont), titleLayer.textSize(titleSize));
+		const metrics = titleLayer.drawingContext.measureText(TITLE_TEXT);
+		const titleWidth = Math.ceil(titleLayer.textWidth(TITLE_TEXT));
+		const titleAscent = titleLayer.textAscent();
+		const titleDescent = titleLayer.textDescent();
+		const actualLeft = Number.isFinite(metrics.actualBoundingBoxLeft) ? metrics.actualBoundingBoxLeft : 0;
+		const actualRight = Number.isFinite(metrics.actualBoundingBoxRight) ? metrics.actualBoundingBoxRight : titleWidth;
+		const actualAscent = Number.isFinite(metrics.actualBoundingBoxAscent) ? metrics.actualBoundingBoxAscent : titleAscent;
+		const actualDescent = Number.isFinite(metrics.actualBoundingBoxDescent) ? metrics.actualBoundingBoxDescent : titleDescent;
+		const inkWidth = Math.ceil(Math.max(titleWidth, actualLeft + actualRight));
+		const inkHeight = Math.ceil(actualAscent + actualDescent);
+		const titlePaddingX = 4;
+		const titlePaddingY = 4;
+		const titleBaseline = Math.round(titleY + (actualAscent - actualDescent) / 2);
+		const titleDrawX = Math.round(titleX - inkWidth / 2 + actualLeft);
+		const titleLeft = Math.max(0, Math.round(titleDrawX - actualLeft - titlePaddingX));
+		const titleTop = Math.max(0, Math.round(titleBaseline - actualAscent - titlePaddingY));
+		const titleBoundsWidth = Math.ceil(inkWidth + titlePaddingX * 2);
+		const titleBoundsHeight = Math.ceil(inkHeight + titlePaddingY * 2);
 
 		// Slight glow pass
 		titleLayer.fill(...THEME.GREEN_PRIMARY, 70);
-		titleLayer.text(TITLE_TEXT, w / 2 + 2, titleY + 2);
+		titleLayer.text(TITLE_TEXT, titleDrawX + 2, titleBaseline + 2);
 
 		// Main title pass
 		titleLayer.fill(...THEME.GREEN_PRIMARY, 240);
-		titleLayer.text(TITLE_TEXT, w / 2, titleY);
+		titleLayer.text(TITLE_TEXT, titleDrawX, titleBaseline);
 
 		layout = {
 			titleY,
+			titleLeft,
+			titleTop,
+			titleWidth: Math.min(w - titleLeft, titleBoundsWidth),
+			titleHeight: Math.min(h - titleTop, titleBoundsHeight),
 			headingX: w * 0.08,
 			headingY: titleY - titleSize * 0.9,
 			statusY: titleY + titleSize * 0.85,
 		};
 
-		totalRows = Math.ceil(h / ROW_HEIGHT_PX);
+		totalRows = PROGRESS_STEP_COUNT;
 		revealedRows = Math.min(revealedRows, totalRows);
 		layerFontVersion = currentFontVersion;
 	}
@@ -112,10 +135,15 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 		buf.fill(...THEME.GREEN_SUBTLE, 160);
 		buf.text("ARCHIVISTE@ANEMOIA:~$ cat /boot/title.bin", headingX, headingY);
 
-		// Reveal title in horizontal row slices.
-		const revealPx = revealedRows * ROW_HEIGHT_PX;
-		for (let y = 0; y < revealPx; y += ROW_HEIGHT_PX) {
-			buf.image(titleLayer, 0, y, w, ROW_HEIGHT_PX, 0, y, w, ROW_HEIGHT_PX);
+		// Reveal the word itself vertically based on progress.
+		const revealProgress = revealedRows / Math.max(1, totalRows);
+		const titleLeft = layout?.titleLeft ?? 0;
+		const titleTop = layout?.titleTop ?? 0;
+		const titleWidth = layout?.titleWidth ?? w;
+		const titleHeight = layout?.titleHeight ?? h;
+		const revealHeight = Math.floor(revealProgress * titleHeight);
+		if (revealHeight > 0) {
+			buf.image(titleLayer, titleLeft, titleTop, titleWidth, revealHeight, titleLeft, titleTop, titleWidth, revealHeight);
 		}
 
 		buf.textAlign(sketch.LEFT, sketch.TOP);
