@@ -14,7 +14,7 @@
  */
 
 import {sceneNavigate} from "../../lib/router/scene-nav.js";
-import {THEME, drawTitleAberration, drawButton, tickBlink, applyThemeCanvasFont} from "../../lib/utils/retro-theme.js";
+import {THEME, drawTitleAberration, drawButton, hitTest, tickBlink, applyThemeCanvasFont} from "../../lib/utils/retro-theme.js";
 
 export default function (container) {
 	const raw = container.dataset.sketchData;
@@ -30,15 +30,28 @@ export default function (container) {
 		/** Blinking state for back button */
 		let blinkVisible = true;
 		let lastBlink = 0;
+		let backRect = null;
+		let backHovered = false;
+		let mapBounds = {x: 0, y: 0, w: 0, h: 0};
 
 		sketch.setup = () => {
 			const w = window.innerWidth;
 			const h = window.innerHeight;
 			const canvas = sketch.createCanvas(w, h);
 			canvas.parent(container);
+			canvas.elt.tabIndex = 0;
+			canvas.elt.focus();
 			artBuffer = sketch.createGraphics(w, h);
 			artBuffer.noStroke();
 			artBuffer.textFont(THEME.FONT);
+
+			// Fallback keyboard handling when p5 key events are swallowed by focus changes.
+			window.addEventListener("keydown", onWindowKeyDown);
+			if (typeof sketch.registerMethod === "function") {
+				sketch.registerMethod("remove", () => {
+					window.removeEventListener("keydown", onWindowKeyDown);
+				});
+			}
 		};
 
 		sketch.draw = () => {
@@ -62,6 +75,7 @@ export default function (container) {
 			const mapY = titleH;
 			const mapW = w - mapPad * 2;
 			const mapH = h - titleH - footerH;
+			mapBounds = {x: mapX, y: mapY, w: mapW, h: mapH};
 
 			// Retro terminal placeholder grid (no map image)
 			drawMapPlaceholder(artBuffer, mapX, mapY, mapW, mapH, sketch);
@@ -82,7 +96,7 @@ export default function (container) {
 			const backSz = w * 0.016;
 			const backY = h - footerH / 2;
 			const backSelected = selectedPin === neighborhoods.length;
-			drawButton(artBuffer, "[ RETOUR AU MENU ]", w / 2, backY, backSz, backSelected || blinkVisible, sketch);
+			backRect = drawButton(artBuffer, "[ RETOUR AU MENU ]", w / 2, backY, backSz, backSelected || blinkVisible || backHovered, sketch);
 
 			// Key hint
 			const hintSz = w * 0.011;
@@ -94,11 +108,15 @@ export default function (container) {
 			// Blit artBuffer onto output canvas
 			sketch.clear();
 			sketch.image(artBuffer, 0, 0);
+			container.style.cursor = backHovered || findPinAtMouse() >= 0 ? "pointer" : "default";
 		};
 
 		sketch.keyPressed = () => {
+			return handleKeyInput(sketch.keyCode);
+		};
+
+		function handleKeyInput(key) {
 			const total = neighborhoods.length + 1; // pins + back
-			const key = sketch.keyCode;
 			if (key === sketch.UP_ARROW || key === sketch.LEFT_ARROW) {
 				selectedPin = (selectedPin - 1 + total) % total;
 			} else if (key === sketch.DOWN_ARROW || key === sketch.RIGHT_ARROW) {
@@ -113,6 +131,37 @@ export default function (container) {
 				sceneNavigate("splash");
 			}
 			return false; // prevent default browser scroll
+		}
+
+		function onWindowKeyDown(e) {
+			const keyMap = {
+				ArrowUp: sketch.UP_ARROW,
+				ArrowDown: sketch.DOWN_ARROW,
+				ArrowLeft: sketch.LEFT_ARROW,
+				ArrowRight: sketch.RIGHT_ARROW,
+				Enter: sketch.ENTER,
+				Escape: sketch.ESCAPE,
+			};
+			const mapped = keyMap[e.key];
+			if (mapped == null) return;
+			e.preventDefault();
+			handleKeyInput(mapped);
+		}
+
+		sketch.mouseMoved = () => {
+			backHovered = Boolean(backRect && hitTest(sketch.mouseX, sketch.mouseY, backRect));
+		};
+
+		sketch.mousePressed = () => {
+			if (backRect && hitTest(sketch.mouseX, sketch.mouseY, backRect)) {
+				sceneNavigate("splash");
+				return;
+			}
+			const pinIndex = findPinAtMouse();
+			if (pinIndex >= 0) {
+				selectedPin = pinIndex;
+				sceneNavigate("neighborhood", {slug: neighborhoods[pinIndex].slug});
+			}
 		};
 
 		sketch.windowResized = () => {
@@ -121,6 +170,20 @@ export default function (container) {
 			sketch.resizeCanvas(w, h);
 			artBuffer.resizeCanvas(w, h);
 		};
+
+		function findPinAtMouse() {
+			if (!mapBounds.w || !mapBounds.h) return -1;
+			const hitRadius = Math.max(14, artBuffer.width * 0.02);
+			for (let i = 0; i < neighborhoods.length; i++) {
+				const hood = neighborhoods[i];
+				const px = mapBounds.x + (hood.position.x / 100) * mapBounds.w;
+				const py = mapBounds.y + (hood.position.y / 100) * mapBounds.h;
+				const dx = sketch.mouseX - px;
+				const dy = sketch.mouseY - py;
+				if (dx * dx + dy * dy <= hitRadius * hitRadius) return i;
+			}
+			return -1;
+		}
 	};
 }
 
