@@ -68,7 +68,7 @@ export default function (container) {
 
 			// ── Title ─────────────────────────────────────────────────────────────
 			const titleSz = w * 0.032;
-			drawTitleAberration(artBuffer, "CARTE DE LA VILLE", w / 2, titleH / 2, titleSz, 255, sketch);
+			drawTitleAberration(artBuffer, "Le directoire", w / 2, titleH / 2, titleSz, 255, sketch);
 
 			// ── Neighborhood pins ─────────────────────────────────────────────────
 			for (let i = 0; i < neighborhoods.length; i++) {
@@ -161,9 +161,11 @@ function drawPin(buf, x, y, name, hovered, p) {
 function drawMapPlaceholder(buf, x, y, w, h, p) {
 	// Dark panel
 	buf.fill(...THEME.BG, 200);
-	buf.noStroke();
-	buf.rect(x, y, w, h);
-
+	//buf.noStroke();
+	buf.strokeWeight(12);
+	// rect radius based on size, with min/max clamp
+	const radius = Math.max(10, Math.min(30, Math.min(w, h) * 0.22));
+	buf.rect(x, y, w, h, radius);
 	// Grid lines
 	buf.stroke(...THEME.GREEN_PRIMARY, 18);
 	buf.strokeWeight(1);
@@ -181,8 +183,8 @@ function drawMapPlaceholder(buf, x, y, w, h, p) {
 	// Border
 	buf.noFill();
 	buf.stroke(...THEME.GREEN_MID, 80);
-	buf.strokeWeight(1);
-	buf.rect(x, y, w, h);
+	buf.strokeWeight(2);
+	buf.rect(x, y, w, h, 22);
 
 	buf.noStroke();
 }

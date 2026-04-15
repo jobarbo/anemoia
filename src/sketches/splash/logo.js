@@ -54,14 +54,14 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 		const buf = artBuffer;
 		const w = buf.width;
 		const h = buf.height;
-		const canvasFont = fontApi?.getCanvasFont?.() ?? "monospace";
+		const canvasFont = fontApi?.getCanvasFont?.() ?? "sd";
 
 		buf.background(...BG);
 		buf.noStroke();
 
 		// ── Box dimensions ────────────────────────────────────────────────────
-		const boxW = Math.min(w * 0.62, 1920);
-		const boxH = Math.min(h * 0.52, 1080);
+		const boxW = Math.min(w * 0.52, 1920);
+		const boxH = Math.min(h * 0.42, 1080);
 		const boxX = (w - boxW) / 2;
 		const boxY = (h - boxH) / 2 - h * 0.04;
 

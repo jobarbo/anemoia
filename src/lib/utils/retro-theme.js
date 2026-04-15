@@ -7,6 +7,27 @@
 
 // ── Design tokens ────────────────────────────────────────────────────────────
 
+/**
+ * Single source of truth for typography config used across all scenes.
+ * Splash uses provider/local/google fields for loading; the rest of the
+ * project consumes THEME.FONT and THEME.FONT_WEIGHT derived below.
+ */
+export const THEME_FONT = {
+	// "google" | "local" | "system"
+	provider: "google",
+	// Primary family used by runtime font loading
+	family: "IBM Plex Mono",
+	weight: "700",
+	googleCssUrl:
+		"https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Overpass+Mono:wght@300..700&display=swap",
+	// Used for provider: "local" (served from /public)
+	localPath: "/assets/fonts/splash.ttf",
+	// Secondary stack used after the primary family
+	fallbackFamily: '"Overpass Mono", monospace',
+};
+
+const THEME_FONT_STACK = `"${THEME_FONT.family}", ${THEME_FONT.fallbackFamily}`;
+
 export const THEME = {
 	/** Deep blue-black background */
 	BG: [16, 18, 28],
@@ -16,8 +37,9 @@ export const THEME = {
 	GREEN_MID: [120, 200, 140],
 	/** Desaturated green — body text, secondary labels */
 	GREEN_SUBTLE: [170, 200, 170],
-	/** Monospace font used everywhere */
-	FONT: "monospace",
+	/** Shared terminal font stack used across all canvas scenes */
+	FONT: THEME_FONT_STACK,
+	FONT_WEIGHT: THEME_FONT.weight,
 	/** Blinking prompt interval (ms) */
 	BLINK_MS: 600,
 	/** Smooth-scroll lerp factor */
@@ -84,7 +106,7 @@ export function drawTitleAberration(buf, text, x, y, size, alpha, p, fontOverrid
 	buf.textSize(size);
 	buf.textFont(family);
 	buf.textStyle(p.BOLD);
-	ctx.font = `normal ${fontWeight} ${size}px "${family}"`;
+	ctx.font = `normal ${fontWeight} ${size}px ${family}`;
 
 	ctx.globalCompositeOperation = "screen";
 	buf.fill(50, 50, 50, alpha * 0.55);

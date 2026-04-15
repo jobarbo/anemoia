@@ -16,26 +16,13 @@ import {createBiosPhase} from "./splash/bios.js";
 import {createLogoPhase} from "./splash/logo.js";
 import {createLoginPhase} from "./splash/login.js";
 import {createTitlePhase} from "./splash/title.js";
+import {THEME_FONT} from "../lib/utils/retro-theme.js";
 
 const PHASE = {BIOS: 0, LOGO: 1, LOGIN: 2, TITLE: 3, EXIT: 4};
 
-// Change this object to switch splash typography globally.
-const SPLASH_FONT = {
-	// "google" | "local" | "system"
-	provider: "google",
-	// Used for provider: "google"
-	family: "IBM Plex Mono",
-	weight: "700",
-	googleCssUrl:
-		"https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Overpass+Mono:wght@300..700&display=swap",
-	// Used for provider: "local" (served from /public)
-	localPath: "/assets/fonts/splash.ttf",
-	// Used for provider: "system" and as fallback for all providers
-	fallbackFamily: "monospace",
-};
-
 const loadedGoogleStylesheets = new Set();
 const loadedLocalFontFaces = new Set();
+const appliedFontState = new WeakMap();
 
 async function ensureGoogleFontLoaded(cssUrl, family, weight) {
 	if (!cssUrl || !family || typeof document === "undefined") return false;
@@ -76,9 +63,10 @@ async function ensureLocalFontLoaded(path, family, weight) {
 export default function (container) {
 	/** P2D offscreen buffer — all phase drawing happens here. */
 	let artBuffer;
+	let p5Instance = null;
 	/** Font family string for canvas when using google/system provider */
-	let splashFontFamily = SPLASH_FONT.fallbackFamily;
-	let splashFontWeight = SPLASH_FONT.weight ?? "400";
+	let splashFontFamily = THEME_FONT.family;
+	let splashFontWeight = THEME_FONT.weight ?? "400";
 
 	let phase = PHASE.BIOS;
 	let exitFlashFrames = 0;
@@ -99,15 +87,24 @@ export default function (container) {
 
 	function applyCanvasFont(buf, size, options = {}) {
 		const family = getCanvasFont();
-		const weight = options.weight ?? getCanvasFontWeight();
+		const rawWeight = options.weight ?? getCanvasFontWeight();
+		const weight = Number.parseInt(String(rawWeight), 10);
 		const style = options.style ?? "normal";
+		const p5TextStyle = style === "italic" ? p5Instance?.ITALIC : weight >= 600 ? p5Instance?.BOLD : p5Instance?.NORMAL;
+		const font = `${style} ${weight} ${size}px ${family}`;
+		const previous = appliedFontState.get(buf);
+
+		if (previous?.font === font && previous.family === family && previous.size === size) return;
 
 		buf.textFont(family);
 		buf.textSize(size);
-		buf.drawingContext.font = `${style} ${weight} ${size}px "${family}"`;
+		if (p5TextStyle !== undefined) buf.textStyle(p5TextStyle);
+		buf.drawingContext.font = font;
+		appliedFontState.set(buf, {font, family, size});
 	}
 
 	return (sketch) => {
+		p5Instance = sketch;
 		// ── Setup ──────────────────────────────────────────────────────────────
 
 		sketch.setup = () => {
@@ -119,23 +116,22 @@ export default function (container) {
 			artBuffer = sketch.createGraphics(w, h);
 			artBuffer.noStroke();
 
-			if (SPLASH_FONT.provider === "google") {
-				splashFontFamily = SPLASH_FONT.fallbackFamily;
-				splashFontWeight = SPLASH_FONT.weight ?? "400";
-				ensureGoogleFontLoaded(SPLASH_FONT.googleCssUrl, SPLASH_FONT.family, SPLASH_FONT.weight).then((ok) => {
-					if (ok) splashFontFamily = SPLASH_FONT.family;
+			if (THEME_FONT.provider === "google") {
+				splashFontFamily = THEME_FONT.family;
+				splashFontWeight = THEME_FONT.weight ?? "400";
+				ensureGoogleFontLoaded(THEME_FONT.googleCssUrl, THEME_FONT.family, THEME_FONT.weight).then((ok) => {
+					if (ok) splashFontFamily = THEME_FONT.family;
 				});
-			} else if (SPLASH_FONT.provider === "local") {
-				splashFontFamily = SPLASH_FONT.fallbackFamily;
-				splashFontWeight = SPLASH_FONT.weight ?? "400";
-				ensureLocalFontLoaded(SPLASH_FONT.localPath, SPLASH_FONT.family, SPLASH_FONT.weight).then((ok) => {
-					if (ok) splashFontFamily = SPLASH_FONT.family;
+			} else if (THEME_FONT.provider === "local") {
+				splashFontFamily = THEME_FONT.family;
+				splashFontWeight = THEME_FONT.weight ?? "400";
+				ensureLocalFontLoaded(THEME_FONT.localPath, THEME_FONT.family, THEME_FONT.weight).then((ok) => {
+					if (ok) splashFontFamily = THEME_FONT.family;
 				});
-			} else if (SPLASH_FONT.provider === "system") {
-				splashFontFamily = SPLASH_FONT.family || SPLASH_FONT.fallbackFamily;
-				splashFontWeight = SPLASH_FONT.weight ?? "400";
+			} else if (THEME_FONT.provider === "system") {
+				splashFontFamily = THEME_FONT.family || THEME_FONT.fallbackFamily;
+				splashFontWeight = THEME_FONT.weight ?? "400";
 			}
-
 			const fontApi = {getCanvasFont, getCanvasFontWeight, applyCanvasFont};
 			bios = createBiosPhase(sketch, artBuffer, fontApi);
 			logo = createLogoPhase(sketch, artBuffer, fontApi);
