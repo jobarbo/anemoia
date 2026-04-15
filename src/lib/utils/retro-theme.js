@@ -12,21 +12,25 @@
  * Splash uses provider/local/google fields for loading; the rest of the
  * project consumes THEME.FONT and THEME.FONT_WEIGHT derived below.
  */
+const toGoogleFontFamily = (family) => family.trim().replace(/\s+/g, "+");
+const THEME_FONT_FAMILY = "Fira Mono";
+const THEME_FONT_FALLBACK_FAMILY = "monospace";
+const THEME_FONT_GOOGLE_CSS_URL = `https://fonts.googleapis.com/css2?family=${toGoogleFontFamily(THEME_FONT_FAMILY)}:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=${toGoogleFontFamily(THEME_FONT_FALLBACK_FAMILY)}:wght@300..700&display=swap`;
+
 export const THEME_FONT = {
 	// "google" | "local" | "system"
 	provider: "google",
 	// Primary family used by runtime font loading
-	family: "IBM Plex Mono",
-	weight: "700",
-	googleCssUrl:
-		"https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Overpass+Mono:wght@300..700&display=swap",
+	family: THEME_FONT_FAMILY,
+	// Secondary stack used after the primary family
+	fallbackFamily: THEME_FONT_FALLBACK_FAMILY,
+	weight: "150",
+	googleCssUrl: THEME_FONT_GOOGLE_CSS_URL,
 	// Used for provider: "local" (served from /public)
 	localPath: "/assets/fonts/splash.ttf",
-	// Secondary stack used after the primary family
-	fallbackFamily: '"Overpass Mono", monospace',
 };
 
-const THEME_FONT_STACK = `"${THEME_FONT.family}", ${THEME_FONT.fallbackFamily}`;
+const THEME_FONT_STACK = `"${THEME_FONT.family}", "${THEME_FONT.fallbackFamily}", monospace`;
 
 export const THEME = {
 	/** Deep blue-black background */
