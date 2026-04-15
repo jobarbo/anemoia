@@ -14,7 +14,7 @@
  */
 
 import {sceneNavigate} from "../lib/router/scene-nav.js";
-import {THEME, drawTitleAberration, drawButton, tickBlink} from "../lib/utils/retro-theme.js";
+import {THEME, drawTitleAberration, drawButton, tickBlink, applyThemeCanvasFont} from "../lib/utils/retro-theme.js";
 
 export default function (container) {
 	const raw = container.dataset.sketchData;
@@ -87,7 +87,7 @@ export default function (container) {
 			// Key hint
 			const hintSz = w * 0.011;
 			artBuffer.textAlign(sketch.RIGHT, sketch.CENTER);
-			artBuffer.textSize(hintSz);
+			applyThemeCanvasFont(artBuffer, hintSz, sketch);
 			artBuffer.fill(...THEME.GREEN_SUBTLE, 120);
 			artBuffer.text("↑↓ SELECT   ENTER CONFIRM   ESC BACK", w - w * 0.04, h - footerH / 2);
 
@@ -147,8 +147,7 @@ function drawPin(buf, x, y, name, hovered, p) {
 
 	// Label
 	buf.textAlign(p.CENTER, p.CENTER);
-	buf.textSize(labelSz);
-	buf.textFont(THEME.FONT);
+	applyThemeCanvasFont(buf, labelSz, p);
 	buf.noStroke();
 	buf.fill(...labelColor, hovered ? 255 : 180);
 	buf.text(name, x, y + dotR * 3.5);

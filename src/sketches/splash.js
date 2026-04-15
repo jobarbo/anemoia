@@ -16,13 +16,12 @@ import {createBiosPhase} from "./splash/bios.js";
 import {createLogoPhase} from "./splash/logo.js";
 import {createLoginPhase} from "./splash/login.js";
 import {createTitlePhase} from "./splash/title.js";
-import {THEME_FONT} from "../lib/utils/retro-theme.js";
+import {THEME_FONT, applyThemeCanvasFont} from "../lib/utils/retro-theme.js";
 
 const PHASE = {BIOS: 0, LOGO: 1, LOGIN: 2, TITLE: 3, EXIT: 4};
 
 const loadedGoogleStylesheets = new Set();
 const loadedLocalFontFaces = new Set();
-const appliedFontState = new WeakMap();
 
 async function ensureGoogleFontLoaded(cssUrl, family, weight) {
 	if (!cssUrl || !family || typeof document === "undefined") return false;
@@ -63,10 +62,10 @@ async function ensureLocalFontLoaded(path, family, weight) {
 export default function (container) {
 	/** P2D offscreen buffer — all phase drawing happens here. */
 	let artBuffer;
-	let p5Instance = null;
 	/** Font family string for canvas when using google/system provider */
 	let splashFontFamily = THEME_FONT.family;
 	let splashFontWeight = THEME_FONT.weight ?? "400";
+	let splashFontVersion = 0;
 
 	let phase = PHASE.BIOS;
 	let exitFlashFrames = 0;
@@ -78,33 +77,18 @@ export default function (container) {
 	let title = null;
 
 	function getCanvasFont() {
-		return splashFontFamily ?? "monospace";
+		return splashFontFamily ?? THEME_FONT.fallbackFamily;
 	}
 
 	function getCanvasFontWeight() {
 		return splashFontWeight ?? "400";
 	}
 
-	function applyCanvasFont(buf, size, options = {}) {
-		const family = getCanvasFont();
-		const rawWeight = options.weight ?? getCanvasFontWeight();
-		const weight = Number.parseInt(String(rawWeight), 10);
-		const style = options.style ?? "normal";
-		const p5TextStyle = style === "italic" ? p5Instance?.ITALIC : weight >= 600 ? p5Instance?.BOLD : p5Instance?.NORMAL;
-		const font = `${style} ${weight} ${size}px ${family}`;
-		const previous = appliedFontState.get(buf);
-
-		if (previous?.font === font && previous.family === family && previous.size === size) return;
-
-		buf.textFont(family);
-		buf.textSize(size);
-		if (p5TextStyle !== undefined) buf.textStyle(p5TextStyle);
-		buf.drawingContext.font = font;
-		appliedFontState.set(buf, {font, family, size});
+	function getCanvasFontVersion() {
+		return splashFontVersion;
 	}
 
 	return (sketch) => {
-		p5Instance = sketch;
 		// ── Setup ──────────────────────────────────────────────────────────────
 
 		sketch.setup = () => {
@@ -117,22 +101,35 @@ export default function (container) {
 			artBuffer.noStroke();
 
 			if (THEME_FONT.provider === "google") {
-				splashFontFamily = THEME_FONT.family;
+				splashFontFamily = THEME_FONT.fallbackFamily;
 				splashFontWeight = THEME_FONT.weight ?? "400";
 				ensureGoogleFontLoaded(THEME_FONT.googleCssUrl, THEME_FONT.family, THEME_FONT.weight).then((ok) => {
-					if (ok) splashFontFamily = THEME_FONT.family;
+					if (ok) {
+						splashFontFamily = THEME_FONT.family;
+						splashFontVersion++;
+					}
 				});
 			} else if (THEME_FONT.provider === "local") {
-				splashFontFamily = THEME_FONT.family;
+				splashFontFamily = THEME_FONT.fallbackFamily;
 				splashFontWeight = THEME_FONT.weight ?? "400";
 				ensureLocalFontLoaded(THEME_FONT.localPath, THEME_FONT.family, THEME_FONT.weight).then((ok) => {
-					if (ok) splashFontFamily = THEME_FONT.family;
+					if (ok) {
+						splashFontFamily = THEME_FONT.family;
+						splashFontVersion++;
+					}
 				});
 			} else if (THEME_FONT.provider === "system") {
 				splashFontFamily = THEME_FONT.family || THEME_FONT.fallbackFamily;
 				splashFontWeight = THEME_FONT.weight ?? "400";
 			}
-			const fontApi = {getCanvasFont, getCanvasFontWeight, applyCanvasFont};
+			function applyCanvasFont(buf, size, options = {}) {
+				applyThemeCanvasFont(buf, size, sketch, {
+					family: getCanvasFont(),
+					weight: options.weight ?? getCanvasFontWeight(),
+					style: options.style,
+				});
+			}
+			const fontApi = {getCanvasFont, getCanvasFontWeight, getCanvasFontVersion, applyCanvasFont};
 			bios = createBiosPhase(sketch, artBuffer, fontApi);
 			logo = createLogoPhase(sketch, artBuffer, fontApi);
 			login = createLoginPhase(sketch, artBuffer, fontApi);

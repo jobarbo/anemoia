@@ -55,7 +55,6 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 		const w = buf.width;
 		const h = buf.height;
 		const canvasFont = fontApi?.getCanvasFont?.() ?? "monospace";
-		console.log(canvasFont);
 
 		buf.background(...BG);
 		buf.noStroke();
@@ -137,7 +136,7 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 		// ── Title ─────────────────────────────────────────────────────────────
 		const titleSz = Math.round(w * 0.055);
 		const titleY = markY + markGridH * px + titleSz * 0.7;
-		drawTitleAberration(buf, "BOOT-BOY OS", cx, titleY, titleSz, 255, sketch, canvasFont, 800);
+		drawTitleAberration(buf, "BOOT-BOY OS", cx, titleY, titleSz, 255, sketch, canvasFont, fontApi?.getCanvasFontWeight?.() ?? THEME.FONT_WEIGHT);
 
 		// ── Subtitle ──────────────────────────────────────────────────────────
 		const subSz = Math.round(w * 0.022);

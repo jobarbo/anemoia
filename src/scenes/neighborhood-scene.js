@@ -20,6 +20,7 @@ import {initMouseParallax, initScrollParallax} from "../lib/input/parallax.js";
 import {initHeadTrackingParallax} from "../lib/input/head-tracking.js";
 import {refreshGlobalAudioPlayer, tryPlayGlobalAudio} from "../lib/audio/global-audio-ui.js";
 import {installPointerRemap} from "../lib/input/input-remap.js";
+import {THEME} from "../lib/utils/retro-theme.js";
 
 export async function mount(container, params, data) {
 	const {slug} = params;
@@ -62,6 +63,17 @@ export async function mount(container, params, data) {
 	snowContainer.dataset.sketch = "snow";
 	snowContainer.dataset.slot = "foreground";
 	slotted.appendChild(snowContainer);
+
+	const neighborhoodOverlayContainer = document.createElement("div");
+	neighborhoodOverlayContainer.className = "sketch-canvas";
+	neighborhoodOverlayContainer.dataset.sketchContainer = "";
+	neighborhoodOverlayContainer.dataset.sketch = "neighborhood";
+	neighborhoodOverlayContainer.dataset.slot = "foreground";
+	neighborhoodOverlayContainer.dataset.sketchData = JSON.stringify({
+		slug,
+		name: neighborhood.name ?? slug,
+	});
+	slotted.appendChild(neighborhoodOverlayContainer);
 	scene.appendChild(slotted);
 
 	const scenePath = `/assets/scenes/${slug}/layers`;
@@ -110,13 +122,16 @@ export async function mount(container, params, data) {
 	}
 	await waitFrames(2);
 
-	// ── Mount snow p5 sketch ─────────────────────────────────────────────────
-	let snowInstance = null;
-	const snowEl = scene.querySelector("[data-sketch-container]");
-	if (snowEl) {
-		const snowMod = await import("../sketches/snow.js");
-		const createSketch = snowMod.default;
-		snowInstance = new p5(createSketch(snowEl), snowEl);
+	// ── Mount p5 sketches (snow + neighborhood overlay) ─────────────────────
+	const sketchInstances = [];
+	const sketchEls = [...scene.querySelectorAll("[data-sketch-container]")];
+	for (const sketchEl of sketchEls) {
+		const sketchName = sketchEl.dataset.sketch;
+		if (!sketchName) continue;
+		const sketchMod = await import(`../sketches/${sketchName}.js`);
+		const createSketch = sketchMod.default;
+		if (typeof createSketch !== "function") continue;
+		sketchInstances.push(new p5(createSketch(sketchEl), sketchEl));
 	}
 
 	// ── Parallax ──────────────────────────────────────────────────────────────
@@ -154,7 +169,7 @@ export async function mount(container, params, data) {
 		unmount() {
 			cleanupParallax();
 			cleanupPointerRemap();
-			snowInstance?.remove();
+			for (const instance of sketchInstances) instance.remove();
 			handleAudio(null);
 		},
 	};
@@ -181,7 +196,7 @@ function createBackButton(slug) {
 		display: "inline-block",
 		padding: "0.6rem 1.2rem",
 		color: "#8ace8a",
-		fontFamily: "monospace",
+		fontFamily: THEME.FONT,
 		fontSize: "0.85rem",
 		textDecoration: "none",
 		background: "rgba(0,0,0,0.5)",

@@ -6,6 +6,7 @@ const sketchLoaders = {
 	splash: () => import("./splash.js"),
 	snow: () => import("./snow.js"),
 	overworld: () => import("./overworld.js"),
+	neighborhood: () => import("./neighborhood.js"),
 	story: () => import("./story.js"),
 };
 

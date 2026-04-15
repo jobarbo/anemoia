@@ -18,7 +18,7 @@ const DONE_HOLD_MS = 950;
 /**
  * @param {import('p5')} sketch
  * @param {import('p5').Graphics} artBuffer
- * @param {{ getCanvasFont?: () => string | import('p5').Font }} [fontApi]
+ * @param {{ getCanvasFont?: () => string | import('p5').Font, getCanvasFontVersion?: () => number, getCanvasFontWeight?: () => string | number, applyCanvasFont?: (buf: import('p5').Graphics, size: number, options?: { weight?: string | number, style?: "normal" | "italic" }) => void }} [fontApi]
  */
 export function createTitlePhase(sketch, artBuffer, fontApi) {
 	let revealedRows = 0;
@@ -29,9 +29,11 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 	let lastBlink = 0;
 	let titleLayer = null;
 	let layout = null;
+	let layerFontVersion = -1;
 
 	function ensureLayer(w, h) {
-		if (titleLayer && titleLayer.width === w && titleLayer.height === h && layout) return;
+		const currentFontVersion = fontApi?.getCanvasFontVersion?.() ?? 0;
+		if (titleLayer && titleLayer.width === w && titleLayer.height === h && layout && layerFontVersion === currentFontVersion) return;
 
 		titleLayer = sketch.createGraphics(w, h);
 		titleLayer.clear();
@@ -60,6 +62,7 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 
 		totalRows = Math.ceil(h / ROW_HEIGHT_PX);
 		revealedRows = Math.min(revealedRows, totalRows);
+		layerFontVersion = currentFontVersion;
 	}
 
 	function reset() {
@@ -71,6 +74,7 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 		lastBlink = 0;
 		titleLayer = null;
 		layout = null;
+		layerFontVersion = -1;
 	}
 
 	function isDone() {
