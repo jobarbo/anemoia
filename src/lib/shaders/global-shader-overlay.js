@@ -484,7 +484,7 @@ export class GlobalShaderOverlay {
 	 * Each key in `overrides` is shallow-merged into the corresponding effect group.
 	 * Call with no argument (or empty object) to reset to defaults.
 	 *
-	 * @param {Partial<typeof DEFAULT_EFFECTS>} overrides
+	 * @param {Record<string, object>} overrides
 	 */
 	setEffects(overrides = {}) {
 		// Build a fully-merged config (defaults first, then scene overrides) so that
@@ -494,9 +494,15 @@ export class GlobalShaderOverlay {
 		for (const [key, defaults] of Object.entries(DEFAULT_EFFECTS)) {
 			merged[key] = {...defaults, ...(overrides[key] ?? {})};
 		}
+		// Also keep effect groups not present in DEFAULT_EFFECTS (e.g. pixelSort test overrides).
+		for (const [key, val] of Object.entries(overrides)) {
+			if (key in merged) continue;
+			merged[key] = {...val};
+		}
 
 		// Update the backing object so constructor-time reads stay consistent
 		for (const [key, val] of Object.entries(merged)) {
+			if (!this._effects[key]) this._effects[key] = {};
 			Object.assign(this._effects[key], val);
 		}
 

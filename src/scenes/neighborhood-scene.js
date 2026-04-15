@@ -96,6 +96,53 @@ export async function mount(container, params, data) {
 		// Media element (img or video), possibly clipped
 		const mediaEl = createLayerMedia(layer, parentLayer, scenePath);
 		layerContainer.appendChild(mediaEl);
+		const layerEffects = Array.isArray(manifest.layerEffects?.[layer.name]) ? manifest.layerEffects[layer.name] : [];
+		for (const effect of layerEffects) {
+			if (!effect || effect.enabled === false) continue;
+			if (typeof effect.sketch !== "string" || effect.sketch.length === 0) continue;
+			if (layer.type === "video" || layer.clipped) continue;
+			const mode = effect.mode === "overlay" ? "overlay" : "recopie";
+			const sketchLayerContainer = document.createElement("div");
+			sketchLayerContainer.className = "sketch-canvas";
+			sketchLayerContainer.dataset.sketchContainer = "";
+			sketchLayerContainer.dataset.sketch = effect.sketch;
+			sketchLayerContainer.dataset.slot = layer.name;
+			sketchLayerContainer.dataset.sketchData = JSON.stringify({
+				imagePath: layer.file.startsWith("/") || layer.file.startsWith("http") ? layer.file : `${scenePath}/${layer.file}`,
+				mode,
+			});
+			const zOffset = Number.isFinite(effect.zOffset) ? effect.zOffset : 2;
+			sketchLayerContainer.style.cssText = `
+				left: var(--layer-center-left);
+				top: var(--layer-center-top);
+				width: var(--layer-width);
+				height: var(--layer-height);
+				transform: translate(-50%, -50%);
+				z-index: ${layer.zIndex + zOffset};
+				--layer-center-left: ${layer.position.centerLeft}%;
+				--layer-center-top: ${layer.position.centerTop}%;
+				--layer-width: ${layer.position.width}%;
+				--layer-height: ${layer.position.height}%;
+			`;
+			if (mode === "overlay") {
+				sketchLayerContainer.style.opacity = String(typeof effect.opacity === "number" ? effect.opacity : 0.7);
+				sketchLayerContainer.style.mixBlendMode = effect.mixBlendMode ?? "screen";
+			} else {
+				// Keep source layer visible until sketch reports it is ready.
+				sketchLayerContainer.style.opacity = "0";
+				sketchLayerContainer.style.mixBlendMode = effect.mixBlendMode ?? "normal";
+				const recopieOpacity = String(typeof effect.opacity === "number" ? effect.opacity : 1);
+				sketchLayerContainer.addEventListener(
+					"layer-sketch-ready",
+					() => {
+						mediaEl.style.opacity = "0";
+						sketchLayerContainer.style.opacity = recopieOpacity;
+					},
+					{once: true},
+				);
+			}
+			slotted.appendChild(sketchLayerContainer);
+		}
 
 		// Interactive zone
 		if (layer.interactive && layer.interaction) {
@@ -135,10 +182,17 @@ export async function mount(container, params, data) {
 		const sketchName = sketchEl.dataset.sketch;
 		if (!sketchName) continue;
 		const sketchMod = await getSketchLoader(sketchName);
-		if (!sketchMod) continue;
+		if (!sketchMod) {
+			console.warn(`[neighborhood] unknown sketch "${sketchName}" — skipped`);
+			continue;
+		}
 		const createSketch = sketchMod.default;
 		if (typeof createSketch !== "function") continue;
-		sketchInstances.push(new p5(createSketch(sketchEl), sketchEl));
+		try {
+			sketchInstances.push(new p5(createSketch(sketchEl), sketchEl));
+		} catch (error) {
+			console.error(`[neighborhood] sketch mount failed for "${sketchName}"`, error);
+		}
 	}
 
 	// ── Parallax ──────────────────────────────────────────────────────────────

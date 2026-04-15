@@ -71,12 +71,13 @@ export function getStory(slug) {
  * that was previously done server-side in load-manifest.js.
  *
  * @param {string} scenePath - e.g. "/assets/scenes/saint-roch/manifest.json"
- * @param {string} slug - neighborhood slug (used to fetch parallax-config.json)
+ * @param {string} slug - neighborhood slug
  * @returns {Promise<object>}
  */
 export async function fetchNeighborhoodManifest(scenePath, slug) {
-	const [manifestRes, configRes] = await Promise.all([
+	const [manifestRes, sceneConfigRes, legacyConfigRes] = await Promise.all([
 		fetch(scenePath),
+		fetch(scenePath.replace("manifest.json", "scene-config.json")),
 		fetch(scenePath.replace("manifest.json", "parallax-config.json")),
 	]);
 
@@ -85,20 +86,9 @@ export async function fetchNeighborhoodManifest(scenePath, slug) {
 	const manifest = await manifestRes.json();
 	normalizeManifestPositions(manifest);
 
-	if (configRes.ok) {
-		const config = await configRes.json();
-		if (Array.isArray(config.depthCurve) && config.depthCurve.length === 4) {
-			manifest.depthCurve = config.depthCurve;
-		}
-		if (Array.isArray(config.scrollDepthCurve) && config.scrollDepthCurve.length === 4) {
-			manifest.scrollDepthCurve = config.scrollDepthCurve;
-		}
-		if (config.layers && typeof config.layers === "object") {
-			for (const name of Object.keys(config.layers)) {
-				const layer = manifest.layers?.find((l) => l.name === name);
-				if (layer) Object.assign(layer, config.layers[name]);
-			}
-		}
+	const config = sceneConfigRes.ok ? await sceneConfigRes.json() : legacyConfigRes.ok ? await legacyConfigRes.json() : null;
+	if (config) {
+		applySceneConfig(manifest, config);
 	}
 
 	return manifest;
@@ -115,5 +105,44 @@ function normalizeManifestPositions(manifest) {
 		if (!p || typeof p.width !== "number" || typeof p.height !== "number") continue;
 		if (p.width > MAX_REASONABLE_PERCENT_DIM) p.width = (p.width / cw) * 100;
 		if (p.height > MAX_REASONABLE_PERCENT_DIM) p.height = (p.height / ch) * 100;
+	}
+}
+
+/**
+ * Apply scene-level authored config (new format preferred):
+ * {
+ *   parallaxConfig: { depthCurve, scrollDepthCurve },
+ *   layers: { ...patchesByName },
+ *   layerEffects: { ...effectsByName }
+ * }
+ * Also supports legacy top-level depthCurve/scrollDepthCurve.
+ *
+ * @param {Record<string, any>} manifest
+ * @param {Record<string, any>} config
+ */
+function applySceneConfig(manifest, config) {
+	const parallaxConfig =
+		config.parallaxConfig && typeof config.parallaxConfig === "object" ? config.parallaxConfig : config;
+
+	if (Array.isArray(parallaxConfig.depthCurve) && parallaxConfig.depthCurve.length === 4) {
+		manifest.depthCurve = parallaxConfig.depthCurve;
+	}
+	if (Array.isArray(parallaxConfig.scrollDepthCurve) && parallaxConfig.scrollDepthCurve.length === 4) {
+		manifest.scrollDepthCurve = parallaxConfig.scrollDepthCurve;
+	}
+	if (config.layers && typeof config.layers === "object") {
+		for (const name of Object.keys(config.layers)) {
+			const layer = manifest.layers?.find((l) => l.name === name);
+			if (layer) Object.assign(layer, config.layers[name]);
+		}
+	}
+	if (config.layerEffects && typeof config.layerEffects === "object") {
+		manifest.layerEffects = {};
+		for (const [layerName, entries] of Object.entries(config.layerEffects)) {
+			if (!Array.isArray(entries)) continue;
+			manifest.layerEffects[layerName] = entries
+				.filter((entry) => entry && typeof entry === "object" && typeof entry.sketch === "string")
+				.map((entry) => ({...entry}));
+		}
 	}
 }

@@ -28,19 +28,23 @@ function normalizeManifestPositions(manifest) {
 }
 
 /**
- * Merge hand-authored parallax-config.json (if present) into the manifest.
+ * Merge hand-authored scene config (if present) into the manifest.
+ * scene-config.json is preferred; parallax-config.json remains as a legacy fallback.
  * The config file is never overwritten by psd-export, so it survives re-exports.
  */
 function mergeParallaxConfig(manifest, manifestFsPath) {
-	const configPath = manifestFsPath.replace(/manifest\.json$/, "parallax-config.json");
+	const sceneConfigPath = manifestFsPath.replace(/manifest\.json$/, "scene-config.json");
+	const legacyConfigPath = manifestFsPath.replace(/manifest\.json$/, "parallax-config.json");
 	try {
-		const raw = fs.readFileSync(configPath, "utf-8");
+		const raw = fs.existsSync(sceneConfigPath) ? fs.readFileSync(sceneConfigPath, "utf-8") : fs.readFileSync(legacyConfigPath, "utf-8");
 		const config = JSON.parse(raw);
-		if (Array.isArray(config.depthCurve) && config.depthCurve.length === 4) {
-			manifest.depthCurve = config.depthCurve;
+		const parallaxConfig =
+			config.parallaxConfig && typeof config.parallaxConfig === "object" ? config.parallaxConfig : config;
+		if (Array.isArray(parallaxConfig.depthCurve) && parallaxConfig.depthCurve.length === 4) {
+			manifest.depthCurve = parallaxConfig.depthCurve;
 		}
-		if (Array.isArray(config.scrollDepthCurve) && config.scrollDepthCurve.length === 4) {
-			manifest.scrollDepthCurve = config.scrollDepthCurve;
+		if (Array.isArray(parallaxConfig.scrollDepthCurve) && parallaxConfig.scrollDepthCurve.length === 4) {
+			manifest.scrollDepthCurve = parallaxConfig.scrollDepthCurve;
 		}
 	} catch {
 		// File absent or invalid — silently ignore, curve stays undefined

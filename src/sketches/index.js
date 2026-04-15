@@ -5,6 +5,7 @@
 const sketchLoaders = {
 	splash: () => import("./splash/index.js"),
 	snow: () => import("./modules/snow/index.js"),
+	"layer-pixelsort-test": () => import("./modules/layer-pixelsort-test/index.js"),
 	overworld: () => import("./overworld/index.js"),
 	neighborhood: () => import("./neighborhood/index.js"),
 	story: () => import("./story/index.js"),
