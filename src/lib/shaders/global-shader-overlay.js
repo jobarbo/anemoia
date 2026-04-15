@@ -48,18 +48,13 @@ function domCompositeFilter(domNode) {
 }
 
 const DEFAULT_EFFECTS = {
-	chromatic: {
-		enabled: true,
-		amount: 0.0005,
-		timeMultiplier: 0.0,
-	},
 	pixelGrid: {
 		enabled: false,
-		gridCols: 660.0,
-		gridRows: 620.0,
+		gridCols: 1660.0,
+		gridRows: 6120.0,
 		cellRatio: 1.0,
-		mode: 0.0,
-		diffuse: 0.0,
+		mode: 1.0,
+		diffuse: 1.0,
 		gapSize: 0.0,
 		gapBrightness: 1.0,
 	},
@@ -80,7 +75,7 @@ const DEFAULT_EFFECTS = {
 	},
 	zoom: {
 		enabled: true,
-		zoomAmount: 0.9,
+		zoomAmount: 0.8,
 		zoomSpeed: 0.8,
 		animateZoom: 0.0,
 		easingMode: 4.0,
@@ -88,24 +83,24 @@ const DEFAULT_EFFECTS = {
 	crtDisplay: {
 		enabled: true,
 		brightness: 0.95,
-		cellSize: 1,
-		gapOpacity: 0.1,
-		rgbOpacity: 0.4,
+		cellSize: 2.0,
+		gapOpacity: 0.9,
+		rgbOpacity: 0.7,
 		rgbGain: [1.0, 1.0, 1.0],
-		dotRadius: 0.1,
+		dotRadius: 0.41,
 		dotFalloff: 0.4,
-		filterMode: 0.0,
+		filterMode: 1.0,
 	},
 
 	crtWarp: {
 		enabled: true,
-		warpAmount: 0.2,
-		aspectCorrect: 0.0,
+		warpAmount: 0.25,
+		aspectCorrect: 1.0,
 		borderColor: 2.0,
 		vignette: 0.0,
 		cornerSmooth: 0.015,
 		cornerRadius: 0.2,
-		boundsInset: 0.05,
+		boundsInset: 0.1,
 	},
 
 	blur: {
@@ -118,6 +113,11 @@ const DEFAULT_EFFECTS = {
 		blurCrt: 1.0,
 		blurCrtPower: 10.0,
 		blurMin: 0.0,
+	},
+	chromatic: {
+		enabled: true,
+		amount: 0.0025,
+		timeMultiplier: 0.0,
 	},
 };
 
@@ -163,6 +163,13 @@ function compositeLayerContainers(container, ctx, w, h) {
 		for (const el of layerEl.querySelectorAll("img, canvas, video")) {
 			drawCompositorDrawable(ctx, /** @type {HTMLElement} */ (el), w, h);
 		}
+	}
+
+	// Scene-wide overlays (slot fallback / explicit scene-level sketches) render above layers.
+	const sceneOutlet = /** @type {HTMLElement|null} */ (container.querySelector("[data-scene-slot-outlet]"));
+	if (!sceneOutlet) return;
+	for (const el of sceneOutlet.querySelectorAll("img, canvas, video")) {
+		drawCompositorDrawable(ctx, /** @type {HTMLElement} */ (el), w, h);
 	}
 }
 
@@ -477,7 +484,7 @@ export class GlobalShaderOverlay {
 	 * Each key in `overrides` is shallow-merged into the corresponding effect group.
 	 * Call with no argument (or empty object) to reset to defaults.
 	 *
-	 * @param {Partial<typeof DEFAULT_EFFECTS>} overrides
+	 * @param {Record<string, object>} overrides
 	 */
 	setEffects(overrides = {}) {
 		// Build a fully-merged config (defaults first, then scene overrides) so that
@@ -487,9 +494,15 @@ export class GlobalShaderOverlay {
 		for (const [key, defaults] of Object.entries(DEFAULT_EFFECTS)) {
 			merged[key] = {...defaults, ...(overrides[key] ?? {})};
 		}
+		// Also keep effect groups not present in DEFAULT_EFFECTS (e.g. pixelSort test overrides).
+		for (const [key, val] of Object.entries(overrides)) {
+			if (key in merged) continue;
+			merged[key] = {...val};
+		}
 
 		// Update the backing object so constructor-time reads stay consistent
 		for (const [key, val] of Object.entries(merged)) {
+			if (!this._effects[key]) this._effects[key] = {};
 			Object.assign(this._effects[key], val);
 		}
 

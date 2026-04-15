@@ -10,16 +10,22 @@
  */
 
 /** @type {Partial<import('../lib/shaders/global-shader-overlay.js').DEFAULT_EFFECTS>} */
-export const SCENE_EFFECTS = {
+const BASE_SCENE_EFFECTS = {
 	crtDisplay: {brightness: 0.0},
 };
+/** @type {Partial<import('../lib/shaders/global-shader-overlay.js').DEFAULT_EFFECTS>} */
+export const SCENE_EFFECTS = JSON.parse(JSON.stringify(BASE_SCENE_EFFECTS));
 import p5 from "p5";
 import {fetchNeighborhoodManifest} from "../lib/data/scene-data.js";
 import {sceneNavigate} from "../lib/router/scene-nav.js";
-import {initMouseParallax, initScrollParallax} from "../lib/input/parallax.js";
+import {DEBUG_DISABLE_PARALLAX, initMouseParallax, initScrollParallax} from "../lib/input/parallax.js";
 import {initHeadTrackingParallax} from "../lib/input/head-tracking.js";
 import {refreshGlobalAudioPlayer, tryPlayGlobalAudio} from "../lib/audio/global-audio-ui.js";
 import {installPointerRemap} from "../lib/input/input-remap.js";
+import {THEME} from "../lib/utils/retro-theme.js";
+import {getSketchLoader} from "../sketches/index.js";
+
+const DEFAULT_SCENE_SKETCHES = [{sketch: "snow", slot: "foreground"}];
 
 export async function mount(container, params, data) {
 	const {slug} = params;
@@ -27,6 +33,7 @@ export async function mount(container, params, data) {
 
 	// Fetch manifest (includes parallax-config merge)
 	const manifest = await fetchNeighborhoodManifest(neighborhood.scenePath, slug);
+	applySceneEffectsOverride(manifest.sceneEffects);
 
 	// ── Build DOM structure ─────────────────────────────────────────────────
 
@@ -55,14 +62,38 @@ export async function mount(container, params, data) {
 	slotted.className = "scene__slotted";
 	slotted.dataset.sceneSlotted = "";
 	slotted.style.cssText = "position:absolute;width:0;height:0;overflow:hidden;";
+	const sceneSlotOutlet = document.createElement("div");
+	sceneSlotOutlet.className = "scene__scene-slot-outlet";
+	sceneSlotOutlet.dataset.sceneSlotOutlet = "";
+	sceneSlotOutlet.style.cssText = "position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:1000;";
 
-	const snowContainer = document.createElement("div");
-	snowContainer.className = "sketch-canvas";
-	snowContainer.dataset.sketchContainer = "";
-	snowContainer.dataset.sketch = "snow";
-	snowContainer.dataset.slot = "foreground";
-	slotted.appendChild(snowContainer);
-	scene.appendChild(slotted);
+	const sceneSketches = Array.isArray(manifest.sceneSketches) && manifest.sceneSketches.length > 0 ? manifest.sceneSketches : DEFAULT_SCENE_SKETCHES;
+	for (const entry of sceneSketches) {
+		if (!entry || entry.enabled === false) continue;
+		if (typeof entry.sketch !== "string" || entry.sketch.length === 0) continue;
+		const sketchContainer = document.createElement("div");
+		sketchContainer.className = "sketch-canvas";
+		sketchContainer.dataset.sketchContainer = "";
+		sketchContainer.dataset.sketch = entry.sketch;
+		if (typeof entry.slot === "string" && entry.slot.length > 0) {
+			sketchContainer.dataset.slot = entry.slot;
+		}
+		if (entry.data && typeof entry.data === "object") {
+			sketchContainer.dataset.sketchData = JSON.stringify(entry.data);
+		}
+		slotted.appendChild(sketchContainer);
+	}
+
+	const neighborhoodOverlayContainer = document.createElement("div");
+	neighborhoodOverlayContainer.className = "sketch-canvas";
+	neighborhoodOverlayContainer.dataset.sketchContainer = "";
+	neighborhoodOverlayContainer.dataset.sketch = "neighborhood";
+	neighborhoodOverlayContainer.dataset.slot = "foreground";
+	neighborhoodOverlayContainer.dataset.sketchData = JSON.stringify({
+		slug,
+		name: neighborhood.name ?? slug,
+	});
+	slotted.appendChild(neighborhoodOverlayContainer);
 
 	const scenePath = `/assets/scenes/${slug}/layers`;
 
@@ -80,6 +111,53 @@ export async function mount(container, params, data) {
 		// Media element (img or video), possibly clipped
 		const mediaEl = createLayerMedia(layer, parentLayer, scenePath);
 		layerContainer.appendChild(mediaEl);
+		const layerEffects = Array.isArray(manifest.layerEffects?.[layer.name]) ? manifest.layerEffects[layer.name] : [];
+		for (const effect of layerEffects) {
+			if (!effect || effect.enabled === false) continue;
+			if (typeof effect.sketch !== "string" || effect.sketch.length === 0) continue;
+			if (layer.type === "video" || layer.clipped) continue;
+			const mode = effect.mode === "overlay" ? "overlay" : "recopie";
+			const sketchLayerContainer = document.createElement("div");
+			sketchLayerContainer.className = "sketch-canvas";
+			sketchLayerContainer.dataset.sketchContainer = "";
+			sketchLayerContainer.dataset.sketch = effect.sketch;
+			sketchLayerContainer.dataset.slot = layer.name;
+			sketchLayerContainer.dataset.sketchData = JSON.stringify({
+				imagePath: layer.file.startsWith("/") || layer.file.startsWith("http") ? layer.file : `${scenePath}/${layer.file}`,
+				mode,
+			});
+			const zOffset = Number.isFinite(effect.zOffset) ? effect.zOffset : 2;
+			sketchLayerContainer.style.cssText = `
+				left: var(--layer-center-left);
+				top: var(--layer-center-top);
+				width: var(--layer-width);
+				height: var(--layer-height);
+				transform: translate(-50%, -50%);
+				z-index: ${layer.zIndex + zOffset};
+				--layer-center-left: ${layer.position.centerLeft}%;
+				--layer-center-top: ${layer.position.centerTop}%;
+				--layer-width: ${layer.position.width}%;
+				--layer-height: ${layer.position.height}%;
+			`;
+			if (mode === "overlay") {
+				sketchLayerContainer.style.opacity = String(typeof effect.opacity === "number" ? effect.opacity : 0.7);
+				sketchLayerContainer.style.mixBlendMode = effect.mixBlendMode ?? "screen";
+			} else {
+				// Keep source layer visible until sketch reports it is ready.
+				sketchLayerContainer.style.opacity = "0";
+				sketchLayerContainer.style.mixBlendMode = effect.mixBlendMode ?? "normal";
+				const recopieOpacity = String(typeof effect.opacity === "number" ? effect.opacity : 1);
+				sketchLayerContainer.addEventListener(
+					"layer-sketch-ready",
+					() => {
+						mediaEl.style.opacity = "0";
+						sketchLayerContainer.style.opacity = recopieOpacity;
+					},
+					{once: true},
+				);
+			}
+			slotted.appendChild(sketchLayerContainer);
+		}
 
 		// Interactive zone
 		if (layer.interactive && layer.interaction) {
@@ -95,6 +173,8 @@ export async function mount(container, params, data) {
 
 		scene.appendChild(layerContainer);
 	});
+	scene.appendChild(sceneSlotOutlet);
+	scene.appendChild(slotted);
 
 	container.appendChild(scene);
 
@@ -110,39 +190,52 @@ export async function mount(container, params, data) {
 	}
 	await waitFrames(2);
 
-	// ── Mount snow p5 sketch ─────────────────────────────────────────────────
-	let snowInstance = null;
-	const snowEl = scene.querySelector("[data-sketch-container]");
-	if (snowEl) {
-		const snowMod = await import("../sketches/snow.js");
-		const createSketch = snowMod.default;
-		snowInstance = new p5(createSketch(snowEl), snowEl);
+	// ── Mount p5 sketches (snow + neighborhood overlay) ─────────────────────
+	const sketchInstances = [];
+	const sketchEls = [...scene.querySelectorAll("[data-sketch-container]")];
+	for (const sketchEl of sketchEls) {
+		const sketchName = sketchEl.dataset.sketch;
+		if (!sketchName) continue;
+		const sketchMod = await getSketchLoader(sketchName);
+		if (!sketchMod) {
+			console.warn(`[neighborhood] unknown sketch "${sketchName}" — skipped`);
+			continue;
+		}
+		const createSketch = sketchMod.default;
+		if (typeof createSketch !== "function") continue;
+		try {
+			sketchInstances.push(new p5(createSketch(sketchEl), sketchEl));
+		} catch (error) {
+			console.error(`[neighborhood] sketch mount failed for "${sketchName}"`, error);
+		}
 	}
 
 	// ── Parallax ──────────────────────────────────────────────────────────────
 	const layers = scene.querySelectorAll(".scene__layer-container");
 
 	let cleanupParallax = () => {};
-	const scrollCleanup = initScrollParallax(layers, container);
+	if (!DEBUG_DISABLE_PARALLAX) {
+		const scrollCleanup = initScrollParallax(layers, container);
 
-	initHeadTrackingParallax(layers, {
-		allowDeviceOrientationFallback: true,
-		allowMouseFallback: true,
-		scrollContainer: container,
-	})
-		.then((cleanup) => {
-			cleanupParallax = () => {
-				cleanup?.();
-				scrollCleanup?.();
-			};
+		initHeadTrackingParallax(layers, {
+			allowDeviceOrientationFallback: true,
+			allowMouseFallback: true,
+			scrollContainer: container,
 		})
-		.catch(() => {
-			const mouseCleanup = initMouseParallax(layers);
-			cleanupParallax = () => {
-				mouseCleanup?.();
-				scrollCleanup?.();
-			};
-		});
+			.then((cleanup) => {
+				cleanupParallax = () => {
+					cleanup?.();
+					scrollCleanup?.();
+				};
+			})
+			.catch(() => {
+				const mouseCleanup = initMouseParallax(layers);
+				cleanupParallax = () => {
+					mouseCleanup?.();
+					scrollCleanup?.();
+				};
+			});
+	}
 
 	// ── Audio ──────────────────────────────────────────────────────────────────
 	handleAudio(neighborhood.audioSrc ?? null);
@@ -154,10 +247,30 @@ export async function mount(container, params, data) {
 		unmount() {
 			cleanupParallax();
 			cleanupPointerRemap();
-			snowInstance?.remove();
+			for (const instance of sketchInstances) instance.remove();
 			handleAudio(null);
 		},
 	};
+}
+
+/**
+ * Reset SCENE_EFFECTS to defaults, then apply per-neighborhood overrides from scene-config.
+ * SceneRouter reads the same exported object reference before mount() and applies it after mount().
+ *
+ * @param {Record<string, object>|undefined} overrides
+ */
+function applySceneEffectsOverride(overrides) {
+	for (const key of Object.keys(SCENE_EFFECTS)) {
+		delete SCENE_EFFECTS[key];
+	}
+	for (const [key, value] of Object.entries(BASE_SCENE_EFFECTS)) {
+		SCENE_EFFECTS[key] = {...value};
+	}
+	if (!overrides || typeof overrides !== "object") return;
+	for (const [key, patch] of Object.entries(overrides)) {
+		if (!patch || typeof patch !== "object") continue;
+		SCENE_EFFECTS[key] = {...(SCENE_EFFECTS[key] ?? {}), ...patch};
+	}
 }
 
 // ── DOM helpers ───────────────────────────────────────────────────────────────
@@ -181,7 +294,7 @@ function createBackButton(slug) {
 		display: "inline-block",
 		padding: "0.6rem 1.2rem",
 		color: "#8ace8a",
-		fontFamily: "monospace",
+		fontFamily: THEME.FONT,
 		fontSize: "0.85rem",
 		textDecoration: "none",
 		background: "rgba(0,0,0,0.5)",
@@ -340,12 +453,20 @@ function createInteractiveZone(layer, currentSlug) {
 
 function distributeSlottedContent(scene) {
 	const outlet = scene.querySelector("[data-scene-slotted]");
+	const sceneOutlet = scene.querySelector("[data-scene-slot-outlet]");
 	if (!outlet) return;
 	Array.from(outlet.children).forEach((child) => {
 		const targetName = child.dataset.slot;
-		if (!targetName) return;
+		if (!targetName) {
+			if (sceneOutlet) sceneOutlet.appendChild(child);
+			return;
+		}
 		const target = scene.querySelector(`[data-slot-outlet="${targetName}"]`);
-		if (target) target.appendChild(child);
+		if (target) {
+			target.appendChild(child);
+			return;
+		}
+		if (sceneOutlet) sceneOutlet.appendChild(child);
 	});
 }
 

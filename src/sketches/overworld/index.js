@@ -9,13 +9,12 @@
  *   - Title "CARTE DE LA VILLE" with chromatic aberration
  *   - Neighborhood pins as glowing dots with labels
  *   - "[ RETOUR AU MENU ]" back nav
- *   - Scan lines + vignette (retro-theme)
  *
  * Captured frame-perfectly by GlobalShaderOverlay via flat mode (drawImage on canvas).
  */
 
-import {sceneNavigate} from "../lib/router/scene-nav.js";
-import {THEME, drawScanLines, drawVignette, drawTitleAberration, drawButton, hitTest, tickBlink} from "../lib/utils/retro-theme.js";
+import {sceneNavigate} from "../../lib/router/scene-nav.js";
+import {THEME, drawTitleAberration, drawButton, hitTest, tickBlink, applyThemeCanvasFont} from "../../lib/utils/retro-theme.js";
 
 export default function (container) {
 	const raw = container.dataset.sketchData;
@@ -25,26 +24,34 @@ export default function (container) {
 		/** P2D offscreen buffer — all drawing happens here, GlobalShaderOverlay handles GLSL. */
 		let artBuffer;
 
-		/** Hit rects computed each frame for click detection. */
-		let pinRects = [];
-		let backRect = null;
-
-		/** Hover state */
-		let hoveredPin = -1;
-		let backHovered = false;
+		/** Keyboard selection index: 0..neighborhoods.length-1 = a pin, neighborhoods.length = back button */
+		let selectedPin = 0;
 
 		/** Blinking state for back button */
 		let blinkVisible = true;
 		let lastBlink = 0;
+		let backRect = null;
+		let backHovered = false;
+		let mapBounds = {x: 0, y: 0, w: 0, h: 0};
 
 		sketch.setup = () => {
 			const w = window.innerWidth;
 			const h = window.innerHeight;
 			const canvas = sketch.createCanvas(w, h);
 			canvas.parent(container);
+			canvas.elt.tabIndex = 0;
+			canvas.elt.focus();
 			artBuffer = sketch.createGraphics(w, h);
 			artBuffer.noStroke();
 			artBuffer.textFont(THEME.FONT);
+
+			// Fallback keyboard handling when p5 key events are swallowed by focus changes.
+			window.addEventListener("keydown", onWindowKeyDown);
+			if (typeof sketch.registerMethod === "function") {
+				sketch.registerMethod("remove", () => {
+					window.removeEventListener("keydown", onWindowKeyDown);
+				});
+			}
 		};
 
 		sketch.draw = () => {
@@ -68,78 +75,92 @@ export default function (container) {
 			const mapY = titleH;
 			const mapW = w - mapPad * 2;
 			const mapH = h - titleH - footerH;
+			mapBounds = {x: mapX, y: mapY, w: mapW, h: mapH};
 
 			// Retro terminal placeholder grid (no map image)
 			drawMapPlaceholder(artBuffer, mapX, mapY, mapW, mapH, sketch);
 
 			// ── Title ─────────────────────────────────────────────────────────────
 			const titleSz = w * 0.032;
-			drawTitleAberration(artBuffer, "CARTE DE LA VILLE", w / 2, titleH / 2, titleSz, 255, sketch);
+			drawTitleAberration(artBuffer, "Le directoire", w / 2, titleH / 2, titleSz, 255, sketch);
 
 			// ── Neighborhood pins ─────────────────────────────────────────────────
-			pinRects = [];
 			for (let i = 0; i < neighborhoods.length; i++) {
 				const hood = neighborhoods[i];
 				const px = mapX + (hood.position.x / 100) * mapW;
 				const py = mapY + (hood.position.y / 100) * mapH;
-				const hovered = hoveredPin === i;
-
-				drawPin(artBuffer, px, py, hood.name, hovered, sketch);
-
-				// Hit rect around label for click
-				const labelSz = w * 0.013;
-				const lw = artBuffer.textWidth(hood.name) + labelSz * 2;
-				const lh = labelSz * 2.5;
-				pinRects.push({x: px - lw / 2, y: py - lh / 2, w: lw, h: lh, slug: hood.slug});
+				drawPin(artBuffer, px, py, hood.name, selectedPin === i, sketch);
 			}
 
 			// ── Back button ───────────────────────────────────────────────────────
 			const backSz = w * 0.016;
 			const backY = h - footerH / 2;
-			backRect = drawButton(artBuffer, "[ RETOUR AU MENU ]", w / 2, backY, backSz, backHovered || blinkVisible, sketch);
+			const backSelected = selectedPin === neighborhoods.length;
+			backRect = drawButton(artBuffer, "[ RETOUR AU MENU ]", w / 2, backY, backSz, backSelected || blinkVisible || backHovered, sketch);
 
-			// ── Post-processing ───────────────────────────────────────────────────
-			drawScanLines(artBuffer, now, sketch);
-			drawVignette(artBuffer);
+			// Key hint
+			const hintSz = w * 0.011;
+			artBuffer.textAlign(sketch.RIGHT, sketch.CENTER);
+			applyThemeCanvasFont(artBuffer, hintSz, sketch);
+			artBuffer.fill(...THEME.GREEN_SUBTLE, 120);
+			artBuffer.text("↑↓ SELECT   ENTER CONFIRM   ESC BACK", w - w * 0.04, h - footerH / 2);
 
 			// Blit artBuffer onto output canvas
 			sketch.clear();
 			sketch.image(artBuffer, 0, 0);
-
-			// Update cursor
-			const anyHover = hoveredPin >= 0 || backHovered;
-			container.style.cursor = anyHover ? "pointer" : "default";
+			container.style.cursor = backHovered || findPinAtMouse() >= 0 ? "pointer" : "default";
 		};
 
-		sketch.mouseMoved = () => {
-			const mx = sketch.mouseX;
-			const my = sketch.mouseY;
-			hoveredPin = -1;
-			backHovered = false;
+		sketch.keyPressed = () => {
+			return handleKeyInput(sketch.keyCode);
+		};
 
-			for (let i = 0; i < pinRects.length; i++) {
-				if (hitTest(mx, my, pinRects[i])) {
-					hoveredPin = i;
-					return;
+		function handleKeyInput(key) {
+			const total = neighborhoods.length + 1; // pins + back
+			if (key === sketch.UP_ARROW || key === sketch.LEFT_ARROW) {
+				selectedPin = (selectedPin - 1 + total) % total;
+			} else if (key === sketch.DOWN_ARROW || key === sketch.RIGHT_ARROW) {
+				selectedPin = (selectedPin + 1) % total;
+			} else if (key === sketch.ENTER || key === sketch.RETURN) {
+				if (selectedPin < neighborhoods.length) {
+					sceneNavigate("neighborhood", {slug: neighborhoods[selectedPin].slug});
+				} else {
+					sceneNavigate("splash");
 				}
+			} else if (key === sketch.ESCAPE) {
+				sceneNavigate("splash");
 			}
-			if (backRect && hitTest(mx, my, backRect)) {
-				backHovered = true;
-			}
+			return false; // prevent default browser scroll
+		}
+
+		function onWindowKeyDown(e) {
+			const keyMap = {
+				ArrowUp: sketch.UP_ARROW,
+				ArrowDown: sketch.DOWN_ARROW,
+				ArrowLeft: sketch.LEFT_ARROW,
+				ArrowRight: sketch.RIGHT_ARROW,
+				Enter: sketch.ENTER,
+				Escape: sketch.ESCAPE,
+			};
+			const mapped = keyMap[e.key];
+			if (mapped == null) return;
+			e.preventDefault();
+			handleKeyInput(mapped);
+		}
+
+		sketch.mouseMoved = () => {
+			backHovered = Boolean(backRect && hitTest(sketch.mouseX, sketch.mouseY, backRect));
 		};
 
 		sketch.mousePressed = () => {
-			const mx = sketch.mouseX;
-			const my = sketch.mouseY;
-
-			for (const rect of pinRects) {
-				if (hitTest(mx, my, rect)) {
-					sceneNavigate("neighborhood", {slug: rect.slug});
-					return;
-				}
-			}
-			if (backRect && hitTest(mx, my, backRect)) {
+			if (backRect && hitTest(sketch.mouseX, sketch.mouseY, backRect)) {
 				sceneNavigate("splash");
+				return;
+			}
+			const pinIndex = findPinAtMouse();
+			if (pinIndex >= 0) {
+				selectedPin = pinIndex;
+				sceneNavigate("neighborhood", {slug: neighborhoods[pinIndex].slug});
 			}
 		};
 
@@ -149,6 +170,20 @@ export default function (container) {
 			sketch.resizeCanvas(w, h);
 			artBuffer.resizeCanvas(w, h);
 		};
+
+		function findPinAtMouse() {
+			if (!mapBounds.w || !mapBounds.h) return -1;
+			const hitRadius = Math.max(14, artBuffer.width * 0.02);
+			for (let i = 0; i < neighborhoods.length; i++) {
+				const hood = neighborhoods[i];
+				const px = mapBounds.x + (hood.position.x / 100) * mapBounds.w;
+				const py = mapBounds.y + (hood.position.y / 100) * mapBounds.h;
+				const dx = sketch.mouseX - px;
+				const dy = sketch.mouseY - py;
+				if (dx * dx + dy * dy <= hitRadius * hitRadius) return i;
+			}
+			return -1;
+		}
 	};
 }
 
@@ -175,8 +210,7 @@ function drawPin(buf, x, y, name, hovered, p) {
 
 	// Label
 	buf.textAlign(p.CENTER, p.CENTER);
-	buf.textSize(labelSz);
-	buf.textFont(THEME.FONT);
+	applyThemeCanvasFont(buf, labelSz, p);
 	buf.noStroke();
 	buf.fill(...labelColor, hovered ? 255 : 180);
 	buf.text(name, x, y + dotR * 3.5);
@@ -189,9 +223,11 @@ function drawPin(buf, x, y, name, hovered, p) {
 function drawMapPlaceholder(buf, x, y, w, h, p) {
 	// Dark panel
 	buf.fill(...THEME.BG, 200);
-	buf.noStroke();
-	buf.rect(x, y, w, h);
-
+	//buf.noStroke();
+	buf.strokeWeight(12);
+	// rect radius based on size, with min/max clamp
+	const radius = Math.max(10, Math.min(30, Math.min(w, h) * 0.22));
+	buf.rect(x, y, w, h, radius);
 	// Grid lines
 	buf.stroke(...THEME.GREEN_PRIMARY, 18);
 	buf.strokeWeight(1);
@@ -209,8 +245,8 @@ function drawMapPlaceholder(buf, x, y, w, h, p) {
 	// Border
 	buf.noFill();
 	buf.stroke(...THEME.GREEN_MID, 80);
-	buf.strokeWeight(1);
-	buf.rect(x, y, w, h);
+	buf.strokeWeight(2);
+	buf.rect(x, y, w, h, 22);
 
 	buf.noStroke();
 }

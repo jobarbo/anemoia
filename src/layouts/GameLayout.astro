@@ -1,9 +1,11 @@
 ---
 import "../styles/global.scss";
 import AudioPlayer from "../components/ui/AudioPlayer.astro";
+import {THEME_FONT} from "../lib/utils/retro-theme.js";
 
 const {title = "Anemoia", audioSrc} = Astro.props;
 const audioAttrs = typeof audioSrc === "string" && audioSrc.length > 0 ? {src: audioSrc} : {};
+const googleFontCssUrl = THEME_FONT.provider === "google" ? THEME_FONT.googleCssUrl : "";
 ---
 
 <html lang='fr'>
@@ -11,6 +13,15 @@ const audioAttrs = typeof audioSrc === "string" && audioSrc.length > 0 ? {src: a
 		<meta charset='utf-8' />
 		<link rel='icon' type='image/svg+xml' href='/favicon.svg' />
 		<meta name='viewport' content='width=device-width, initial-scale=1' />
+		{
+			googleFontCssUrl && (
+				<>
+					<link rel='preconnect' href='https://fonts.googleapis.com' />
+					<link rel='preconnect' href='https://fonts.gstatic.com' crossorigin />
+					<link rel='stylesheet' href={googleFontCssUrl} />
+				</>
+			)
+		}
 		<title>{title}</title>
 	</head>
 	<body>
@@ -51,7 +62,7 @@ const audioAttrs = typeof audioSrc === "string" && audioSrc.length > 0 ? {src: a
 			})();
 		</script>
 		<slot />
-		<audio id='global-audio' loop transition:persist='global-audio' {...audioAttrs} />
+		<audio id='global-audio' loop transition:persist='global-audio' {...audioAttrs}></audio>
 		<div data-html2canvas-ignore='true'>
 			<AudioPlayer />
 		</div>

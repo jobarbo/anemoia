@@ -7,6 +7,31 @@
 
 // ── Design tokens ────────────────────────────────────────────────────────────
 
+/**
+ * Single source of truth for typography config used across all scenes.
+ * Splash uses provider/local/google fields for loading; the rest of the
+ * project consumes THEME.FONT and THEME.FONT_WEIGHT derived below.
+ */
+const toGoogleFontFamily = (family) => family.trim().replace(/\s+/g, "+");
+const THEME_FONT_FAMILY = "Fira Mono";
+const THEME_FONT_FALLBACK_FAMILY = "monospace";
+const THEME_FONT_GOOGLE_CSS_URL = `https://fonts.googleapis.com/css2?family=${toGoogleFontFamily(THEME_FONT_FAMILY)}:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=${toGoogleFontFamily(THEME_FONT_FALLBACK_FAMILY)}:wght@300..700&display=swap`;
+
+export const THEME_FONT = {
+	// "google" | "local" | "system"
+	provider: "google",
+	// Primary family used by runtime font loading
+	family: THEME_FONT_FAMILY,
+	// Secondary stack used after the primary family
+	fallbackFamily: THEME_FONT_FALLBACK_FAMILY,
+	weight: "150",
+	googleCssUrl: THEME_FONT_GOOGLE_CSS_URL,
+	// Used for provider: "local" (served from /public)
+	localPath: "/assets/fonts/splash.ttf",
+};
+
+const THEME_FONT_STACK = `"${THEME_FONT.family}", "${THEME_FONT.fallbackFamily}", monospace`;
+
 export const THEME = {
 	/** Deep blue-black background */
 	BG: [16, 18, 28],
@@ -16,13 +41,48 @@ export const THEME = {
 	GREEN_MID: [120, 200, 140],
 	/** Desaturated green — body text, secondary labels */
 	GREEN_SUBTLE: [170, 200, 170],
-	/** Monospace font used everywhere */
-	FONT: "monospace",
+	/** Shared terminal font stack used across all canvas scenes */
+	FONT: THEME_FONT_STACK,
+	FONT_WEIGHT: THEME_FONT.weight,
 	/** Blinking prompt interval (ms) */
 	BLINK_MS: 600,
 	/** Smooth-scroll lerp factor */
 	SCROLL_LERP: 0.08,
 };
+
+const appliedThemeFontState = new WeakMap();
+
+function getP5TextStyle(sketch, style, weight) {
+	if (!sketch) return undefined;
+	if (style === "italic") return sketch.ITALIC;
+	const parsedWeight = Number.parseInt(String(weight), 10);
+	return parsedWeight >= 600 ? sketch.BOLD : sketch.NORMAL;
+}
+
+/**
+ * Shared canvas font application for all p5 sketches.
+ *
+ * @param {p5.Graphics} buf
+ * @param {number} size
+ * @param {p5} sketch
+ * @param {{ family?: string, weight?: string | number, style?: "normal" | "italic" }} [options]
+ */
+export function applyThemeCanvasFont(buf, size, sketch, options = {}) {
+	const family = options.family ?? THEME.FONT;
+	const weight = options.weight ?? THEME.FONT_WEIGHT;
+	const style = options.style ?? "normal";
+	const font = `${style} ${weight} ${size}px ${family}`;
+	const previous = appliedThemeFontState.get(buf);
+
+	if (previous?.font === font && previous.family === family && previous.size === size) return;
+
+	buf.textFont(family);
+	buf.textSize(size);
+	const p5Style = getP5TextStyle(sketch, style, weight);
+	if (p5Style !== undefined) buf.textStyle(p5Style);
+	buf.drawingContext.font = font;
+	appliedThemeFontState.set(buf, {font, family, size});
+}
 
 // ── Shared render utilities ───────────────────────────────────────────────────
 
@@ -62,8 +122,10 @@ export function drawVignette(buf) {
 }
 
 /**
- * Title text with manual RGB-channel chromatic aberration (screen blend).
- * Identical to drawTitleAberration in splash.js.
+ * Title text renderer (single pass).
+ *
+ * NOTE: p5-side RGB aberration was intentionally removed because the global
+ * shader pipeline now owns chromatic aberration to avoid double-processing.
  *
  * @param {p5.Graphics} buf - P2D artBuffer
  * @param {string} text
@@ -72,24 +134,14 @@ export function drawVignette(buf) {
  * @param {number} size - font size in px
  * @param {number} alpha - 0–255
  * @param {p5} p - p5 instance (for constants)
+ * @param {string | p5.Font} [fontOverride] - optional font/family for this draw
+ * @param {string | number} [fontWeight="700"] - optional font weight for this draw
  */
-export function drawTitleAberration(buf, text, x, y, size, alpha, p) {
-	const ctx = buf.drawingContext;
-	const offset = Math.max(2, size * 0.015);
+export function drawTitleAberration(buf, text, x, y, size, alpha, p, fontOverride, fontWeight = "700") {
+	const family = fontOverride ?? THEME.FONT;
 
+	applyThemeCanvasFont(buf, size, p, {family, weight: fontWeight});
 	buf.textAlign(p.CENTER, p.CENTER);
-	buf.textSize(size);
-	buf.textFont(THEME.FONT);
-	buf.textStyle(p.BOLD);
-
-	ctx.globalCompositeOperation = "screen";
-	buf.fill(50, 50, 50, alpha * 0.55);
-	buf.text(text, x - offset, y);
-
-	buf.fill(50, 100, 255, alpha * 0.55);
-	buf.text(text, x + offset, y);
-
-	ctx.globalCompositeOperation = "source-over";
 	buf.fill(...THEME.GREEN_PRIMARY, alpha);
 	buf.text(text, x, y);
 
@@ -111,8 +163,7 @@ export function drawTitleAberration(buf, text, x, y, size, alpha, p) {
 export function drawBlinkingPrompt(buf, text, x, y, size, visible, p, alpha = 210) {
 	if (!visible) return;
 	buf.textAlign(p.CENTER, p.CENTER);
-	buf.textSize(size);
-	buf.textFont(THEME.FONT);
+	applyThemeCanvasFont(buf, size, p);
 	buf.noStroke();
 	buf.fill(...THEME.GREEN_MID, alpha);
 	buf.text(text, x, y);
@@ -149,8 +200,7 @@ export function tickBlink(currentVisible, lastBlink, now) {
  */
 export function drawButton(buf, label, x, y, size, hovered, p) {
 	buf.textAlign(p.CENTER, p.CENTER);
-	buf.textSize(size);
-	buf.textFont(THEME.FONT);
+	applyThemeCanvasFont(buf, size, p);
 	buf.noStroke();
 
 	const color = hovered ? THEME.GREEN_PRIMARY : THEME.GREEN_SUBTLE;

@@ -13,7 +13,7 @@ const TRACKING_MAX_DEPTH_MULTIPLIER = 8;
 
 // Vertical scroll parallax
 const SCROLL_TRANSLATE_DISTANCE = 50;
-const SCROLL_MIN_DEPTH_MULTIPLIER = 68;
+const SCROLL_MIN_DEPTH_MULTIPLIER = 16;
 const SCROLL_MAX_DEPTH_MULTIPLIER = 1.0;
 
 /**
@@ -57,6 +57,15 @@ function toPixelValue(value) {
 function parallaxYPixels(normalizedY, speed, translateDistance) {
 	const ny = clamp(toFiniteNumber(normalizedY, 0), -1, 1);
 	return ny * speed * translateDistance;
+}
+
+function getAdaptiveScrollNormalizedY(scrollContainer) {
+	const maxScroll = Math.max(0, scrollContainer.scrollHeight - scrollContainer.clientHeight);
+	if (maxScroll <= 0) return 0;
+	const fullRangeNormalizedY = (scrollContainer.scrollTop / maxScroll - 0.5) * 2;
+	const scrollableFraction = clamp(maxScroll / Math.max(1, scrollContainer.scrollHeight), 0, 1);
+	// Prevent over-amplification on tall/narrow viewports by scaling extremes to visible/scrollable proportion.
+	return fullRangeNormalizedY * scrollableFraction;
 }
 
 /** Read a JSON curve attribute from the nearest [data-scene-renderer] ancestor. */
@@ -155,9 +164,8 @@ export function initScrollParallax(layers, scrollContainer) {
 	const depthCurve = readSceneScrollDepthCurve(layers);
 
 	const applyScrollOffsets = () => {
-		const maxScroll = Math.max(0, scrollContainer.scrollHeight - scrollContainer.clientHeight);
-		// Map scroll range to [-1, 1] like vertical head/mouse input so layer motion matches tracking intensity.
-		const scrollNormalizedY = maxScroll <= 0 ? 0 : (scrollContainer.scrollTop / maxScroll - 0.5) * 2;
+		// Adaptive normalization keeps perceived min/max offsets stable across viewport ratios.
+		const scrollNormalizedY = getAdaptiveScrollNormalizedY(scrollContainer);
 
 		layers.forEach((layer) => {
 			const offsetY = computeScrollLayerOffsetY(layer, scrollNormalizedY, depthCurve);

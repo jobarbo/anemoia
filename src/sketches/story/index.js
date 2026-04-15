@@ -22,8 +22,8 @@
  */
 
 import gsap from "gsap";
-import {sceneNavigate} from "../lib/router/scene-nav.js";
-import {THEME, drawScanLines, drawVignette, drawTitleAberration, drawButton, hitTest, tickBlink} from "../lib/utils/retro-theme.js";
+import {sceneNavigate} from "../../lib/router/scene-nav.js";
+import {THEME, drawScanLines, drawVignette, drawTitleAberration, drawButton, hitTest, tickBlink, applyThemeCanvasFont} from "../../lib/utils/retro-theme.js";
 
 export default function (container) {
 	const raw = container.dataset.sketchData;
@@ -192,8 +192,7 @@ export default function (container) {
 
 			for (const block of blocks) {
 				const sz = fontSizeForType(block.type, w);
-				artBuffer.textSize(sz);
-				artBuffer.textFont(THEME.FONT);
+				applyThemeCanvasFont(artBuffer, sz, sketch);
 
 				// p5 textWidth works on single lines; wrap manually to get height
 				const lines = wrapText(artBuffer, block.text, contentW, block.type === "p" ? sz * 1.55 : sz * 1.3);
@@ -235,8 +234,7 @@ export default function (container) {
 			const alpha = Math.round(opacity * 255);
 			const lineH = layout.sz * (block.type === "p" ? 1.55 : 1.3);
 
-			buf.textSize(layout.sz);
-			buf.textFont(THEME.FONT);
+			applyThemeCanvasFont(buf, layout.sz, p);
 			buf.textAlign(p.LEFT, p.TOP);
 			buf.noStroke();
 

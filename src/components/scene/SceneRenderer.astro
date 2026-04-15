@@ -38,6 +38,7 @@ const totalLayers = manifest.layers.length;
 			);
 		})
 	}
+	<div class='scene__scene-slot-outlet' data-scene-slot-outlet />
 	<div class='scene__slotted' data-scene-slotted>
 		<slot />
 	</div>
@@ -60,13 +61,21 @@ const totalLayers = manifest.layers.length;
 	 */
 	function distributeSlottedContent(scene: Element) {
 		const outlet = scene.querySelector("[data-scene-slotted]");
+		const sceneOutlet = scene.querySelector("[data-scene-slot-outlet]");
 		if (!outlet) return;
 		const layerName = (el: Element) => el.getAttribute("data-slot") ?? el.getAttribute("slot");
 		Array.from(outlet.children).forEach((child) => {
 			const targetName = layerName(child);
-			if (!targetName) return;
+			if (!targetName) {
+				if (sceneOutlet) sceneOutlet.appendChild(child);
+				return;
+			}
 			const target = scene.querySelector(`[data-slot-outlet="${targetName}"]`);
-			if (target) target.appendChild(child);
+			if (target) {
+				target.appendChild(child);
+				return;
+			}
+			if (sceneOutlet) sceneOutlet.appendChild(child);
 		});
 	}
 

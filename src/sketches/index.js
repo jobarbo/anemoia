@@ -3,10 +3,12 @@
  * Add new sketches here; then use <SketchCanvas sketch="your-name" />.
  */
 const sketchLoaders = {
-	splash: () => import("./splash.js"),
-	snow: () => import("./snow.js"),
-	overworld: () => import("./overworld.js"),
-	story: () => import("./story.js"),
+	splash: () => import("./splash/index.js"),
+	snow: () => import("./modules/snow/index.js"),
+	pixelsort: () => import("./modules/pixelsort/index.js"),
+	overworld: () => import("./overworld/index.js"),
+	neighborhood: () => import("./neighborhood/index.js"),
+	story: () => import("./story/index.js"),
 };
 
 export function getSketchLoader(name) {

@@ -6,10 +6,11 @@
 export const SCENE_EFFECTS = {};
 
 import p5 from "p5";
-import {installPointerRemap} from "../lib/input/input-remap.js";
+import {getSketchLoader} from "../sketches/index.js";
 
 export async function mount(container, _params, data) {
-	const sketchMod = await import("../sketches/overworld.js");
+	const sketchMod = await getSketchLoader("overworld");
+	if (!sketchMod) throw new Error("Missing overworld sketch loader");
 	const createSketch = sketchMod.default;
 
 	// Inject data the same way SketchCanvas.astro does: via data-sketch-data attribute
@@ -18,11 +19,8 @@ export async function mount(container, _params, data) {
 	const sketchFn = createSketch(container);
 	const instance = new p5(sketchFn, container);
 
-	const cleanupPointerRemap = installPointerRemap(container);
-
 	return {
 		unmount() {
-			cleanupPointerRemap();
 			delete container.dataset.sketchData;
 			instance.remove();
 		},
