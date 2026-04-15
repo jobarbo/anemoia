@@ -5,7 +5,7 @@
  * - Keeps DOM/parallax layers as-is
  * - Adds consistent theme typography as a canvas overlay
  */
-import {THEME, applyThemeCanvasFont, tickBlink} from "../lib/utils/retro-theme.js";
+import {THEME, applyThemeCanvasFont, tickBlink} from "../../lib/utils/retro-theme.js";
 
 export default function (container) {
 	const raw = container.dataset.sketchData;

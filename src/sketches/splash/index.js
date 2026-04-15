@@ -7,16 +7,16 @@
  *   LOGIN — automated terminal login sequence
  *   EXIT  — white flash → dispatch 'splash:complete'
  *
- * Each phase lives in its own module under ./splash/.
+ * Each phase lives in this folder.
  * This file owns the p5 lifecycle (setup / draw / keyPressed / windowResized)
  * and the artBuffer → visible canvas pipeline.
  */
 
-import {createBiosPhase} from "./splash/bios.js";
-import {createLogoPhase} from "./splash/logo.js";
-import {createLoginPhase} from "./splash/login.js";
-import {createTitlePhase} from "./splash/title.js";
-import {THEME_FONT, applyThemeCanvasFont} from "../lib/utils/retro-theme.js";
+import {createBiosPhase} from "./bios.js";
+import {createLogoPhase} from "./logo.js";
+import {createLoginPhase} from "./login.js";
+import {createTitlePhase} from "./title.js";
+import {THEME_FONT, applyThemeCanvasFont} from "../../lib/utils/retro-theme.js";
 
 const PHASE = {BIOS: 0, LOGO: 1, LOGIN: 2, TITLE: 3, EXIT: 4};
 

@@ -7,9 +7,11 @@ export const SCENE_EFFECTS = {};
 
 import p5 from "p5";
 import {sceneNavigate} from "../lib/router/scene-nav.js";
+import {getSketchLoader} from "../sketches/index.js";
 
 export async function mount(container) {
-	const sketchMod = await import("../sketches/splash.js");
+	const sketchMod = await getSketchLoader("splash");
+	if (!sketchMod) throw new Error("Missing splash sketch loader");
 	const createSketch = sketchMod.default;
 
 	const sketchFn = createSketch(container);

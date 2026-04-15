@@ -13,8 +13,8 @@
  * Captured frame-perfectly by GlobalShaderOverlay via flat mode (drawImage on canvas).
  */
 
-import {sceneNavigate} from "../lib/router/scene-nav.js";
-import {THEME, drawTitleAberration, drawButton, tickBlink, applyThemeCanvasFont} from "../lib/utils/retro-theme.js";
+import {sceneNavigate} from "../../lib/router/scene-nav.js";
+import {THEME, drawTitleAberration, drawButton, tickBlink, applyThemeCanvasFont} from "../../lib/utils/retro-theme.js";
 
 export default function (container) {
 	const raw = container.dataset.sketchData;

@@ -21,6 +21,7 @@ import {initHeadTrackingParallax} from "../lib/input/head-tracking.js";
 import {refreshGlobalAudioPlayer, tryPlayGlobalAudio} from "../lib/audio/global-audio-ui.js";
 import {installPointerRemap} from "../lib/input/input-remap.js";
 import {THEME} from "../lib/utils/retro-theme.js";
+import {getSketchLoader} from "../sketches/index.js";
 
 export async function mount(container, params, data) {
 	const {slug} = params;
@@ -128,7 +129,8 @@ export async function mount(container, params, data) {
 	for (const sketchEl of sketchEls) {
 		const sketchName = sketchEl.dataset.sketch;
 		if (!sketchName) continue;
-		const sketchMod = await import(`../sketches/${sketchName}.js`);
+		const sketchMod = await getSketchLoader(sketchName);
+		if (!sketchMod) continue;
 		const createSketch = sketchMod.default;
 		if (typeof createSketch !== "function") continue;
 		sketchInstances.push(new p5(createSketch(sketchEl), sketchEl));

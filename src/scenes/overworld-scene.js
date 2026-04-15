@@ -6,9 +6,11 @@
 export const SCENE_EFFECTS = {};
 
 import p5 from "p5";
+import {getSketchLoader} from "../sketches/index.js";
 
 export async function mount(container, _params, data) {
-	const sketchMod = await import("../sketches/overworld.js");
+	const sketchMod = await getSketchLoader("overworld");
+	if (!sketchMod) throw new Error("Missing overworld sketch loader");
 	const createSketch = sketchMod.default;
 
 	// Inject data the same way SketchCanvas.astro does: via data-sketch-data attribute

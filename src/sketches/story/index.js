@@ -22,8 +22,8 @@
  */
 
 import gsap from "gsap";
-import {sceneNavigate} from "../lib/router/scene-nav.js";
-import {THEME, drawScanLines, drawVignette, drawTitleAberration, drawButton, hitTest, tickBlink, applyThemeCanvasFont} from "../lib/utils/retro-theme.js";
+import {sceneNavigate} from "../../lib/router/scene-nav.js";
+import {THEME, drawScanLines, drawVignette, drawTitleAberration, drawButton, hitTest, tickBlink, applyThemeCanvasFont} from "../../lib/utils/retro-theme.js";
 
 export default function (container) {
 	const raw = container.dataset.sketchData;

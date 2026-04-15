@@ -7,9 +7,11 @@ export const SCENE_EFFECTS = {};
 
 import p5 from "p5";
 import {installPointerRemap} from "../lib/input/input-remap.js";
+import {getSketchLoader} from "../sketches/index.js";
 
 export async function mount(container, _params, data) {
-	const sketchMod = await import("../sketches/story.js");
+	const sketchMod = await getSketchLoader("story");
+	if (!sketchMod) throw new Error("Missing story sketch loader");
 	const createSketch = sketchMod.default;
 
 	container.dataset.sketchData = JSON.stringify(data);
