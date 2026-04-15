@@ -3,10 +3,22 @@
 		"depthCurve": [0, 0.45, 1, 0.1],
 		"scrollDepthCurve": [1, 0.1, 0, 0.45]
 	},
+	"sceneEffects": {
+		"crtDisplay": {
+			"brightness": 0.1
+		}
+	},
+	"sceneSketches": [
+		{
+			"sketch": "snow",
+			"slot": "foreground",
+			"enabled": false
+		}
+	],
 	"layerEffects": {
 		"appartement-arago": [
 			{
-				"sketch": "layer-pixelsort-test",
+				"sketch": "pixelsort",
 				"mode": "recopie",
 				"enabled": true,
 				"zOffset": 2

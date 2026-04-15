@@ -10,9 +10,11 @@
  */
 
 /** @type {Partial<import('../lib/shaders/global-shader-overlay.js').DEFAULT_EFFECTS>} */
-export const SCENE_EFFECTS = {
+const BASE_SCENE_EFFECTS = {
 	crtDisplay: {brightness: 0.0},
 };
+/** @type {Partial<import('../lib/shaders/global-shader-overlay.js').DEFAULT_EFFECTS>} */
+export const SCENE_EFFECTS = JSON.parse(JSON.stringify(BASE_SCENE_EFFECTS));
 import p5 from "p5";
 import {fetchNeighborhoodManifest} from "../lib/data/scene-data.js";
 import {sceneNavigate} from "../lib/router/scene-nav.js";
@@ -23,12 +25,15 @@ import {installPointerRemap} from "../lib/input/input-remap.js";
 import {THEME} from "../lib/utils/retro-theme.js";
 import {getSketchLoader} from "../sketches/index.js";
 
+const DEFAULT_SCENE_SKETCHES = [{sketch: "snow", slot: "foreground"}];
+
 export async function mount(container, params, data) {
 	const {slug} = params;
 	const neighborhood = data; // NeighborhoodData
 
 	// Fetch manifest (includes parallax-config merge)
 	const manifest = await fetchNeighborhoodManifest(neighborhood.scenePath, slug);
+	applySceneEffectsOverride(manifest.sceneEffects);
 
 	// ── Build DOM structure ─────────────────────────────────────────────────
 
@@ -62,12 +67,22 @@ export async function mount(container, params, data) {
 	sceneSlotOutlet.dataset.sceneSlotOutlet = "";
 	sceneSlotOutlet.style.cssText = "position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:1000;";
 
-	const snowContainer = document.createElement("div");
-	snowContainer.className = "sketch-canvas";
-	snowContainer.dataset.sketchContainer = "";
-	snowContainer.dataset.sketch = "snow";
-	snowContainer.dataset.slot = "foreground";
-	slotted.appendChild(snowContainer);
+	const sceneSketches = Array.isArray(manifest.sceneSketches) && manifest.sceneSketches.length > 0 ? manifest.sceneSketches : DEFAULT_SCENE_SKETCHES;
+	for (const entry of sceneSketches) {
+		if (!entry || entry.enabled === false) continue;
+		if (typeof entry.sketch !== "string" || entry.sketch.length === 0) continue;
+		const sketchContainer = document.createElement("div");
+		sketchContainer.className = "sketch-canvas";
+		sketchContainer.dataset.sketchContainer = "";
+		sketchContainer.dataset.sketch = entry.sketch;
+		if (typeof entry.slot === "string" && entry.slot.length > 0) {
+			sketchContainer.dataset.slot = entry.slot;
+		}
+		if (entry.data && typeof entry.data === "object") {
+			sketchContainer.dataset.sketchData = JSON.stringify(entry.data);
+		}
+		slotted.appendChild(sketchContainer);
+	}
 
 	const neighborhoodOverlayContainer = document.createElement("div");
 	neighborhoodOverlayContainer.className = "sketch-canvas";
@@ -236,6 +251,26 @@ export async function mount(container, params, data) {
 			handleAudio(null);
 		},
 	};
+}
+
+/**
+ * Reset SCENE_EFFECTS to defaults, then apply per-neighborhood overrides from scene-config.
+ * SceneRouter reads the same exported object reference before mount() and applies it after mount().
+ *
+ * @param {Record<string, object>|undefined} overrides
+ */
+function applySceneEffectsOverride(overrides) {
+	for (const key of Object.keys(SCENE_EFFECTS)) {
+		delete SCENE_EFFECTS[key];
+	}
+	for (const [key, value] of Object.entries(BASE_SCENE_EFFECTS)) {
+		SCENE_EFFECTS[key] = {...value};
+	}
+	if (!overrides || typeof overrides !== "object") return;
+	for (const [key, patch] of Object.entries(overrides)) {
+		if (!patch || typeof patch !== "object") continue;
+		SCENE_EFFECTS[key] = {...(SCENE_EFFECTS[key] ?? {}), ...patch};
+	}
 }
 
 // ── DOM helpers ───────────────────────────────────────────────────────────────

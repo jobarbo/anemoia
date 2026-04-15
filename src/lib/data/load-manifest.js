@@ -46,6 +46,18 @@ function mergeParallaxConfig(manifest, manifestFsPath) {
 		if (Array.isArray(parallaxConfig.scrollDepthCurve) && parallaxConfig.scrollDepthCurve.length === 4) {
 			manifest.scrollDepthCurve = parallaxConfig.scrollDepthCurve;
 		}
+		if (config.sceneEffects && typeof config.sceneEffects === "object") {
+			manifest.sceneEffects = {};
+			for (const [effectName, effectPatch] of Object.entries(config.sceneEffects)) {
+				if (!effectPatch || typeof effectPatch !== "object") continue;
+				manifest.sceneEffects[effectName] = {...effectPatch};
+			}
+		}
+		if (Array.isArray(config.sceneSketches)) {
+			manifest.sceneSketches = config.sceneSketches
+				.filter((entry) => entry && typeof entry === "object" && typeof entry.sketch === "string")
+				.map((entry) => ({...entry}));
+		}
 	} catch {
 		// File absent or invalid — silently ignore, curve stays undefined
 	}

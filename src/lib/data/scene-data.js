@@ -112,8 +112,10 @@ function normalizeManifestPositions(manifest) {
  * Apply scene-level authored config (new format preferred):
  * {
  *   parallaxConfig: { depthCurve, scrollDepthCurve },
+ *   sceneSketches: [ ...scene-level sketch attachments... ],
  *   layers: { ...patchesByName },
- *   layerEffects: { ...effectsByName }
+ *   layerEffects: { ...effectsByName },
+ *   sceneEffects: { ...globalShaderOverrides }
  * }
  * Also supports legacy top-level depthCurve/scrollDepthCurve.
  *
@@ -144,5 +146,17 @@ function applySceneConfig(manifest, config) {
 				.filter((entry) => entry && typeof entry === "object" && typeof entry.sketch === "string")
 				.map((entry) => ({...entry}));
 		}
+	}
+	if (config.sceneEffects && typeof config.sceneEffects === "object") {
+		manifest.sceneEffects = {};
+		for (const [effectName, effectPatch] of Object.entries(config.sceneEffects)) {
+			if (!effectPatch || typeof effectPatch !== "object") continue;
+			manifest.sceneEffects[effectName] = {...effectPatch};
+		}
+	}
+	if (Array.isArray(config.sceneSketches)) {
+		manifest.sceneSketches = config.sceneSketches
+			.filter((entry) => entry && typeof entry === "object" && typeof entry.sketch === "string")
+			.map((entry) => ({...entry}));
 	}
 }

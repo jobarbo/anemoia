@@ -20,6 +20,14 @@ export interface LayerEffectAttachment {
 	zOffset?: number;
 }
 
+export type SceneShaderEffects = Record<string, Record<string, unknown>>;
+export interface SceneSketchAttachment {
+	sketch: string;
+	slot?: string;
+	enabled?: boolean;
+	data?: Record<string, unknown>;
+}
+
 export interface SceneLayer {
 	name: string;
 	file: string;
@@ -38,6 +46,8 @@ export interface SceneManifest {
 	canvas: { width: number; height: number };
 	layers: SceneLayer[];
 	layerEffects?: Record<string, LayerEffectAttachment[]>;
+	sceneEffects?: SceneShaderEffects;
+	sceneSketches?: SceneSketchAttachment[];
 	/**
 	 * Optional scene-level depth curve controlling how parallax speed is distributed
 	 * across the layer stack (background → foreground).

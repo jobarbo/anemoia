@@ -62,7 +62,7 @@ export default function (container) {
 					shadersReady = true;
 				})
 				.catch((error) => {
-					console.error("[layer-pixelsort-test] shader load failed", error);
+					console.error("[pixelsort] shader load failed", error);
 					shadersReady = false;
 				});
 
@@ -75,7 +75,7 @@ export default function (container) {
 					},
 					(error) => {
 						layerImage = null;
-						console.error("[layer-pixelsort-test] image load failed", error);
+						console.error("[pixelsort] image load failed", error);
 					},
 				);
 			}
