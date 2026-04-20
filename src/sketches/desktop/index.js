@@ -17,6 +17,31 @@ export default function (container) {
 		let hoveredRowAction = null;
 		let locationLabel = "Localisation...";
 		let weatherLabel = "Météo : --";
+		let blinkStartMs = -1;
+		let blinkDurationMs = 150;
+		let nextBlinkAtMs = 0;
+		let gazeX = 0;
+		let gazeY = 0;
+		let gazeFromX = 0;
+		let gazeFromY = 0;
+		let gazeToX = 0;
+		let gazeToY = 0;
+		let gazeMoveStartMs = 0;
+		let gazeMoveDurationMs = 0;
+		let gazeHoldUntilMs = 0;
+		let gazeMoving = false;
+
+		const scheduleNextBlink = (nowMs) => {
+			// Irregular cadence keeps blinking from feeling robotic.
+			nextBlinkAtMs = nowMs + sketch.random(1800, 5200);
+		};
+		const scheduleNextGazeHold = (nowMs) => {
+			gazeHoldUntilMs = nowMs + sketch.random(800, 2300);
+		};
+		const pickGazeTarget = () => ({
+			x: sketch.random(-1, 1),
+			y: sketch.random(-1, 1),
+		});
 
 		sketch.setup = () => {
 			const w = window.innerWidth;
@@ -27,6 +52,9 @@ export default function (container) {
 			artBuffer = sketch.createGraphics(w, h);
 			artBuffer.noStroke();
 			artBuffer.textFont(THEME.FONT);
+			const nowMs = sketch.millis();
+			scheduleNextBlink(nowMs);
+			scheduleNextGazeHold(nowMs);
 			void startLiveContext((nextLocation, nextWeather) => {
 				locationLabel = nextLocation;
 				weatherLabel = nextWeather;
@@ -42,7 +70,45 @@ export default function (container) {
 			drawBottomNav(artBuffer, w, h, locationLabel, weatherLabel, sketch);
 
 			interactiveRows = drawInteractivePanel(artBuffer, w, h, hoveredRowAction, sketch);
-			drawSystemCard(artBuffer, w, h, sketch);
+			const nowMs = sketch.millis();
+			if (blinkStartMs < 0 && nowMs >= nextBlinkAtMs) {
+				blinkStartMs = nowMs;
+				blinkDurationMs = sketch.random(110, 210);
+			}
+			let blink = 0;
+			if (blinkStartMs >= 0) {
+				const t = (nowMs - blinkStartMs) / Math.max(1, blinkDurationMs);
+				if (t >= 1) {
+					blinkStartMs = -1;
+					scheduleNextBlink(nowMs);
+				} else {
+					// Fast close/open eyelid profile.
+					blink = t < 0.5 ? t * 2 : (1 - t) * 2;
+				}
+			}
+			if (!gazeMoving && nowMs >= gazeHoldUntilMs) {
+				const target = pickGazeTarget();
+				gazeFromX = gazeX;
+				gazeFromY = gazeY;
+				gazeToX = target.x;
+				gazeToY = target.y;
+				gazeMoveStartMs = nowMs;
+				gazeMoveDurationMs = sketch.random(120, 240);
+				gazeMoving = true;
+			}
+			if (gazeMoving) {
+				const moveT = pClamp((nowMs - gazeMoveStartMs) / Math.max(1, gazeMoveDurationMs), 0, 1);
+				const easedT = moveT * moveT * (3 - 2 * moveT);
+				gazeX = sketch.lerp(gazeFromX, gazeToX, easedT);
+				gazeY = sketch.lerp(gazeFromY, gazeToY, easedT);
+				if (moveT >= 1) {
+					gazeX = gazeToX;
+					gazeY = gazeToY;
+					gazeMoving = false;
+					scheduleNextGazeHold(nowMs);
+				}
+			}
+			drawSystemCard(artBuffer, w, h, sketch, blink, gazeX, gazeY);
 
 			sketch.clear();
 			sketch.image(artBuffer, 0, 0);
@@ -246,27 +312,37 @@ function drawInteractivePanel(buf, w, h, hoveredAction, p) {
 	return interactiveRows;
 }
 
-function drawSystemCard(buf, w, h, p) {
+function drawSystemCard(buf, w, h, p, blink, gazeXNorm, gazeYNorm) {
 	const cardX = w * 0.75;
 	const cardY = h * 0.23;
 	const cardW = w * 0.19;
 	const cardH = h * 0.5;
 	drawAngledPanel(buf, cardX, cardY, cardW, cardH, {
 		bgAlpha: 200,
-		borderAlpha: 120,
+		borderAlpha: 200,
 	});
 
 	const eyeX = cardX + cardW * 0.1;
 	const eyeY = cardY + cardH * 0.08;
 	const eyeW = cardW * 0.8;
 	const eyeH = cardH * 0.22;
+	const gazeX = p.map(gazeXNorm, -1, 1, -eyeW * 0.09, eyeW * 0.09, true);
+	const gazeY = p.map(gazeYNorm, -1, 1, -eyeH * 0.07, eyeH * 0.07, true);
+	const eyelidOpen = 1 - Math.min(1, Math.max(0, blink));
+	const eyeVisibleH = Math.max(eyeH * 0.12, eyeH * eyelidOpen);
+
 	buf.noStroke();
 	buf.fill(...THEME.GREEN_SUBTLE, 30);
 	buf.rect(eyeX, eyeY, eyeW, eyeH, 6);
+	buf.drawingContext.save();
+	buf.drawingContext.beginPath();
+	buf.drawingContext.rect(eyeX, eyeY + (eyeH - eyeVisibleH) * 0.5, eyeW, eyeVisibleH);
+	buf.drawingContext.clip();
 	buf.fill(...THEME.GREEN_MID, 85);
 	buf.ellipse(eyeX + eyeW * 0.5, eyeY + eyeH * 0.53, eyeW * 0.78, eyeH * 0.75);
 	buf.fill(...THEME.BG, 210);
-	buf.circle(eyeX + eyeW * 0.5, eyeY + eyeH * 0.53, eyeH * 0.48);
+	buf.circle(eyeX + eyeW * 0.5 + gazeX, eyeY + eyeH * 0.53 + gazeY, eyeH * 0.48);
+	buf.drawingContext.restore();
 
 	const statSz = Math.max(11, w * 0.012);
 	applyThemeCanvasFont(buf, statSz, p);
@@ -275,6 +351,10 @@ function drawSystemCard(buf, w, h, p) {
 	const statsX = cardX + cardW * 0.12;
 	const statsY = cardY + cardH * 0.4;
 	buf.text("HORLOGE CPU\n64 MHZ\n\nRAM TOTALE\n10 MO\n\nRAM LIBRE\n5 MO\n\nMODE E/S\nMIDI", statsX, statsY);
+}
+
+function pClamp(value, min, max) {
+	return Math.min(max, Math.max(min, value));
 }
 
 function drawAngledPanel(buf, x, y, w, h, opts) {
