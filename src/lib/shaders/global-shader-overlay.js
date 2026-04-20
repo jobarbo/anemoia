@@ -75,7 +75,7 @@ const DEFAULT_EFFECTS = {
 	},
 	zoom: {
 		enabled: true,
-		zoomAmount: 0.78,
+		zoomAmount: 0.83,
 		zoomSpeed: 0.8,
 		animateZoom: 0.0,
 		easingMode: 4.0,
@@ -99,8 +99,8 @@ const DEFAULT_EFFECTS = {
 		borderColor: 2.0,
 		vignette: 0.0,
 		cornerSmooth: 0.015,
-		cornerRadius: 0.2,
-		boundsInset: 0.1,
+		cornerRadius: 0.08,
+		boundsInset: 0.08,
 	},
 
 	blur: {

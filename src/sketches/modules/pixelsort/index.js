@@ -9,6 +9,7 @@ const DEFAULT_PIXEL_SORT = {
 	invert: 1.0,
 	sortMode: 2.0,
 	timeMultiplier: 1.3,
+	resolutionScale: 0.25,
 };
 
 function readSketchData(container) {
@@ -34,6 +35,14 @@ function getContainerSize(container) {
 	};
 }
 
+function getRenderSize(displayWidth, displayHeight, resolutionScale) {
+	const scale = Number.isFinite(resolutionScale) ? Math.max(0.1, Math.min(1, resolutionScale)) : 1;
+	return {
+		width: Math.max(1, Math.round(displayWidth * scale)),
+		height: Math.max(1, Math.round(displayHeight * scale)),
+	};
+}
+
 export default function (container) {
 	const {imagePath = "", mode = "recopie", pixelSort: pixelSortOverrides = {}} = readSketchData(container);
 	const pixelSortConfig = {...DEFAULT_PIXEL_SORT, ...pixelSortOverrides};
@@ -50,7 +59,8 @@ export default function (container) {
 
 	return (sketch) => {
 		sketch.setup = () => {
-			const {width, height} = getContainerSize(container);
+			const {width: displayWidth, height: displayHeight} = getContainerSize(container);
+			const {width, height} = getRenderSize(displayWidth, displayHeight, pixelSortConfig.resolutionScale);
 			mainCanvas = sketch.createGraphics(width, height, sketch.WEBGL);
 			const canvas = sketch.createCanvas(width, height, sketch.WEBGL);
 			canvas.parent(container);
@@ -58,6 +68,7 @@ export default function (container) {
 			canvas.style("height", "100%");
 			canvas.style("display", "block");
 			canvas.style("pointer-events", "none");
+			canvas.style("image-rendering", "pixelated");
 
 			void shaders
 				.loadShaders(sketch)
@@ -104,7 +115,8 @@ export default function (container) {
 
 		sketch.windowResized = () => {
 			if (!mainCanvas) return;
-			const {width, height} = getContainerSize(container);
+			const {width: displayWidth, height: displayHeight} = getContainerSize(container);
+			const {width, height} = getRenderSize(displayWidth, displayHeight, pixelSortConfig.resolutionScale);
 			mainCanvas.resizeCanvas(width, height);
 			sketch.resizeCanvas(width, height);
 			shaders.reinitializePipeline();
