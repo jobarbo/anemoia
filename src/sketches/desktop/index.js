@@ -203,10 +203,27 @@ function drawBottomNav(buf, w, h, locationLabel, weatherLabel, p) {
 	buf.fill(...THEME.GREEN_MID, 230);
 	buf.textAlign(p.LEFT, p.CENTER);
 	buf.text(locationLabel, w * 0.03, barY + barH * 0.5);
-	buf.textAlign(p.CENTER, p.CENTER);
-	buf.text(weatherLabel, w * 0.5, barY + barH * 0.5);
+	const {icon, text} = splitWeatherLabel(weatherLabel);
+	const iconSize = Math.max(navSz * 2.5, w * 0.022);
+	applyThemeCanvasFont(buf, iconSize, p);
+	buf.textAlign(p.RIGHT, p.CENTER);
+	buf.text(icon, w * 0.48, barY + barH * 0.35);
+	applyThemeCanvasFont(buf, navSz, p);
+	buf.textAlign(p.LEFT, p.CENTER);
+	buf.text(text, w * 0.485, barY + barH * 0.5);
 	buf.textAlign(p.RIGHT, p.CENTER);
 	buf.text("Gestionnaire de fichiers", w * 0.97, barY + barH * 0.5);
+}
+
+function splitWeatherLabel(label) {
+	const raw = String(label ?? "").trim();
+	if (!raw) return {icon: "◌", text: "Météo : --"};
+	const firstSpace = raw.indexOf(" ");
+	if (firstSpace <= 0) return {icon: "◌", text: raw};
+	return {
+		icon: raw.slice(0, firstSpace),
+		text: raw.slice(firstSpace + 1),
+	};
 }
 
 function drawInteractivePanel(buf, w, h, hoveredAction, p) {
@@ -443,43 +460,43 @@ async function fetchWeatherLabel(lat, lon) {
 		const current = data?.current;
 		if (!current) return null;
 		const temp = typeof current.temperature_2m === "number" ? `${Math.round(current.temperature_2m)}°C` : "--";
-		const weatherName = weatherCodeToLabel(current.weather_code);
-		return `${weatherName} ${temp}`;
+		const weather = weatherCodeToUi(current.weather_code);
+		return `${weather.icon} ${weather.label} ${temp}`;
 	} catch {
 		return null;
 	}
 }
 
-function weatherCodeToLabel(code) {
+function weatherCodeToUi(code) {
 	const map = {
-		0: "Dégagé",
-		1: "Plutôt dégagé",
-		2: "Partiellement nuageux",
-		3: "Couvert",
-		45: "Brouillard",
-		48: "Brouillard givrant",
-		51: "Bruine",
-		53: "Bruine",
-		55: "Forte bruine",
-		56: "Bruine verglaçante",
-		57: "Bruine verglaçante",
-		61: "Pluie",
-		63: "Pluie",
-		65: "Forte pluie",
-		66: "Pluie verglaçante",
-		67: "Pluie verglaçante",
-		71: "Neige",
-		73: "Neige",
-		75: "Forte neige",
-		77: "Neige en grains",
-		80: "Averses de pluie",
-		81: "Averses de pluie",
-		82: "Fortes averses",
-		85: "Averses de neige",
-		86: "Fortes averses de neige",
-		95: "Orage",
-		96: "Orage de grêle",
-		99: "Orage de grêle",
+		0: {icon: "☀", label: "Dégagé"},
+		1: {icon: "🌤", label: "Plutôt dégagé"},
+		2: {icon: "⛅", label: "Partiellement nuageux"},
+		3: {icon: "☁", label: "Couvert"},
+		45: {icon: "🌫", label: "Brouillard"},
+		48: {icon: "🌫", label: "Brouillard givrant"},
+		51: {icon: "🌦", label: "Bruine"},
+		53: {icon: "🌦", label: "Bruine"},
+		55: {icon: "🌧", label: "Forte bruine"},
+		56: {icon: "🌧", label: "Bruine verglaçante"},
+		57: {icon: "🌧", label: "Bruine verglaçante"},
+		61: {icon: "🌧", label: "Pluie"},
+		63: {icon: "🌧", label: "Pluie"},
+		65: {icon: "🌧", label: "Forte pluie"},
+		66: {icon: "🌧", label: "Pluie verglaçante"},
+		67: {icon: "🌧", label: "Pluie verglaçante"},
+		71: {icon: "❄", label: "Neige"},
+		73: {icon: "❄", label: "Neige"},
+		75: {icon: "❄", label: "Forte neige"},
+		77: {icon: "🌨", label: "Neige en grains"},
+		80: {icon: "🌦", label: "Averses de pluie"},
+		81: {icon: "🌦", label: "Averses de pluie"},
+		82: {icon: "🌧", label: "Fortes averses"},
+		85: {icon: "🌨", label: "Averses de neige"},
+		86: {icon: "🌨", label: "Fortes averses de neige"},
+		95: {icon: "⛈", label: "Orage"},
+		96: {icon: "⛈", label: "Orage de grêle"},
+		99: {icon: "⛈", label: "Orage de grêle"},
 	};
-	return map[code] ?? "Météo";
+	return map[code] ?? {icon: "◌", label: "Météo"};
 }

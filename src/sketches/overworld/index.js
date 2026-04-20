@@ -14,7 +14,7 @@
  */
 
 import {sceneNavigate} from "../../lib/router/scene-nav.js";
-import {THEME, drawTitleAberration, drawButton, hitTest, applyThemeCanvasFont} from "../../lib/utils/retro-theme.js";
+import {THEME, drawTitleAberration, hitTest, applyThemeCanvasFont} from "../../lib/utils/retro-theme.js";
 
 export default function (container) {
 	const raw = container.dataset.sketchData;
@@ -23,11 +23,11 @@ export default function (container) {
 	return (sketch) => {
 		/** P2D offscreen buffer — all drawing happens here, GlobalShaderOverlay handles GLSL. */
 		let artBuffer;
-		/** Keyboard selection index: 0..neighborhoods.length-1 = a pin, neighborhoods.length = back button */
+		/** Keyboard selection index: 0..neighborhoods.length-1 = pin */
 		let selectedPin = 0;
 
-		let backRect = null;
-		let backHovered = false;
+		let closeRect = null;
+		let closeHovered = false;
 		let mapBounds = {x: 0, y: 0, w: 0, h: 0};
 
 		sketch.setup = () => {
@@ -55,24 +55,29 @@ export default function (container) {
 			const h = artBuffer.height;
 
 			// ── Background ────────────────────────────────────────────────────────
-			artBuffer.background(...THEME.BG);
+			drawDesktopBackground(artBuffer, w, h);
+
+			const topBar = drawWindowTopBar(artBuffer, w, h, closeHovered, sketch);
+			closeRect = topBar.closeRect;
+			const topBarH = topBar.height;
+			const bottomBarH = drawBottomStatusBar(artBuffer, w, h, sketch);
 
 			// ── Map area ──────────────────────────────────────────────────────────
 			const mapPad = w * 0.05;
-			const titleH = h * 0.14;
-			const footerH = h * 0.1;
+			const titleH = h * 0.08;
+			const footerH = bottomBarH + h * 0.03;
 			const mapX = mapPad;
-			const mapY = titleH;
+			const mapY = topBarH + titleH;
 			const mapW = w - mapPad * 2;
-			const mapH = h - titleH - footerH;
+			const mapH = h - mapY - footerH;
 			mapBounds = {x: mapX, y: mapY, w: mapW, h: mapH};
 
 			// Retro terminal placeholder grid (no map image)
 			drawMapPlaceholder(artBuffer, mapX, mapY, mapW, mapH, sketch);
 
 			// ── Title ─────────────────────────────────────────────────────────────
-			const titleSz = w * 0.032;
-			drawTitleAberration(artBuffer, "Les quartiers états", w / 2, titleH / 2, titleSz, 255, sketch);
+			const titleSz = w * 0.028;
+			drawTitleAberration(artBuffer, "Les quartiers états", w / 2, topBarH + titleH * 0.45, titleSz, 255, sketch);
 
 			// ── Neighborhood pins ─────────────────────────────────────────────────
 			const hoveredPin = findPinAtMouse();
@@ -83,23 +88,17 @@ export default function (container) {
 				drawPin(artBuffer, px, py, hood.name, selectedPin === i || hoveredPin === i, sketch);
 			}
 
-			// ── Back button ───────────────────────────────────────────────────────
-			const backSz = w * 0.016;
-			const backY = h - footerH / 2;
-			const backSelected = selectedPin === neighborhoods.length;
-			backRect = drawButton(artBuffer, "[ RETOUR AU MENU ]", w / 2, backY, backSz, backSelected || backHovered, sketch);
-
 			// Key hint
 			const hintSz = w * 0.011;
 			artBuffer.textAlign(sketch.RIGHT, sketch.CENTER);
 			applyThemeCanvasFont(artBuffer, hintSz, sketch);
 			artBuffer.fill(...THEME.GREEN_SUBTLE, 120);
-			artBuffer.text("↑↓ CHOISIR   ENTRÉE CONFIRMER   ESC RETOUR", w - w * 0.04, h - footerH / 2);
+			artBuffer.text("↑↓ CHOISIR   ENTRÉE CONFIRMER   ESC FERMER", w - w * 0.04, h - bottomBarH * 0.5);
 
 			// Blit artBuffer onto output canvas
 			sketch.clear();
 			sketch.image(artBuffer, 0, 0);
-			container.style.cursor = backHovered || findPinAtMouse() >= 0 ? "pointer" : "default";
+			container.style.cursor = closeHovered || findPinAtMouse() >= 0 ? "pointer" : "default";
 		};
 
 		sketch.keyPressed = () => {
@@ -107,17 +106,16 @@ export default function (container) {
 		};
 
 		function handleKeyInput(key) {
-			const total = neighborhoods.length + 1; // pins + back
+			if (neighborhoods.length === 0) {
+				if (key === sketch.ESCAPE) sceneNavigate("desktop");
+				return false;
+			}
 			if (key === sketch.UP_ARROW || key === sketch.LEFT_ARROW) {
-				selectedPin = (selectedPin - 1 + total) % total;
+				selectedPin = (selectedPin - 1 + neighborhoods.length) % neighborhoods.length;
 			} else if (key === sketch.DOWN_ARROW || key === sketch.RIGHT_ARROW) {
-				selectedPin = (selectedPin + 1) % total;
+				selectedPin = (selectedPin + 1) % neighborhoods.length;
 			} else if (key === sketch.ENTER || key === sketch.RETURN) {
-				if (selectedPin < neighborhoods.length) {
-					sceneNavigate("neighborhood", {slug: neighborhoods[selectedPin].slug});
-				} else {
-					sceneNavigate("desktop");
-				}
+				sceneNavigate("neighborhood", {slug: neighborhoods[selectedPin].slug});
 			} else if (key === sketch.ESCAPE) {
 				sceneNavigate("desktop");
 			}
@@ -140,11 +138,11 @@ export default function (container) {
 		}
 
 		sketch.mouseMoved = () => {
-			backHovered = Boolean(backRect && hitTest(sketch.mouseX, sketch.mouseY, backRect));
+			closeHovered = Boolean(closeRect && hitTest(sketch.mouseX, sketch.mouseY, closeRect));
 		};
 
 		sketch.mousePressed = () => {
-			if (backRect && hitTest(sketch.mouseX, sketch.mouseY, backRect)) {
+			if (closeRect && hitTest(sketch.mouseX, sketch.mouseY, closeRect)) {
 				sceneNavigate("desktop");
 				return;
 			}
@@ -240,4 +238,75 @@ function drawMapPlaceholder(buf, x, y, w, h, p) {
 	buf.rect(x, y, w, h, 22);
 
 	buf.noStroke();
+}
+
+function drawDesktopBackground(buf, w, h) {
+	buf.background(...THEME.BG);
+	buf.stroke(...THEME.GREEN_PRIMARY, 26);
+	buf.strokeWeight(1);
+	const cols = 36;
+	const rows = 22;
+	for (let c = 0; c <= cols; c++) {
+		const x = (c / cols) * w;
+		buf.line(x, 0, x, h);
+	}
+	for (let r = 0; r <= rows; r++) {
+		const y = (r / rows) * h;
+		buf.line(0, y, w, y);
+	}
+}
+
+function drawWindowTopBar(buf, w, h, closeHovered, p) {
+	const barH = h * 0.07;
+	buf.noStroke();
+	buf.fill(8, 24, 38, 230);
+	buf.rect(0, 0, w, barH);
+	buf.stroke(...THEME.GREEN_MID, 90);
+	buf.strokeWeight(2);
+	buf.line(0, barH, w, barH);
+	buf.noStroke();
+
+	const btnSize = barH * 0.58;
+	const btnX = w * 0.022;
+	const btnY = (barH - btnSize) * 0.5;
+	buf.stroke(...THEME.GREEN_MID, closeHovered ? 210 : 150);
+	buf.strokeWeight(2);
+	buf.fill(...THEME.GREEN_PRIMARY, closeHovered ? 70 : 35);
+	buf.rect(btnX, btnY, btnSize, btnSize, 4);
+	buf.noStroke();
+	applyThemeCanvasFont(buf, Math.max(11, w * 0.013), p);
+	buf.fill(...THEME.GREEN_SUBTLE, closeHovered ? 255 : 220);
+	buf.textAlign(p.CENTER, p.CENTER);
+	buf.text("X", btnX + btnSize * 0.5, btnY + btnSize * 0.52);
+
+	applyThemeCanvasFont(buf, Math.max(12, w * 0.014), p);
+	buf.fill(...THEME.GREEN_SUBTLE, 210);
+	buf.textAlign(p.LEFT, p.CENTER);
+	buf.text("Gestionnaire de quartiers", btnX + btnSize + w * 0.02, barH * 0.5);
+
+	return {
+		height: barH,
+		closeRect: {x: btnX, y: btnY, w: btnSize, h: btnSize},
+	};
+}
+
+function drawBottomStatusBar(buf, w, h, p) {
+	const barH = h * 0.072;
+	const barY = h - barH;
+	buf.noStroke();
+	buf.fill(8, 24, 38, 235);
+	buf.rect(0, barY, w, barH);
+	buf.stroke(...THEME.GREEN_MID, 100);
+	buf.strokeWeight(2);
+	buf.line(0, barY, w, barY);
+	buf.noStroke();
+
+	const navSz = Math.max(11, w * 0.012);
+	applyThemeCanvasFont(buf, navSz, p);
+	buf.fill(...THEME.GREEN_MID, 230);
+	buf.textAlign(p.LEFT, p.CENTER);
+	buf.text("Cartographie active", w * 0.03, barY + barH * 0.5);
+	buf.textAlign(p.CENTER, p.CENTER);
+	buf.text("2D View", w * 0.5, barY + barH * 0.5);
+	return barH;
 }

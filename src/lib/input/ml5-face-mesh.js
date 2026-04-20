@@ -5,6 +5,36 @@
  */
 import {extractNormalizedPose, smoothPose} from "./face-pose.js";
 
+async function waitForVideoData(video) {
+	if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA && video.videoWidth > 0 && video.videoHeight > 0) {
+		return;
+	}
+
+	await new Promise((resolve) => {
+		const onReady = () => {
+			cleanup();
+			resolve();
+		};
+		const onError = () => {
+			cleanup();
+			resolve();
+		};
+		const cleanup = () => {
+			video.removeEventListener("loadeddata", onReady);
+			video.removeEventListener("canplay", onReady);
+			video.removeEventListener("error", onError);
+		};
+		video.addEventListener("loadeddata", onReady, {once: true});
+		video.addEventListener("canplay", onReady, {once: true});
+		video.addEventListener("error", onError, {once: true});
+	});
+}
+
+function isTransientVideoNotReadyError(error) {
+	const message = String(error?.message ?? error ?? "");
+	return message.includes("video element has not loaded data yet") || message.includes("fromPixels");
+}
+
 async function initMl5Source(onMove) {
 	if (!navigator.mediaDevices?.getUserMedia) {
 		throw new Error("Camera API is not available.");
@@ -21,6 +51,7 @@ async function initMl5Source(onMove) {
 	video.autoplay = true;
 	video.srcObject = stream;
 	await video.play();
+	await waitForVideoData(video);
 
 	const ml5Module = await import("ml5");
 	const ml5 = ml5Module.default ?? ml5Module;
@@ -55,7 +86,7 @@ async function initMl5Source(onMove) {
 	const handleUnhandledRejection = (event) => {
 		const reason = event?.reason;
 		const message = String(reason?.message ?? reason ?? "");
-		if (message.includes("Tensor is disposed")) {
+		if (message.includes("Tensor is disposed") || isTransientVideoNotReadyError(reason)) {
 			// Known transient ml5/tfjs race during webcam frame processing.
 			event.preventDefault();
 		}
@@ -81,10 +112,17 @@ async function initMl5Source(onMove) {
 		const detectOnce = async () => {
 			if (stopped) return;
 			try {
+				if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || video.videoWidth <= 0 || video.videoHeight <= 0) {
+					rafId = requestAnimationFrame(detectOnce);
+					return;
+				}
 				const results = await model.detect(video);
 				handleResults(results);
-			} catch {
+			} catch (error) {
 				// Ignore intermittent detection errors and continue.
+				if (!isTransientVideoNotReadyError(error)) {
+					// Keep silent for other transient ml5/tfjs runtime errors too.
+				}
 			}
 			rafId = requestAnimationFrame(detectOnce);
 		};

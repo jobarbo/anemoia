@@ -23,7 +23,7 @@
 
 import gsap from "gsap";
 import {sceneNavigate} from "../../lib/router/scene-nav.js";
-import {THEME, drawScanLines, drawVignette, drawTitleAberration, drawButton, hitTest, applyThemeCanvasFont} from "../../lib/utils/retro-theme.js";
+import {THEME, drawScanLines, drawVignette, drawTitleAberration, hitTest, applyThemeCanvasFont} from "../../lib/utils/retro-theme.js";
 
 export default function (container) {
 	const raw = container.dataset.sketchData;
@@ -49,9 +49,9 @@ export default function (container) {
 		/** @type {Array<{opacity: number, offsetY: number, triggered: boolean}>} */
 		let blockState = [];
 
-		// ── Back button ───────────────────────────────────────────────────────────
-		let backRect = null;
-		let backHovered = false;
+		// ── Window close button (top bar) ────────────────────────────────────────
+		let closeRect = null;
+		let closeHovered = false;
 
 		sketch.setup = () => {
 			const w = window.innerWidth;
@@ -78,13 +78,9 @@ export default function (container) {
 			triggerVisibleBlocks(h);
 
 			// ── Background ────────────────────────────────────────────────────────
-			artBuffer.background(...THEME.BG);
-
-			// ── Back button (top-left) ────────────────────────────────────────────
-			const backSz = w * 0.014;
-			const backPad = w * 0.04;
-			const backLabel = returnTo === "desktop" ? "[ RETOUR AU BUREAU ]" : "[ RETOUR AU QUARTIER ]";
-			backRect = drawButton(artBuffer, backLabel, backPad + artBuffer.textWidth(backLabel) * 0.5 + backSz, backSz * 2, backSz, backHovered, sketch);
+			drawDesktopBackground(artBuffer, w, h);
+			const topBar = drawWindowTopBar(artBuffer, w, h, closeHovered, sketch);
+			closeRect = topBar.closeRect;
 
 			// ── Content blocks ────────────────────────────────────────────────────
 			const contentX = w * 0.12;
@@ -115,7 +111,7 @@ export default function (container) {
 			sketch.clear();
 			sketch.image(artBuffer, 0, 0);
 
-			container.style.cursor = backHovered ? "pointer" : "default";
+			container.style.cursor = closeHovered ? "pointer" : "default";
 		};
 
 		// ── Input ─────────────────────────────────────────────────────────────────
@@ -126,11 +122,11 @@ export default function (container) {
 		};
 
 		sketch.mouseMoved = () => {
-			backHovered = backRect ? hitTest(sketch.mouseX, sketch.mouseY, backRect) : false;
+			closeHovered = closeRect ? hitTest(sketch.mouseX, sketch.mouseY, closeRect) : false;
 		};
 
 		sketch.mousePressed = () => {
-			if (backRect && hitTest(sketch.mouseX, sketch.mouseY, backRect)) {
+			if (closeRect && hitTest(sketch.mouseX, sketch.mouseY, closeRect)) {
 				if (returnTo === "desktop") {
 					sceneNavigate("desktop");
 				} else {
@@ -182,7 +178,7 @@ export default function (container) {
 			const w = artBuffer.width;
 			const h = artBuffer.height;
 			const contentW = w * 0.76;
-			const topPad = h * 0.12;
+			const topPad = h * 0.19;
 			const blockGap = h * 0.06;
 
 			blockLayout = [];
@@ -306,4 +302,53 @@ function wrapText(buf, text, maxWidth) {
 	}
 	if (current) lines.push(current);
 	return lines;
+}
+
+function drawDesktopBackground(buf, w, h) {
+	buf.background(...THEME.BG);
+	buf.stroke(...THEME.GREEN_PRIMARY, 26);
+	buf.strokeWeight(1);
+	const cols = 36;
+	const rows = 22;
+	for (let c = 0; c <= cols; c++) {
+		const x = (c / cols) * w;
+		buf.line(x, 0, x, h);
+	}
+	for (let r = 0; r <= rows; r++) {
+		const y = (r / rows) * h;
+		buf.line(0, y, w, y);
+	}
+}
+
+function drawWindowTopBar(buf, w, h, closeHovered, p) {
+	const barH = h * 0.07;
+	buf.noStroke();
+	buf.fill(8, 24, 38, 230);
+	buf.rect(0, 0, w, barH);
+	buf.stroke(...THEME.GREEN_MID, 90);
+	buf.strokeWeight(2);
+	buf.line(0, barH, w, barH);
+	buf.noStroke();
+
+	const btnSize = barH * 0.58;
+	const btnX = w * 0.022;
+	const btnY = (barH - btnSize) * 0.5;
+	buf.stroke(...THEME.GREEN_MID, closeHovered ? 210 : 150);
+	buf.strokeWeight(2);
+	buf.fill(...THEME.GREEN_PRIMARY, closeHovered ? 70 : 35);
+	buf.rect(btnX, btnY, btnSize, btnSize, 4);
+	buf.noStroke();
+	applyThemeCanvasFont(buf, Math.max(11, w * 0.013), p);
+	buf.fill(...THEME.GREEN_SUBTLE, closeHovered ? 255 : 220);
+	buf.textAlign(p.CENTER, p.CENTER);
+	buf.text("X", btnX + btnSize * 0.5, btnY + btnSize * 0.52);
+
+	applyThemeCanvasFont(buf, Math.max(12, w * 0.014), p);
+	buf.fill(...THEME.GREEN_SUBTLE, 210);
+	buf.textAlign(p.LEFT, p.CENTER);
+	buf.text("Lecteur d'histoire", btnX + btnSize + w * 0.02, barH * 0.5);
+
+	return {
+		closeRect: {x: btnX, y: btnY, w: btnSize, h: btnSize},
+	};
 }

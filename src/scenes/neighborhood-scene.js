@@ -210,6 +210,7 @@ export async function mount(container, params, data) {
 	// ── Parallax ──────────────────────────────────────────────────────────────
 	const layers = scene.querySelectorAll(".scene__layer-container");
 
+	let sceneDisposed = false;
 	let cleanupParallax = () => {};
 	if (!DEBUG_DISABLE_PARALLAX) {
 		const scrollCleanup = initScrollParallax(layers, container);
@@ -220,12 +221,21 @@ export async function mount(container, params, data) {
 			scrollContainer: null,
 		})
 			.then((cleanup) => {
+				if (sceneDisposed) {
+					cleanup?.();
+					scrollCleanup?.();
+					return;
+				}
 				cleanupParallax = () => {
 					cleanup?.();
 					scrollCleanup?.();
 				};
 			})
 			.catch(() => {
+				if (sceneDisposed) {
+					scrollCleanup?.();
+					return;
+				}
 				const mouseCleanup = initMouseParallax(layers);
 				cleanupParallax = () => {
 					mouseCleanup?.();
@@ -242,6 +252,7 @@ export async function mount(container, params, data) {
 
 	return {
 		unmount() {
+			sceneDisposed = true;
 			cleanupParallax();
 			cleanupPointerRemap();
 			for (const instance of sketchInstances) instance.remove();
