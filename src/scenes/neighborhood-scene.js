@@ -121,7 +121,7 @@ export async function mount(container, params, data) {
 			sketchLayerContainer.dataset.sketchData = JSON.stringify({
 				imagePath: layer.file.startsWith("/") || layer.file.startsWith("http") ? layer.file : `${scenePath}/${layer.file}`,
 				mode,
-				pixelSort: effect.sketch === "pixelsort" && effect.pixelSort && typeof effect.pixelSort === "object" ? effect.pixelSort : undefined,
+				effects: resolveLayerEffectShaders(effect),
 			});
 			const zOffset = Number.isFinite(effect.zOffset) ? effect.zOffset : 2;
 			sketchLayerContainer.style.cssText = `
@@ -248,6 +248,28 @@ export async function mount(container, params, data) {
 			handleAudio(null);
 		},
 	};
+}
+
+/**
+ * Build shader-effects payload from layer effect entry.
+ * Supports new generic `effects` plus legacy `pixelSort`.
+ *
+ * @param {Record<string, any>} effect
+ * @returns {Record<string, object>}
+ */
+function resolveLayerEffectShaders(effect) {
+	if (effect.effects && typeof effect.effects === "object" && !Array.isArray(effect.effects)) {
+		return effect.effects;
+	}
+	if (effect.pixelSort && typeof effect.pixelSort === "object") {
+		return {
+			pixelSort: {
+				...effect.pixelSort,
+				enabled: effect.pixelSort.enabled ?? true,
+			},
+		};
+	}
+	return {};
 }
 
 /**

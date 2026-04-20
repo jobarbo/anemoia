@@ -5,6 +5,7 @@
 const sketchLoaders = {
 	splash: () => import("./splash/index.js"),
 	snow: () => import("./modules/snow/index.js"),
+	shader: () => import("./modules/shader/index.js"),
 	pixelsort: () => import("./modules/pixelsort/index.js"),
 	desktop: () => import("./desktop/index.js"),
 	overworld: () => import("./overworld/index.js"),

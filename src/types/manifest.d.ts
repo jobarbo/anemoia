@@ -18,6 +18,8 @@ export interface LayerEffectAttachment {
 	opacity?: number;
 	mixBlendMode?: string;
 	zOffset?: number;
+	effects?: Record<string, Record<string, unknown>>;
+	pixelSort?: Record<string, unknown>;
 }
 
 export type SceneShaderEffects = Record<string, Record<string, unknown>>;
