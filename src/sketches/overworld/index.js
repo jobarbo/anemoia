@@ -125,10 +125,10 @@ export default function (container) {
 				if (selectedPin < neighborhoods.length) {
 					sceneNavigate("neighborhood", {slug: neighborhoods[selectedPin].slug});
 				} else {
-					sceneNavigate("splash");
+					sceneNavigate("desktop");
 				}
 			} else if (key === sketch.ESCAPE) {
-				sceneNavigate("splash");
+				sceneNavigate("desktop");
 			}
 			return false; // prevent default browser scroll
 		}
@@ -154,7 +154,7 @@ export default function (container) {
 
 		sketch.mousePressed = () => {
 			if (backRect && hitTest(sketch.mouseX, sketch.mouseY, backRect)) {
-				sceneNavigate("splash");
+				sceneNavigate("desktop");
 				return;
 			}
 			const pinIndex = findPinAtMouse();

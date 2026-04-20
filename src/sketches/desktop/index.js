@@ -51,12 +51,6 @@ export default function (container) {
 			iconRect = drawInteractivePanel(artBuffer, w, h, iconHovered, blinkVisible, sketch);
 			drawSystemCard(artBuffer, w, h, sketch);
 
-			const hintSize = Math.max(12, w * 0.013);
-			applyThemeCanvasFont(artBuffer, hintSize, sketch);
-			artBuffer.fill(...THEME.GREEN_SUBTLE, 200);
-			artBuffer.textAlign(sketch.CENTER, sketch.CENTER);
-			artBuffer.text("CLIQUEZ 'CARTE DE LA VILLE' POUR OUVRIR LE DIRECTOIRE", w * 0.5, h - h * 0.09);
-
 			sketch.clear();
 			sketch.image(artBuffer, 0, 0);
 			container.style.cursor = iconHovered ? "pointer" : "default";
