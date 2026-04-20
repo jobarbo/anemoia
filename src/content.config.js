@@ -7,6 +7,7 @@ const stories = defineCollection({
 	schema: z.object({
 		title: z.string(),
 		neighborhood: z.string(),
+		returnTo: z.enum(["desktop", "neighborhood"]).optional(),
 		audioSrc: z.string().optional(),
 		order: z.number(),
 		duration: z.string().optional(),

@@ -59,8 +59,6 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 	let particles = [];
 	let particleFieldW = 0;
 	let particleFieldH = 0;
-	let promptVisible = true;
-	let lastBlink = 0;
 	let titleFontReady = false;
 	let titleFontLoadStarted = false;
 
@@ -112,8 +110,6 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 		particles = [];
 		particleFieldW = 0;
 		particleFieldH = 0;
-		promptVisible = true;
-		lastBlink = 0;
 		titleFontReady = false;
 		titleFontLoadStarted = false;
 	}
@@ -167,16 +163,10 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 		revealComplete = subtitleProgress >= 1;
 
 		if (revealComplete) {
-			if (now - lastBlink > THEME.BLINK_MS) {
-				promptVisible = !promptVisible;
-				lastBlink = now;
-			}
-			if (promptVisible) {
-				const promptSize = Math.max(11, Math.round(w * 0.013));
-				fontApi?.applyCanvasFont?.(buf, promptSize, {weight: fontApi?.getCanvasFontWeight?.() ?? "400"}) ?? buf.textSize(promptSize);
-				buf.fill(...THEME.GREEN_MID, 208);
-				buf.text(PROMPT_TEXT, titleX, titleY + titleSize * 1.2);
-			}
+			const promptSize = Math.max(11, Math.round(w * 0.013));
+			fontApi?.applyCanvasFont?.(buf, promptSize, {weight: fontApi?.getCanvasFontWeight?.() ?? "400"}) ?? buf.textSize(promptSize);
+			buf.fill(...THEME.GREEN_MID, 208);
+			buf.text(PROMPT_TEXT, titleX, titleY + titleSize * 1.2);
 		}
 
 		drawScanLines(buf, now, sketch);

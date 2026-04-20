@@ -23,11 +23,11 @@
 
 import gsap from "gsap";
 import {sceneNavigate} from "../../lib/router/scene-nav.js";
-import {THEME, drawScanLines, drawVignette, drawTitleAberration, drawButton, hitTest, tickBlink, applyThemeCanvasFont} from "../../lib/utils/retro-theme.js";
+import {THEME, drawScanLines, drawVignette, drawTitleAberration, drawButton, hitTest, applyThemeCanvasFont} from "../../lib/utils/retro-theme.js";
 
 export default function (container) {
 	const raw = container.dataset.sketchData;
-	const {title = "", neighborhood = "", blocks = []} = raw ? JSON.parse(raw) : {};
+	const {title = "", neighborhood = "", returnTo = "neighborhood", blocks = []} = raw ? JSON.parse(raw) : {};
 
 	return (sketch) => {
 		/** P2D artBuffer — all drawing; GlobalShaderOverlay handles GLSL post. */
@@ -52,8 +52,6 @@ export default function (container) {
 		// ── Back button ───────────────────────────────────────────────────────────
 		let backRect = null;
 		let backHovered = false;
-		let blinkVisible = true;
-		let lastBlink = 0;
 
 		sketch.setup = () => {
 			const w = window.innerWidth;
@@ -76,11 +74,6 @@ export default function (container) {
 			// Smooth scroll
 			scrollY += (targetScrollY - scrollY) * THEME.SCROLL_LERP;
 
-			// Blink tick
-			const blink = tickBlink(blinkVisible, lastBlink, now);
-			blinkVisible = blink.visible;
-			lastBlink = blink.lastBlink;
-
 			// Check which blocks are now visible and trigger GSAP reveal
 			triggerVisibleBlocks(h);
 
@@ -90,7 +83,8 @@ export default function (container) {
 			// ── Back button (top-left) ────────────────────────────────────────────
 			const backSz = w * 0.014;
 			const backPad = w * 0.04;
-			backRect = drawButton(artBuffer, "[ RETOUR AU QUARTIER ]", backPad + artBuffer.textWidth("[ RETOUR AU QUARTIER ]") * 0.5 + backSz, backSz * 2, backSz, backHovered || blinkVisible, sketch);
+			const backLabel = returnTo === "desktop" ? "[ RETOUR AU BUREAU ]" : "[ RETOUR AU QUARTIER ]";
+			backRect = drawButton(artBuffer, backLabel, backPad + artBuffer.textWidth(backLabel) * 0.5 + backSz, backSz * 2, backSz, backHovered, sketch);
 
 			// ── Content blocks ────────────────────────────────────────────────────
 			const contentX = w * 0.12;
@@ -137,7 +131,11 @@ export default function (container) {
 
 		sketch.mousePressed = () => {
 			if (backRect && hitTest(sketch.mouseX, sketch.mouseY, backRect)) {
-				sceneNavigate("neighborhood", {slug: neighborhood});
+				if (returnTo === "desktop") {
+					sceneNavigate("desktop");
+				} else {
+					sceneNavigate("neighborhood", {slug: neighborhood});
+				}
 			}
 		};
 

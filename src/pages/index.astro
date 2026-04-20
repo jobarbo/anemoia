@@ -60,6 +60,7 @@ const storiesMap = Object.fromEntries(
 			id: story.id,
 			title: story.data.title,
 			neighborhood: story.data.neighborhood,
+			returnTo: story.data.returnTo ?? "neighborhood",
 			audioSrc: story.data.audioSrc ?? null,
 			order: story.data.order,
 			blocks: parseMarkdownBlocks(story.body),

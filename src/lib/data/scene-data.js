@@ -27,6 +27,7 @@ let _cache = null;
  *   id: string,
  *   title: string,
  *   neighborhood: string,
+ *   returnTo?: 'desktop' | 'neighborhood',
  *   audioSrc?: string,
  *   order: number,
  *   blocks: Array<{ type: 'h1'|'h2'|'p', text: string }>

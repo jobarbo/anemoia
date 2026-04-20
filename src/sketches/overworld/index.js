@@ -14,7 +14,7 @@
  */
 
 import {sceneNavigate} from "../../lib/router/scene-nav.js";
-import {THEME, drawTitleAberration, drawButton, hitTest, tickBlink, applyThemeCanvasFont} from "../../lib/utils/retro-theme.js";
+import {THEME, drawTitleAberration, drawButton, hitTest, applyThemeCanvasFont} from "../../lib/utils/retro-theme.js";
 
 export default function (container) {
 	const raw = container.dataset.sketchData;
@@ -26,9 +26,6 @@ export default function (container) {
 		/** Keyboard selection index: 0..neighborhoods.length-1 = a pin, neighborhoods.length = back button */
 		let selectedPin = 0;
 
-		/** Blinking state for back button */
-		let blinkVisible = true;
-		let lastBlink = 0;
 		let backRect = null;
 		let backHovered = false;
 		let mapBounds = {x: 0, y: 0, w: 0, h: 0};
@@ -54,14 +51,8 @@ export default function (container) {
 		};
 
 		sketch.draw = () => {
-			const now = sketch.millis();
 			const w = artBuffer.width;
 			const h = artBuffer.height;
-
-			// Blink tick
-			const blink = tickBlink(blinkVisible, lastBlink, now);
-			blinkVisible = blink.visible;
-			lastBlink = blink.lastBlink;
 
 			// ── Background ────────────────────────────────────────────────────────
 			artBuffer.background(...THEME.BG);
@@ -96,7 +87,7 @@ export default function (container) {
 			const backSz = w * 0.016;
 			const backY = h - footerH / 2;
 			const backSelected = selectedPin === neighborhoods.length;
-			backRect = drawButton(artBuffer, "[ RETOUR AU MENU ]", w / 2, backY, backSz, backSelected || blinkVisible || backHovered, sketch);
+			backRect = drawButton(artBuffer, "[ RETOUR AU MENU ]", w / 2, backY, backSz, backSelected || backHovered, sketch);
 
 			// Key hint
 			const hintSz = w * 0.011;

@@ -33,7 +33,7 @@ async function initMl5Source(onMove) {
 		maxFaces: 1,
 		refineLandmarks: true,
 		flipHorizontal: false,
-		debug: true,
+		debug: false,
 	};
 	const {debug: enableDebugCanvas, ...modelOptions} = faceMeshOptions;
 
@@ -71,9 +71,6 @@ async function initMl5Source(onMove) {
 			lastPose = smoothPose(lastPose, nextPose);
 			if (lastPose) {
 				onMove(lastPose.x, lastPose.y);
-				if (enableDebugCanvas) {
-					window.__htDebug?.(video, lastPose.x, lastPose.y);
-				}
 			}
 		} catch {
 			// Ignore transient inference payload errors and keep the tracker alive.

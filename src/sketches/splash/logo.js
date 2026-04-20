@@ -23,14 +23,10 @@ const BG = [...THEME.BG];
 export function createLogoPhase(sketch, artBuffer, fontApi) {
 	let startTime = null;
 	let advanced = false;
-	let blinkVisible = true;
-	let lastBlink = 0;
 
 	function reset() {
 		startTime = null;
 		advanced = false;
-		blinkVisible = true;
-		lastBlink = 0;
 	}
 
 	function isDone() {
@@ -44,12 +40,6 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 
 	function draw(now) {
 		if (startTime === null) startTime = now;
-
-		// Blink
-		if (now - lastBlink > THEME.BLINK_MS) {
-			blinkVisible = !blinkVisible;
-			lastBlink = now;
-		}
 
 		const buf = artBuffer;
 		const w = buf.width;
@@ -158,14 +148,12 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 		buf.fill(...THEME.GREEN_SUBTLE, 120);
 		buf.text("Copyright (C) 1998  BootSoft Inc.  Tous droits réservés.", cx, infoY + infoSz * 1.8);
 
-		// ── Blinking prompt ────────────────────────────────────────────────────
-		if (blinkVisible) {
-			const promptSz = Math.max(10, Math.round(w * 0.016));
-			buf.textAlign(sketch.CENTER, sketch.CENTER);
-			fontApi?.applyCanvasFont?.(buf, promptSz) ?? buf.textSize(promptSz);
-			buf.fill(...THEME.GREEN_MID, 210);
-			buf.text("[ CLIQUEZ POUR CONTINUER ]", cx, h - h * 0.07);
-		}
+		// ── Prompt ─────────────────────────────────────────────────────────────
+		const promptSz = Math.max(10, Math.round(w * 0.016));
+		buf.textAlign(sketch.CENTER, sketch.CENTER);
+		fontApi?.applyCanvasFont?.(buf, promptSz) ?? buf.textSize(promptSz);
+		buf.fill(...THEME.GREEN_MID, 210);
+		buf.text("[ CLIQUEZ POUR CONTINUER ]", cx, h - h * 0.07);
 	}
 
 	return {draw, isDone, onPointerPressed, reset};

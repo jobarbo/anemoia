@@ -17,12 +17,10 @@ const BASE_SCENE_EFFECTS = {
 export const SCENE_EFFECTS = JSON.parse(JSON.stringify(BASE_SCENE_EFFECTS));
 import p5 from "p5";
 import {fetchNeighborhoodManifest} from "../lib/data/scene-data.js";
-import {sceneNavigate} from "../lib/router/scene-nav.js";
 import {DEBUG_DISABLE_PARALLAX, initMouseParallax, initScrollParallax} from "../lib/input/parallax.js";
 import {initHeadTrackingParallax} from "../lib/input/head-tracking.js";
 import {refreshGlobalAudioPlayer, tryPlayGlobalAudio} from "../lib/audio/global-audio-ui.js";
 import {installPointerRemap} from "../lib/input/input-remap.js";
-import {THEME} from "../lib/utils/retro-theme.js";
 import {getSketchLoader} from "../sketches/index.js";
 
 const DEFAULT_SCENE_SKETCHES = [{sketch: "snow", slot: "foreground"}];
@@ -39,10 +37,6 @@ export async function mount(container, params, data) {
 
 	// Outer container — mirrors .neighborhood-container from the old page
 	container.style.cssText = "height:100vh;background:#000;overflow-y:auto;overflow-x:visible;position:relative;";
-
-	// Back button (above shader overlay)
-	const backWrapper = createBackButton(slug);
-	container.appendChild(backWrapper);
 
 	// Scene root — mirrors <div class="scene neighborhood-scene" data-scene-renderer …>
 	const scene = document.createElement("div");
@@ -220,7 +214,7 @@ export async function mount(container, params, data) {
 		initHeadTrackingParallax(layers, {
 			allowDeviceOrientationFallback: true,
 			allowMouseFallback: true,
-			scrollContainer: container,
+			scrollContainer: null,
 		})
 			.then((cleanup) => {
 				cleanupParallax = () => {
@@ -274,41 +268,6 @@ function applySceneEffectsOverride(overrides) {
 }
 
 // ── DOM helpers ───────────────────────────────────────────────────────────────
-
-function createBackButton(slug) {
-	const wrapper = document.createElement("div");
-	wrapper.dataset.html2canvasIgnore = "true";
-	Object.assign(wrapper.style, {
-		position: "fixed",
-		top: "0",
-		left: "0",
-		zIndex: "900002",
-		pointerEvents: "auto",
-	});
-
-	const link = document.createElement("a");
-	link.href = "/overworld";
-	link.className = "back-btn";
-	link.textContent = "← Retour à la carte";
-	Object.assign(link.style, {
-		display: "inline-block",
-		padding: "0.6rem 1.2rem",
-		color: "#8ace8a",
-		fontFamily: THEME.FONT,
-		fontSize: "0.85rem",
-		textDecoration: "none",
-		background: "rgba(0,0,0,0.5)",
-		backdropFilter: "blur(4px)",
-	});
-
-	link.addEventListener("click", (e) => {
-		e.preventDefault();
-		sceneNavigate("overworld");
-	});
-
-	wrapper.appendChild(link);
-	return wrapper;
-}
 
 function createLayerMedia(layer, parentLayer, scenePath) {
 	const imagePath = layer.file.startsWith("/") || layer.file.startsWith("http") ? layer.file : `${scenePath}/${layer.file}`;

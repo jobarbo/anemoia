@@ -8,15 +8,13 @@
  */
 
 import {sceneNavigate} from "../../lib/router/scene-nav.js";
-import {THEME, applyThemeCanvasFont, hitTest, tickBlink} from "../../lib/utils/retro-theme.js";
+import {THEME, applyThemeCanvasFont, hitTest} from "../../lib/utils/retro-theme.js";
 
 export default function (container) {
 	return (sketch) => {
 		let artBuffer;
-		let iconRect = null;
-		let iconHovered = false;
-		let blinkVisible = true;
-		let lastBlink = 0;
+		let interactiveRows = [];
+		let hoveredRowAction = null;
 		let locationLabel = "Localisation...";
 		let weatherLabel = "Météo : --";
 
@@ -36,32 +34,34 @@ export default function (container) {
 		};
 
 		sketch.draw = () => {
-			const now = sketch.millis();
 			const w = artBuffer.width;
 			const h = artBuffer.height;
-
-			const blink = tickBlink(blinkVisible, lastBlink, now);
-			blinkVisible = blink.visible;
-			lastBlink = blink.lastBlink;
 
 			drawDesktopBackground(artBuffer, w, h, sketch);
 			drawTopBar(artBuffer, w, h, sketch);
 			drawBottomNav(artBuffer, w, h, locationLabel, weatherLabel, sketch);
 
-			iconRect = drawInteractivePanel(artBuffer, w, h, iconHovered, blinkVisible, sketch);
+			interactiveRows = drawInteractivePanel(artBuffer, w, h, hoveredRowAction, sketch);
 			drawSystemCard(artBuffer, w, h, sketch);
 
 			sketch.clear();
 			sketch.image(artBuffer, 0, 0);
-			container.style.cursor = iconHovered ? "pointer" : "default";
+			container.style.cursor = hoveredRowAction ? "pointer" : "default";
 		};
 
 		sketch.mouseMoved = () => {
-			iconHovered = Boolean(iconRect && hitTest(sketch.mouseX, sketch.mouseY, iconRect));
+			const hoveredRow = interactiveRows.find((row) => hitTest(sketch.mouseX, sketch.mouseY, row.rect));
+			hoveredRowAction = hoveredRow?.action ?? null;
 		};
 
 		sketch.mousePressed = () => {
-			if (iconRect && hitTest(sketch.mouseX, sketch.mouseY, iconRect)) {
+			const clickedRow = interactiveRows.find((row) => hitTest(sketch.mouseX, sketch.mouseY, row.rect));
+			if (!clickedRow) return;
+			if (clickedRow.action === "story:lismoi") {
+				sceneNavigate("story", {slug: "la-memoire"});
+				return;
+			}
+			if (clickedRow.action === "overworld") {
 				sceneNavigate("overworld");
 			}
 		};
@@ -143,7 +143,7 @@ function drawBottomNav(buf, w, h, locationLabel, weatherLabel, p) {
 	buf.text("Gestionnaire de fichiers", w * 0.97, barY + barH * 0.5);
 }
 
-function drawInteractivePanel(buf, w, h, shortcutHovered, blinking, p) {
+function drawInteractivePanel(buf, w, h, hoveredAction, p) {
 	const panelX = w * 0.08;
 	const panelY = h * 0.23;
 	const panelW = w * 0.44;
@@ -178,8 +178,8 @@ function drawInteractivePanel(buf, w, h, shortcutHovered, blinking, p) {
 	const branchColor = [...THEME.GREEN_MID, 120];
 
 	const rows = [
-		{label: "LISMOI", depth: 0, interactive: true},
-		{label: "Les quartiers états", depth: 1, interactive: true},
+		{label: "LISMOI", depth: 0, interactive: true, action: "story:lismoi"},
+		{label: "Les quartiers états", depth: 1, interactive: true, action: "overworld"},
 	];
 
 	buf.stroke(...branchColor);
@@ -213,7 +213,7 @@ function drawInteractivePanel(buf, w, h, shortcutHovered, blinking, p) {
 	applyThemeCanvasFont(buf, optionSz, p);
 	buf.textAlign(p.LEFT, p.CENTER);
 
-	let interactiveRect = {x: panelX + panelW * 0.2, y: treeStartY, w: panelW * 0.58, h: rowH * 0.84};
+	const interactiveRows = [];
 	for (let i = 0; i < rows.length; i++) {
 		const row = rows[i];
 		const y = treeStartY + i * rowH;
@@ -229,18 +229,21 @@ function drawInteractivePanel(buf, w, h, shortcutHovered, blinking, p) {
 			const rowBoxY = y - rowH * 0.42;
 			const rowBoxW = panelW * 0.56;
 			const rowBoxH = rowH * 0.84;
-			interactiveRect = {x: rowBoxX, y: rowBoxY, w: rowBoxW, h: rowBoxH};
+			const rowRect = {x: rowBoxX, y: rowBoxY, w: rowBoxW, h: rowBoxH};
+			interactiveRows.push({action: row.action, rect: rowRect});
+			const rowHovered = hoveredAction === row.action;
 			buf.noStroke();
-			buf.fill(...THEME.GREEN_PRIMARY, shortcutHovered ? 75 : 45);
+			buf.fill(...THEME.GREEN_PRIMARY, rowHovered ? 75 : 45);
 			buf.rect(rowBoxX, rowBoxY, rowBoxW, rowBoxH, 4);
 		}
 
 		buf.noStroke();
-		buf.fill(...THEME.GREEN_SUBTLE, isInteractive && (shortcutHovered || blinking) ? 255 : 210);
+		const rowActive = isInteractive && hoveredAction === row.action;
+		buf.fill(...THEME.GREEN_SUBTLE, rowActive ? 255 : 210);
 		buf.text(row.label, labelX, y);
 	}
 
-	return interactiveRect;
+	return interactiveRows;
 }
 
 function drawSystemCard(buf, w, h, p) {
