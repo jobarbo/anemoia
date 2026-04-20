@@ -10,13 +10,24 @@
 		"position": {"x": 45, "y": 60}
 	},
 	{
-		"id": "limoilou",
-		"name": "Limoilou",
-		"slug": "limoilou",
+		"id": "vieux-limoilou",
+		"name": "Vieux-Limoilou",
+		"slug": "vieux-limoilou",
 		"description": "Le charme des balcons et escaliers en colimaçon.",
-		"scenePath": "/assets/scenes/limoilou/manifest.json",
-		"audioSrc": "/assets/scenes/limoilou/ambient.mp3",
+		"scenePath": "/assets/scenes/vieux-limoilou/manifest.json",
+		"audioSrc": "/assets/scenes/vieux-limoilou/ambient.mp3",
 		"stories": [],
 		"position": {"x": 65, "y": 30}
+	},
+
+	{
+		"id": "Cité-Universitaire",
+		"name": "Cité-Universitaire",
+		"slug": "Cité-Universitaire",
+		"description": "Le quartier étudiant de la ville.",
+		"scenePath": "/assets/scenes/sainte-foy/manifest.json",
+		"audioSrc": "/assets/scenes/sainte-foy/ambient.mp3",
+		"stories": [],
+		"position": {"x": 80, "y": 40}
 	}
 ]
