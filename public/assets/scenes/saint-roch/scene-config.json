@@ -30,7 +30,8 @@
 					"sampleCount": 8.0,
 					"invert": 1.0,
 					"sortMode": 2.0,
-					"timeMultiplier": 1.3
+					"timeMultiplier": 1.3,
+					"resolutionScale": 0.3
 				}
 			}
 		]

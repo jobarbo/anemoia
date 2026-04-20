@@ -121,8 +121,7 @@ export async function mount(container, params, data) {
 			sketchLayerContainer.dataset.sketchData = JSON.stringify({
 				imagePath: layer.file.startsWith("/") || layer.file.startsWith("http") ? layer.file : `${scenePath}/${layer.file}`,
 				mode,
-				pixelSort:
-					effect.sketch === "pixelsort" && effect.pixelSort && typeof effect.pixelSort === "object" ? effect.pixelSort : undefined,
+				pixelSort: effect.sketch === "pixelsort" && effect.pixelSort && typeof effect.pixelSort === "object" ? effect.pixelSort : undefined,
 			});
 			const zOffset = Number.isFinite(effect.zOffset) ? effect.zOffset : 2;
 			sketchLayerContainer.style.cssText = `

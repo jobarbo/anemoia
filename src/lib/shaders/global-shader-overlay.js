@@ -364,6 +364,18 @@ export class GlobalShaderOverlay {
 		this._lastDomSnapshotStartedAt = 0;
 		/** @type {number} 0 = fully visible, 1 = fully black (used for scene transitions) */
 		this._transitionAlpha = 0;
+		/** @type {boolean} */
+		this._fpsDebugEnabled = false;
+		/** @type {HTMLDivElement|null} */
+		this._fpsHudEl = null;
+		/** @type {number} */
+		this._fpsLastSampleAt = 0;
+		/** @type {number} */
+		this._fpsFramesSinceSample = 0;
+		/** @type {number} */
+		this._fpsSmoothed = 0;
+		/** @type {(event: KeyboardEvent) => void} */
+		this._onKeyDown = this._handleKeyDown.bind(this);
 	}
 
 	/**
@@ -373,6 +385,7 @@ export class GlobalShaderOverlay {
 	mount(scrollContainer) {
 		this._scrollContainer = scrollContainer;
 		_overlayInstance = this;
+		window.addEventListener("keydown", this._onKeyDown);
 
 		const shaders = new ShaderEffects({effects: this._effects});
 		const self = this;
@@ -381,6 +394,8 @@ export class GlobalShaderOverlay {
 			sketch.setup = async () => {
 				await shaders.loadShaders(sketch);
 				self._shaderEffects = shaders;
+				// Force 1x render resolution for stable performance on high-DPI displays.
+				sketch.pixelDensity(1);
 
 				const w = window.innerWidth;
 				const h = window.innerHeight;
@@ -391,6 +406,9 @@ export class GlobalShaderOverlay {
 				self._rawComposite = sketch.createGraphics(w, h);
 				// WEBGL buffer: receives P2D content via p5 image(), used as shader uTexture
 				self._webglBuffer = sketch.createGraphics(w, h, sketch.WEBGL);
+				self._captureBuffer.pixelDensity(1);
+				self._rawComposite.pixelDensity(1);
+				self._webglBuffer.pixelDensity(1);
 
 				const outputCanvas = sketch.createCanvas(w, h, sketch.WEBGL);
 				outputCanvas.elt.remove();
@@ -411,6 +429,7 @@ export class GlobalShaderOverlay {
 				if (self._destroyed || !self._scrollContainer) return;
 
 				self._frameCount++;
+				self._updateFpsHud(performance.now());
 
 				scheduleDomSnapshotIfNeeded(self);
 
@@ -592,6 +611,86 @@ export class GlobalShaderOverlay {
 		};
 	}
 
+	/**
+	 * @param {KeyboardEvent} event
+	 */
+	_handleKeyDown(event) {
+		if (event.defaultPrevented || event.repeat) return;
+		if (event.ctrlKey || event.metaKey || event.altKey) return;
+		if ((event.key ?? "").toLowerCase() !== "f") return;
+
+		const target = /** @type {HTMLElement|null} */ (event.target);
+		if (target) {
+			const tag = target.tagName;
+			const isTypingTarget = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || target.isContentEditable;
+			if (isTypingTarget) return;
+		}
+
+		this._fpsDebugEnabled = !this._fpsDebugEnabled;
+		if (this._fpsDebugEnabled) {
+			this._ensureFpsHud();
+			this._fpsLastSampleAt = performance.now();
+			this._fpsFramesSinceSample = 0;
+			this._fpsSmoothed = 0;
+			if (this._fpsHudEl) this._fpsHudEl.style.display = "block";
+			return;
+		}
+		if (this._fpsHudEl) this._fpsHudEl.style.display = "none";
+	}
+
+	_ensureFpsHud() {
+		if (this._fpsHudEl) return;
+		const el = document.createElement("div");
+		el.setAttribute("data-fps-debug", "true");
+		el.style.position = "fixed";
+		el.style.top = "12px";
+		el.style.left = "12px";
+		el.style.zIndex = "10001";
+		el.style.padding = "6px 8px";
+		el.style.border = "1px solid rgba(122, 255, 122, 0.5)";
+		el.style.background = "rgba(0, 0, 0, 0.72)";
+		el.style.color = "#7aff7a";
+		el.style.fontFamily = "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace";
+		el.style.fontSize = "12px";
+		el.style.lineHeight = "1.2";
+		el.style.letterSpacing = "0.03em";
+		el.style.pointerEvents = "none";
+		el.style.userSelect = "none";
+		el.style.display = "none";
+		el.textContent = "FPS --";
+		document.body.appendChild(el);
+		this._fpsHudEl = el;
+	}
+
+	/**
+	 * @param {number} now
+	 */
+	_updateFpsHud(now) {
+		if (!this._fpsDebugEnabled) return;
+		this._ensureFpsHud();
+		this._fpsFramesSinceSample += 1;
+
+		if (this._fpsLastSampleAt === 0) {
+			this._fpsLastSampleAt = now;
+			return;
+		}
+
+		const elapsedMs = now - this._fpsLastSampleAt;
+		if (elapsedMs < 250) return;
+
+		const instantFps = (this._fpsFramesSinceSample * 1000) / elapsedMs;
+		this._fpsSmoothed = this._fpsSmoothed > 0 ? this._fpsSmoothed * 0.65 + instantFps * 0.35 : instantFps;
+		if (this._fpsHudEl) this._fpsHudEl.textContent = `FPS ${Math.round(this._fpsSmoothed)}`;
+		this._fpsLastSampleAt = now;
+		this._fpsFramesSinceSample = 0;
+	}
+
+	_removeFpsHud() {
+		if (!this._fpsHudEl) return;
+		this._fpsHudEl.remove();
+		this._fpsHudEl = null;
+	}
+
 	destroy() {
 		this._destroyed = true;
 		if (_overlayInstance === this) _overlayInstance = null;
@@ -610,6 +709,8 @@ export class GlobalShaderOverlay {
 		this._domSnapshotCanvas = null;
 		this._domSnapshotInFlight = false;
 		this._shaderEffects = null;
+		window.removeEventListener("keydown", this._onKeyDown);
+		this._removeFpsHud();
 	}
 }
 
