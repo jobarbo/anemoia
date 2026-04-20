@@ -9,6 +9,9 @@ import {THEME, applyThemeCanvasFont} from "../../lib/utils/retro-theme.js";
 import {sceneNavigate} from "../../lib/router/scene-nav.js";
 import {drawButton, hitTest} from "../../lib/utils/retro-theme.js";
 
+const CUTOUT_DIM_ALPHA = 80;
+const CUTOUT_DIM_RGB = [0, 0, 0];
+
 export default function (container) {
 	const raw = container.dataset.sketchData;
 	const {slug = "", name = ""} = raw ? JSON.parse(raw) : {};
@@ -105,10 +108,15 @@ function drawOpaqueFrame(buf, w, h, framePad) {
 	buf.erase();
 	buf.rect(framePad, framePad, w - framePad * 2, h - framePad * 2, innerRadius);
 	buf.noErase();
+	// Keep the center transparent enough to reveal scene content, but dim it slightly.
+	buf.fill(...CUTOUT_DIM_RGB, CUTOUT_DIM_ALPHA);
+	buf.rect(framePad, framePad, w - framePad * 2, h - framePad * 2, innerRadius);
 
 	buf.noFill();
-	buf.stroke(...THEME.GREEN_MID, 120);
-	buf.strokeWeight(2);
+	buf.stroke(...THEME.GREEN_PRIMARY, 255);
+	//dashed stroke with 4px gap
+	//buf.drawingContext.setLineDash([8, 16]);
+	buf.strokeWeight(4);
 	buf.rect(framePad, framePad, w - framePad * 2, h - framePad * 2, innerRadius);
 	buf.noStroke();
 }

@@ -32,6 +32,63 @@ import {ShaderEffects} from "./shader-effects.js";
 
 /** Min delay between successful DOM snapshots (html-to-image is heavy). */
 const DOM_SNAPSHOT_INTERVAL_MS = 1000;
+const DEFAULT_MAX_RENDER_PIXELS = 800 * 800;
+
+/**
+ * @param {number} value
+ * @param {number} min
+ * @param {number} max
+ * @returns {number}
+ */
+function clamp(value, min, max) {
+	if (!Number.isFinite(value)) return min;
+	return Math.min(max, Math.max(min, value));
+}
+
+/**
+ * Compute internal render size used by the compositor + shader pipeline.
+ * Output canvas still stays at full viewport size and upscales this texture.
+ *
+ * @param {number} viewportW
+ * @param {number} viewportH
+ * @param {{ renderScale: number, maxRenderPixels: number, maxRenderWidth: number, maxRenderHeight: number }} settings
+ * @returns {{ width: number, height: number }}
+ */
+function computeInternalRenderSize(viewportW, viewportH, settings) {
+	const safeViewportW = Math.max(1, Math.round(viewportW));
+	const safeViewportH = Math.max(1, Math.round(viewportH));
+	let width = safeViewportW * clamp(settings.renderScale, 0.1, 1);
+	let height = safeViewportH * clamp(settings.renderScale, 0.1, 1);
+
+	const maxPixels = Math.max(0, Math.round(settings.maxRenderPixels));
+	if (maxPixels > 0) {
+		const pixelCount = width * height;
+		if (pixelCount > maxPixels) {
+			const factor = Math.sqrt(maxPixels / pixelCount);
+			width *= factor;
+			height *= factor;
+		}
+	}
+
+	const maxWidth = Math.max(0, Math.round(settings.maxRenderWidth));
+	if (maxWidth > 0 && width > maxWidth) {
+		const factor = maxWidth / width;
+		width *= factor;
+		height *= factor;
+	}
+
+	const maxHeight = Math.max(0, Math.round(settings.maxRenderHeight));
+	if (maxHeight > 0 && height > maxHeight) {
+		const factor = maxHeight / height;
+		width *= factor;
+		height *= factor;
+	}
+
+	return {
+		width: Math.max(1, Math.round(width)),
+		height: Math.max(1, Math.round(height)),
+	};
+}
 
 /**
  * @param {HTMLElement} domNode
@@ -50,15 +107,19 @@ function domCompositeFilter(domNode) {
 const DEFAULT_EFFECTS = {
 	pixelGrid: {
 		enabled: false,
-		gridCols: 320.0,
-		gridRows: 320.0,
+		gridCols: 1800.0,
+		gridRows: 1800.0,
 		cellRatio: 1.0,
 		mode: 1.0,
 		diffuse: 0.0,
 		gapSize: 0.0,
 		gapBrightness: 1.0,
 	},
-
+	chromatic: {
+		enabled: true,
+		amount: 0.0035,
+		timeMultiplier: 0.0,
+	},
 	colorQuantize: {
 		enabled: false,
 		levelsPerChannel: 12.0,
@@ -80,31 +141,19 @@ const DEFAULT_EFFECTS = {
 		animateZoom: 0.0,
 		easingMode: 4.0,
 	},
-	crtDisplay: {
-		enabled: true,
-		brightness: 0.99,
-		cellSize: 2.0,
-		gapOpacity: 0.6,
-		rgbOpacity: 0.7,
-		rgbGain: [1.0, 1.0, 1.0],
-		dotRadius: 0.41,
-		dotFalloff: 0.4,
-		filterMode: 0.0,
-	},
 
 	crtWarp: {
 		enabled: true,
 		warpAmount: 0.25,
-		aspectCorrect: 1.0,
+		aspectCorrect: 0.0,
 		borderColor: 2.0,
 		vignette: 0.0,
 		cornerSmooth: 0.015,
 		cornerRadius: 0.08,
 		boundsInset: 0.08,
 	},
-
 	blur: {
-		enabled: true,
+		enabled: false,
 		blurAmount: 2.0,
 		blurQuality: 40.0,
 		blurDirection: 0,
@@ -114,10 +163,16 @@ const DEFAULT_EFFECTS = {
 		blurCrtPower: 10.0,
 		blurMin: 0.0,
 	},
-	chromatic: {
+	crtDisplay: {
 		enabled: true,
-		amount: 0.0025,
-		timeMultiplier: 0.0,
+		brightness: 0.99,
+		cellSize: 2,
+		gapOpacity: 0.6,
+		rgbOpacity: 0.0,
+		rgbGain: [1.0, 1.0, 1.0],
+		dotRadius: 0.41,
+		dotFalloff: 0.4,
+		filterMode: 1.0,
 	},
 };
 
@@ -206,19 +261,25 @@ function compositeFlatRaster(container, ctx, w, h) {
  * @param {number} h
  * @param {HTMLCanvasElement|null} domSnapshotCanvas - from html-to-image when [data-dom-snapshot]
  */
-function compositeGameScreen(container, ctx, w, h, domSnapshotCanvas) {
+function compositeGameScreen(container, ctx, captureW, captureH, viewportW, viewportH, domSnapshotCanvas) {
 	// Always clear to black — body can be themed separately; light clears caused visible flashes
 	// when swapping scenes before the next canvas frame is captured.
 	ctx.fillStyle = "#000000";
-	ctx.fillRect(0, 0, w, h);
+	ctx.fillRect(0, 0, captureW, captureH);
 
+	const scaleX = captureW / Math.max(1, viewportW);
+	const scaleY = captureH / Math.max(1, viewportH);
+
+	ctx.save();
+	ctx.scale(scaleX, scaleY);
 	if (container.querySelector(".scene__layer-container")) {
-		compositeLayerContainers(container, ctx, w, h);
+		compositeLayerContainers(container, ctx, viewportW, viewportH);
 	} else if (container.hasAttribute("data-dom-snapshot") && domSnapshotCanvas) {
-		ctx.drawImage(domSnapshotCanvas, 0, 0, w, h);
+		ctx.drawImage(domSnapshotCanvas, 0, 0, viewportW, viewportH);
 	} else {
-		compositeFlatRaster(container, ctx, w, h);
+		compositeFlatRaster(container, ctx, viewportW, viewportH);
 	}
+	ctx.restore();
 }
 
 const smoothstep = (x) => x * x * (3 - 2 * x);
@@ -335,6 +396,14 @@ export class GlobalShaderOverlay {
 	constructor(options = {}) {
 		const baseEffects = options.effects ?? DEFAULT_EFFECTS;
 		this._effects = cloneEffectsConfig(baseEffects);
+		const renderOptions = options.render ?? {};
+		/** @type {{ renderScale: number, maxRenderPixels: number, maxRenderWidth: number, maxRenderHeight: number }} */
+		this._renderSettings = {
+			renderScale: clamp(Number(renderOptions.renderScale ?? 1), 0.1, 1),
+			maxRenderPixels: Math.max(0, Math.round(Number(renderOptions.maxRenderPixels ?? DEFAULT_MAX_RENDER_PIXELS))),
+			maxRenderWidth: Math.max(0, Math.round(Number(renderOptions.maxRenderWidth ?? 0))),
+			maxRenderHeight: Math.max(0, Math.round(Number(renderOptions.maxRenderHeight ?? 0))),
+		};
 
 		/** @type {p5|null} */
 		this._p5Instance = null;
@@ -399,13 +468,14 @@ export class GlobalShaderOverlay {
 
 				const w = window.innerWidth;
 				const h = window.innerHeight;
+				const internalSize = computeInternalRenderSize(w, h, self._renderSettings);
 
 				// P2D buffer: final pre-shader frame (after optional CRT pass)
-				self._captureBuffer = sketch.createGraphics(w, h);
+				self._captureBuffer = sketch.createGraphics(internalSize.width, internalSize.height);
 				// Raw composite from DOM/canvas before CRT beam effect
-				self._rawComposite = sketch.createGraphics(w, h);
+				self._rawComposite = sketch.createGraphics(internalSize.width, internalSize.height);
 				// WEBGL buffer: receives P2D content via p5 image(), used as shader uTexture
-				self._webglBuffer = sketch.createGraphics(w, h, sketch.WEBGL);
+				self._webglBuffer = sketch.createGraphics(internalSize.width, internalSize.height, sketch.WEBGL);
 				self._captureBuffer.pixelDensity(1);
 				self._rawComposite.pixelDensity(1);
 				self._webglBuffer.pixelDensity(1);
@@ -438,8 +508,10 @@ export class GlobalShaderOverlay {
 				if (self._frameCount % COMPOSITE_EVERY_N_FRAMES === 0) {
 					const cw = self._captureBuffer.width;
 					const ch = self._captureBuffer.height;
+					const vw = window.innerWidth;
+					const vh = window.innerHeight;
 
-					compositeGameScreen(self._scrollContainer, self._rawComposite.drawingContext, cw, ch, self._domSnapshotCanvas);
+					compositeGameScreen(self._scrollContainer, self._rawComposite.drawingContext, cw, ch, vw, vh, self._domSnapshotCanvas);
 
 					if (self._crtTransition) {
 						const tr = self._crtTransition;
@@ -481,9 +553,10 @@ export class GlobalShaderOverlay {
 			sketch.windowResized = () => {
 				const w = window.innerWidth;
 				const h = window.innerHeight;
-				self._captureBuffer.resizeCanvas(w, h);
-				self._rawComposite.resizeCanvas(w, h);
-				self._webglBuffer.resizeCanvas(w, h);
+				const internalSize = computeInternalRenderSize(w, h, self._renderSettings);
+				self._captureBuffer.resizeCanvas(internalSize.width, internalSize.height);
+				self._rawComposite.resizeCanvas(internalSize.width, internalSize.height);
+				self._webglBuffer.resizeCanvas(internalSize.width, internalSize.height);
 				sketch.resizeCanvas(w, h);
 				self._domSnapshotCanvas = null;
 				self._lastDomSnapshotStartedAt = 0;
