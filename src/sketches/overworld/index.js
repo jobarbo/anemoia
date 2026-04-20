@@ -103,7 +103,7 @@ export default function (container) {
 			artBuffer.textAlign(sketch.RIGHT, sketch.CENTER);
 			applyThemeCanvasFont(artBuffer, hintSz, sketch);
 			artBuffer.fill(...THEME.GREEN_SUBTLE, 120);
-			artBuffer.text("↑↓ SELECT   ENTER CONFIRM   ESC BACK", w - w * 0.04, h - footerH / 2);
+			artBuffer.text("↑↓ CHOISIR   ENTRÉE CONFIRMER   ESC RETOUR", w - w * 0.04, h - footerH / 2);
 
 			// Blit artBuffer onto output canvas
 			sketch.clear();

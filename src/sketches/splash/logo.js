@@ -146,7 +146,7 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 		buf.textAlign(sketch.CENTER, sketch.CENTER);
 		fontApi?.applyCanvasFont?.(buf, subSz) ?? (buf.textFont(canvasFont), buf.textSize(subSz));
 		buf.fill(0, 200, 240, 200);
-		buf.text("RELEASE  3.0", cx, markY + subtitleOffsetY);
+		buf.text("VERSION  3.0", cx, markY + subtitleOffsetY);
 
 		// ── Version info (below box) ───────────────────────────────────────────
 		const infoSz = Math.max(10, Math.round(w * 0.013));
@@ -156,7 +156,7 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 		buf.fill(...THEME.GREEN_SUBTLE, 180);
 		buf.text("Version 3.0.1   Build 9804", cx, infoY);
 		buf.fill(...THEME.GREEN_SUBTLE, 120);
-		buf.text("Copyright (C) 1998  BootSoft Inc.  All rights reserved.", cx, infoY + infoSz * 1.8);
+		buf.text("Copyright (C) 1998  BootSoft Inc.  Tous droits réservés.", cx, infoY + infoSz * 1.8);
 
 		// ── Blinking prompt ────────────────────────────────────────────────────
 		if (blinkVisible) {
@@ -164,7 +164,7 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 			buf.textAlign(sketch.CENTER, sketch.CENTER);
 			fontApi?.applyCanvasFont?.(buf, promptSz) ?? buf.textSize(promptSz);
 			buf.fill(...THEME.GREEN_MID, 210);
-			buf.text("[ CLICK TO CONTINUE ]", cx, h - h * 0.07);
+			buf.text("[ CLIQUEZ POUR CONTINUER ]", cx, h - h * 0.07);
 		}
 	}
 

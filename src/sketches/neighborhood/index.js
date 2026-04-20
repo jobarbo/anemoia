@@ -45,7 +45,7 @@ export default function (container) {
 
 			applyThemeCanvasFont(artBuffer, Math.max(10, Math.round(w * 0.011)), sketch);
 			artBuffer.fill(...THEME.GREEN_SUBTLE, 180);
-			artBuffer.text("NEIGHBORHOOD SCENE ACTIVE", w - padX, padY + Math.max(20, h * 0.04));
+			artBuffer.text("SCENE DE QUARTIER ACTIVE", w - padX, padY + Math.max(20, h * 0.04));
 
 			if (blinkVisible) {
 				applyThemeCanvasFont(artBuffer, Math.max(10, Math.round(w * 0.012)), sketch);

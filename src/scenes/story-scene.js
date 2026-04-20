@@ -11,7 +11,7 @@ import {getSketchLoader} from "../sketches/index.js";
 
 export async function mount(container, _params, data) {
 	const sketchMod = await getSketchLoader("story");
-	if (!sketchMod) throw new Error("Missing story sketch loader");
+	if (!sketchMod) throw new Error("Chargeur de sketch narratif manquant");
 	const createSketch = sketchMod.default;
 
 	container.dataset.sketchData = JSON.stringify(data);

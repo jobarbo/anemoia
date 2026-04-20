@@ -11,7 +11,7 @@ import {getSketchLoader} from "../sketches/index.js";
 
 export async function mount(container) {
 	const sketchMod = await getSketchLoader("splash");
-	if (!sketchMod) throw new Error("Missing splash sketch loader");
+	if (!sketchMod) throw new Error("Chargeur de sketch d'accueil manquant");
 	const createSketch = sketchMod.default;
 
 	const sketchFn = createSketch(container);

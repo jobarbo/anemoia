@@ -17,8 +17,8 @@ export default function (container) {
 		let iconHovered = false;
 		let blinkVisible = true;
 		let lastBlink = 0;
-		let locationLabel = "Locating...";
-		let weatherLabel = "Weather: --";
+		let locationLabel = "Localisation...";
+		let weatherLabel = "Météo : --";
 
 		sketch.setup = () => {
 			const w = window.innerWidth;
@@ -55,7 +55,7 @@ export default function (container) {
 			applyThemeCanvasFont(artBuffer, hintSize, sketch);
 			artBuffer.fill(...THEME.GREEN_SUBTLE, 200);
 			artBuffer.textAlign(sketch.CENTER, sketch.CENTER);
-			artBuffer.text("CLICK 'CARTE DE LA VILLE' TO OPEN OVERWORLD", w * 0.5, h - h * 0.09);
+			artBuffer.text("CLIQUEZ 'CARTE DE LA VILLE' POUR OUVRIR LE DIRECTOIRE", w * 0.5, h - h * 0.09);
 
 			sketch.clear();
 			sketch.image(artBuffer, 0, 0);
@@ -146,7 +146,7 @@ function drawBottomNav(buf, w, h, locationLabel, weatherLabel, p) {
 	buf.textAlign(p.CENTER, p.CENTER);
 	buf.text(weatherLabel, w * 0.5, barY + barH * 0.5);
 	buf.textAlign(p.RIGHT, p.CENTER);
-	buf.text("File Manager", w * 0.97, barY + barH * 0.5);
+	buf.text("Gestionnaire de fichiers", w * 0.97, barY + barH * 0.5);
 }
 
 function drawInteractivePanel(buf, w, h, shortcutHovered, blinking, p) {
@@ -277,7 +277,7 @@ function drawSystemCard(buf, w, h, p) {
 	buf.textAlign(p.LEFT, p.TOP);
 	const statsX = cardX + cardW * 0.12;
 	const statsY = cardY + cardH * 0.4;
-	buf.text("CPU CLOCK\n64 MHZ\n\nTOTAL RAM\n10 MB\n\nFREE RAM\n5 MB\n\nI/O MODE\nMIDI", statsX, statsY);
+	buf.text("HORLOGE CPU\n64 MHZ\n\nRAM TOTALE\n10 MO\n\nRAM LIBRE\n5 MO\n\nMODE E/S\nMIDI", statsX, statsY);
 }
 
 function drawAngledPanel(buf, x, y, w, h, opts) {
@@ -309,7 +309,7 @@ function drawAngledPanel(buf, x, y, w, h, opts) {
 
 async function startLiveContext(onUpdate) {
 	if (!navigator.geolocation) {
-		onUpdate("Location unavailable", "Weather unavailable");
+		onUpdate("Localisation indisponible", "Météo indisponible");
 		return;
 	}
 
@@ -322,25 +322,25 @@ async function startLiveContext(onUpdate) {
 	}).catch(() => null);
 
 	if (!position) {
-		onUpdate("Location unavailable", "Weather unavailable");
+		onUpdate("Localisation indisponible", "Météo indisponible");
 		return;
 	}
 
 	const lat = position.coords.latitude;
 	const lon = position.coords.longitude;
-	const roundedLocation = `Location ${lat.toFixed(2)}, ${lon.toFixed(2)}`;
+	const roundedLocation = `Position ${lat.toFixed(2)}, ${lon.toFixed(2)}`;
 
 	const place = await fetchPlaceLabel(lat, lon);
-	onUpdate(place ?? roundedLocation, "Loading weather...");
+	onUpdate(place ?? roundedLocation, "Chargement de la météo...");
 
 	const weather = await fetchWeatherLabel(lat, lon);
-	onUpdate(place ?? roundedLocation, weather ?? "Weather unavailable");
+	onUpdate(place ?? roundedLocation, weather ?? "Météo indisponible");
 }
 
 async function fetchPlaceLabel(lat, lon) {
 	try {
 		const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
-		const res = await fetch(url, {headers: {"Accept-Language": "en"}});
+		const res = await fetch(url, {headers: {"Accept-Language": "fr-CA,fr"}});
 		if (!res.ok) return null;
 		const data = await res.json();
 		const addr = data?.address ?? {};
@@ -375,34 +375,34 @@ async function fetchWeatherLabel(lat, lon) {
 
 function weatherCodeToLabel(code) {
 	const map = {
-		0: "Clear",
-		1: "Mostly clear",
-		2: "Partly cloudy",
-		3: "Overcast",
-		45: "Fog",
-		48: "Rime fog",
-		51: "Drizzle",
-		53: "Drizzle",
-		55: "Heavy drizzle",
-		56: "Freezing drizzle",
-		57: "Freezing drizzle",
-		61: "Rain",
-		63: "Rain",
-		65: "Heavy rain",
-		66: "Freezing rain",
-		67: "Freezing rain",
-		71: "Snow",
-		73: "Snow",
-		75: "Heavy snow",
-		77: "Snow grains",
-		80: "Rain showers",
-		81: "Rain showers",
-		82: "Heavy showers",
-		85: "Snow showers",
-		86: "Heavy snow showers",
-		95: "Thunderstorm",
-		96: "Thunderstorm hail",
-		99: "Thunderstorm hail",
+		0: "Dégagé",
+		1: "Plutôt dégagé",
+		2: "Partiellement nuageux",
+		3: "Couvert",
+		45: "Brouillard",
+		48: "Brouillard givrant",
+		51: "Bruine",
+		53: "Bruine",
+		55: "Forte bruine",
+		56: "Bruine verglaçante",
+		57: "Bruine verglaçante",
+		61: "Pluie",
+		63: "Pluie",
+		65: "Forte pluie",
+		66: "Pluie verglaçante",
+		67: "Pluie verglaçante",
+		71: "Neige",
+		73: "Neige",
+		75: "Forte neige",
+		77: "Neige en grains",
+		80: "Averses de pluie",
+		81: "Averses de pluie",
+		82: "Fortes averses",
+		85: "Averses de neige",
+		86: "Fortes averses de neige",
+		95: "Orage",
+		96: "Orage de grêle",
+		99: "Orage de grêle",
 	};
-	return map[code] ?? "Weather";
+	return map[code] ?? "Météo";
 }

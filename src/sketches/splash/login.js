@@ -25,8 +25,8 @@ const STEPS = {
 
 const USERNAME_STR = "Archiviste";
 const PASSWORD = "ketchup";
-const AUTH_BASE = "Authenticating";
-const GRANTED_STR = "ACCESS GRANTED — Bienvenue, Archiviste.";
+const AUTH_BASE = "Authentification";
+const GRANTED_STR = "ACCÈS AUTORISÉ — Bienvenue, Archiviste.";
 
 const CHAR_MS = 80;
 const DOT_MS = 320;
@@ -103,14 +103,14 @@ export function createLoginPhase(sketch, artBuffer, fontApi) {
 		const masked = "*".repeat(passwordInput.length);
 		if (passwordInput === PASSWORD) {
 			// Correct — commit and move to auth
-			lines.push("Password: " + masked);
+			lines.push("Mot de passe : " + masked);
 			lines.push("");
 			passwordInput = "";
 			step = STEPS.AUTH_DOTS;
 			dotCount = 0;
 		} else {
 			// Wrong — show masked attempt + error, clear, stay at prompt
-			lines.push("Password: " + masked);
+			lines.push("Mot de passe : " + masked);
 			lines.push("  Login incorrect. Veuillez réessayer.");
 			lines.push("");
 			passwordInput = "";
@@ -126,7 +126,7 @@ export function createLoginPhase(sketch, artBuffer, fontApi) {
 		if (step === STEPS.USERNAME_TYPING) {
 			charIdx++;
 			if (charIdx >= USERNAME_STR.length) {
-				lines.push("login: " + USERNAME_STR);
+				lines.push("identifiant : " + USERNAME_STR);
 				step = STEPS.PASSWORD_PROMPT;
 				charIdx = 0;
 			}
@@ -182,7 +182,7 @@ export function createLoginPhase(sketch, artBuffer, fontApi) {
 		buf.textAlign(sketch.LEFT, sketch.TOP);
 		fontApi?.applyCanvasFont?.(buf, Math.round(w * 0.022)) ?? buf.textSize(Math.round(w * 0.022));
 		buf.fill(...THEME.GREEN_PRIMARY);
-		buf.text("Boot-Boy OS  3.0  —  ANEMOIA Interactive System", padLeft, headerY);
+		buf.text("Boot-Boy OS  3.0  —  Système interactif ANEMOIA", padLeft, headerY);
 
 		// Separator line
 		const sepY = headerY + fontSize * 2.4;
@@ -194,7 +194,7 @@ export function createLoginPhase(sketch, artBuffer, fontApi) {
 		// Status line
 		fontApi?.applyCanvasFont?.(buf, fontSize) ?? buf.textSize(fontSize);
 		buf.fill(...THEME.GREEN_SUBTLE, 180);
-		buf.text("CONNECTED TO: ANEMOIA-SRV-01", padLeft, sepY + fontSize * 0.8);
+		buf.text("CONNECTÉ À : ANEMOIA-SRV-01", padLeft, sepY + fontSize * 0.8);
 
 		// ── Committed lines ───────────────────────────────────────────────────
 		const termStartY = sepY + fontSize * 3.2;
@@ -218,12 +218,12 @@ export function createLoginPhase(sketch, artBuffer, fontApi) {
 		const currentY = termStartY + lines.length * lineH;
 
 		if (step === STEPS.USERNAME_TYPING) {
-			const partial = "login: " + USERNAME_STR.slice(0, charIdx);
+			const partial = "identifiant : " + USERNAME_STR.slice(0, charIdx);
 			buf.fill(...THEME.GREEN_MID);
 			buf.text(partial, padLeft, currentY);
 			if (blinkVisible) _drawCursor(buf, partial, padLeft, currentY, fontSize);
 		} else if (step === STEPS.PASSWORD_PROMPT) {
-			const masked = "Password: " + "*".repeat(passwordInput.length);
+			const masked = "Mot de passe : " + "*".repeat(passwordInput.length);
 			buf.fill(...THEME.GREEN_MID);
 			buf.text(masked, padLeft, currentY);
 			if (blinkVisible) _drawCursor(buf, masked, padLeft, currentY, fontSize);

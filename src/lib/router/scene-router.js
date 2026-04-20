@@ -180,7 +180,7 @@ function buildUrl(route, params) {
  */
 function buildTitle(route, params) {
 	if (route === "splash") return "Anemoia";
-	if (route === "desktop") return "Anemoia — Desktop";
+	if (route === "desktop") return "Anemoia — Bureau";
 	if (route === "overworld") return "Anemoia — Carte";
 	if (route === "neighborhood") {
 		const hood = getNeighborhoods().find((n) => n.slug === params.slug);
