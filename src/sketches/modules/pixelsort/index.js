@@ -1,16 +1,28 @@
 import {ShaderEffects} from "../../../lib/shaders/shader-effects.js";
 
+const DEFAULT_PIXEL_SORT = {
+	enabled: true,
+	angle: 0.0,
+	threshold: 0.0,
+	sortAmount: 0.3,
+	sampleCount: 8.0,
+	invert: 1.0,
+	sortMode: 2.0,
+	timeMultiplier: 1.3,
+};
+
 function readSketchData(container) {
 	const raw = container.dataset.sketchData;
-	if (!raw) return {imagePath: "", mode: "recopie"};
+	if (!raw) return {imagePath: "", mode: "recopie", pixelSort: {}};
 	try {
 		const parsed = JSON.parse(raw);
 		return {
 			imagePath: parsed.imagePath ?? "",
 			mode: parsed.mode === "overlay" ? "overlay" : "recopie",
+			pixelSort: parsed.pixelSort && typeof parsed.pixelSort === "object" ? parsed.pixelSort : {},
 		};
 	} catch {
-		return {imagePath: "", mode: "recopie"};
+		return {imagePath: "", mode: "recopie", pixelSort: {}};
 	}
 }
 
@@ -23,19 +35,11 @@ function getContainerSize(container) {
 }
 
 export default function (container) {
-	const {imagePath = "", mode = "recopie"} = readSketchData(container);
+	const {imagePath = "", mode = "recopie", pixelSort: pixelSortOverrides = {}} = readSketchData(container);
+	const pixelSortConfig = {...DEFAULT_PIXEL_SORT, ...pixelSortOverrides};
 	const shaders = new ShaderEffects({
 		effects: {
-			pixelSort: {
-				enabled: true,
-				angle: 0.0,
-				threshold: 0.0,
-				sortAmount: 0.3,
-				sampleCount: 8.0,
-				invert: 1.0,
-				sortMode: 2.0,
-				timeMultiplier: 1.3,
-			},
+			pixelSort: pixelSortConfig,
 		},
 	});
 	let layerImage = null;

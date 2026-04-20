@@ -21,7 +21,17 @@
 				"sketch": "pixelsort",
 				"mode": "recopie",
 				"enabled": true,
-				"zOffset": 2
+				"zOffset": 2,
+				"pixelSort": {
+					"enabled": true,
+					"angle": 0.0,
+					"threshold": 0.0,
+					"sortAmount": 0.3,
+					"sampleCount": 8.0,
+					"invert": 1.0,
+					"sortMode": 2.0,
+					"timeMultiplier": 1.3
+				}
 			}
 		]
 	}
