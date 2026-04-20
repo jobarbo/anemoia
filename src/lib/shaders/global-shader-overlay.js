@@ -120,6 +120,7 @@ const DEFAULT_EFFECTS = {
 		amount: 0.0035,
 		timeMultiplier: 0.0,
 	},
+
 	colorQuantize: {
 		enabled: false,
 		levelsPerChannel: 12.0,
@@ -141,7 +142,16 @@ const DEFAULT_EFFECTS = {
 		animateZoom: 0.0,
 		easingMode: 4.0,
 	},
-
+	scanline: {
+		enabled: true,
+		amount: 0.2,
+		lineSpacing: 5.0,
+		lineThickness: 0.9,
+		spacingOpacity: 0.9,
+		flicker: 1.2,
+		flickerSpacing: 120.0,
+		timeMultiplier: 1.0,
+	},
 	crtWarp: {
 		enabled: true,
 		warpAmount: 0.25,
@@ -767,6 +777,9 @@ export class GlobalShaderOverlay {
 	destroy() {
 		this._destroyed = true;
 		if (_overlayInstance === this) _overlayInstance = null;
+		if (this._shaderEffects && typeof this._shaderEffects.destroy === "function") {
+			this._shaderEffects.destroy();
+		}
 
 		if (this._p5Instance) {
 			this._p5Instance.remove();

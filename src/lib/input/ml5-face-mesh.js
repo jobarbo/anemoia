@@ -5,6 +5,8 @@
  */
 import {extractNormalizedPose, smoothPose} from "./face-pose.js";
 
+let ml5RejectionGuardInstalled = false;
+
 async function waitForVideoData(video) {
 	if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA && video.videoWidth > 0 && video.videoHeight > 0) {
 		return;
@@ -32,13 +34,28 @@ async function waitForVideoData(video) {
 
 function isTransientVideoNotReadyError(error) {
 	const message = String(error?.message ?? error ?? "");
-	return message.includes("video element has not loaded data yet") || message.includes("fromPixels");
+	const lowered = message.toLowerCase();
+	return lowered.includes("video element has not loaded data yet") || lowered.includes("frompixels");
+}
+
+function installMl5UnhandledRejectionGuard() {
+	if (ml5RejectionGuardInstalled) return;
+	ml5RejectionGuardInstalled = true;
+	window.addEventListener("unhandledrejection", (event) => {
+		const reason = event?.reason;
+		const message = String(reason?.message ?? reason ?? "");
+		if (message.includes("Tensor is disposed") || isTransientVideoNotReadyError(reason)) {
+			// Known transient ml5/tfjs races during startup/teardown or dropped webcam frames.
+			event.preventDefault();
+		}
+	});
 }
 
 async function initMl5Source(onMove) {
 	if (!navigator.mediaDevices?.getUserMedia) {
 		throw new Error("Camera API is not available.");
 	}
+	installMl5UnhandledRejectionGuard();
 
 	const stream = await navigator.mediaDevices.getUserMedia({
 		audio: false,
@@ -82,17 +99,6 @@ async function initMl5Source(onMove) {
 	let lastPose = null;
 	let stopped = false;
 	let unsubscribePredictions = () => {};
-
-	const handleUnhandledRejection = (event) => {
-		const reason = event?.reason;
-		const message = String(reason?.message ?? reason ?? "");
-		if (message.includes("Tensor is disposed") || isTransientVideoNotReadyError(reason)) {
-			// Known transient ml5/tfjs race during webcam frame processing.
-			event.preventDefault();
-		}
-	};
-
-	window.addEventListener("unhandledrejection", handleUnhandledRejection);
 
 	const handleResults = (results) => {
 		if (stopped) return;
@@ -146,7 +152,6 @@ async function initMl5Source(onMove) {
 
 	return () => {
 		stopped = true;
-		window.removeEventListener("unhandledrejection", handleUnhandledRejection);
 		unsubscribePredictions();
 		if (rafId !== null) {
 			cancelAnimationFrame(rafId);

@@ -23,7 +23,7 @@
 
 import gsap from "gsap";
 import {sceneNavigate} from "../../lib/router/scene-nav.js";
-import {THEME, drawScanLines, drawVignette, drawTitleAberration, hitTest, applyThemeCanvasFont} from "../../lib/utils/retro-theme.js";
+import {THEME, drawTitleAberration, hitTest, applyThemeCanvasFont} from "../../lib/utils/retro-theme.js";
 
 export default function (container) {
 	const raw = container.dataset.sketchData;
@@ -67,7 +67,6 @@ export default function (container) {
 		};
 
 		sketch.draw = () => {
-			const now = sketch.millis();
 			const w = artBuffer.width;
 			const h = artBuffer.height;
 
@@ -99,10 +98,6 @@ export default function (container) {
 
 				drawBlock(artBuffer, block, contentX, screenY, contentW, state.opacity, sketch);
 			}
-
-			// ── Post-processing ───────────────────────────────────────────────────
-			drawScanLines(artBuffer, now, sketch);
-			drawVignette(artBuffer);
 
 			// Scrollbar indicator
 			drawScrollbar(artBuffer, scrollY, maxScroll);

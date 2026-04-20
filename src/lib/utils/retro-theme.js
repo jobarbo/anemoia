@@ -38,7 +38,7 @@ export const THEME = {
 	/** Phosphor green — titles, active elements, primary UI */
 	GREEN_PRIMARY: [8, 170, 80],
 	/** Medium green — CTAs, prompts, borders, pin markers */
-	GREEN_MID: [120, 200, 140],
+	GREEN_MID: [5, 255, 65],
 	/** Desaturated green — body text, secondary labels */
 	GREEN_SUBTLE: [170, 200, 170],
 	/** Shared terminal font stack used across all canvas scenes */

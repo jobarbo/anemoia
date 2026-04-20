@@ -167,6 +167,26 @@ export class ShaderEffects {
 					uAmount: "amount",
 				},
 			},
+			scanline: {
+				enabled: false,
+				amount: 0.2,
+				lineSpacing: 3.0,
+				lineThickness: 0.22,
+				spacingOpacity: 0.0,
+				flicker: 0.25,
+				flickerSpacing: 80.0,
+				timeMultiplier: 1.0,
+				uniforms: {
+					uResolution: "[width, height]",
+					uAmount: "amount",
+					uLineSpacing: "lineSpacing",
+					uLineThickness: "lineThickness",
+					uSpacingOpacity: "spacingOpacity",
+					uFlicker: "flicker",
+					uFlickerSpacing: "flickerSpacing",
+					uTime: "shaderTime * timeMultiplier",
+				},
+			},
 
 			symmetry: {
 				enabled: false,
@@ -467,6 +487,7 @@ export class ShaderEffects {
 			this.shaderManager.loadShader("colorQuantize", "color-quantize/fragment.frag", "color-quantize/vertex.vert"),
 			this.shaderManager.loadShader("dither", "dither/fragment.frag", "dither/vertex.vert"),
 			this.shaderManager.loadShader("grain", "grain/fragment.frag", "grain/vertex.vert"),
+			this.shaderManager.loadShader("scanline", "scanline/fragment.frag", "scanline/vertex.vert"),
 			this.shaderManager.loadShader("collage", "collage-rotate/fragment.frag", "collage-rotate/vertex.vert"),
 			this.shaderManager.loadShader("pixelSort", "pixel-sort/fragment.frag", "pixel-sort/vertex.vert"),
 			this.shaderManager.loadShader("crtDisplay", "pixel-checker/fragment.frag", "pixel-checker/vertex.vert"),
@@ -574,6 +595,18 @@ export class ShaderEffects {
 			this.shaderPipeline.init(this.mainCanvas.width, this.mainCanvas.height, enabledEffects);
 		}
 		return this;
+	}
+
+	destroy() {
+		if (this.shaderPipeline && typeof this.shaderPipeline.destroy === "function") {
+			this.shaderPipeline.destroy();
+		}
+		this.shaderPipeline = null;
+		this.shaderManager = null;
+		this.mainCanvas = null;
+		this.shaderCanvas = null;
+		this.p5Instance = null;
+		this.lastEnabledEffects = null;
 	}
 
 	/**

@@ -24,14 +24,11 @@ export class ShaderPipeline {
 		this.width = width;
 		this.height = height;
 
-		if (enabledEffects.length <= 1) {
-			this.buffers = [];
-		} else {
+		if (enabledEffects.length > 1) {
 			const bufferDivisor = isSafariMobile() ? 1 : 1;
-			this.buffers = [
-				this.shaderManager.createBuffer(width / bufferDivisor, height / bufferDivisor),
-				this.shaderManager.createBuffer(width / bufferDivisor, height / bufferDivisor),
-			];
+			const targetW = Math.max(1, Math.round(width / bufferDivisor));
+			const targetH = Math.max(1, Math.round(height / bufferDivisor));
+			this._ensurePingPongBuffers(2, targetW, targetH);
 		}
 
 		for (const buf of this.buffers) {
@@ -39,6 +36,46 @@ export class ShaderPipeline {
 		}
 		this.initialized = true;
 		return this;
+	}
+
+	_ensurePingPongBuffers(requiredCount, width, height) {
+		while (this.buffers.length < requiredCount) {
+			const next = this.shaderManager.createBuffer(width, height);
+			this.buffers.push(next);
+		}
+		for (let i = 0; i < this.buffers.length; i++) {
+			const buf = this.buffers[i];
+			if (!buf) continue;
+			try {
+				if (buf.width !== width || buf.height !== height) {
+					buf.resizeCanvas(width, height);
+				}
+				buf.noStroke();
+			} catch {
+				// If a buffer is lost/corrupted, recreate it in place.
+				try {
+					if (typeof buf.remove === "function") buf.remove();
+				} catch {
+					// ignore
+				}
+				this.buffers[i] = this.shaderManager.createBuffer(width, height);
+				this.buffers[i]?.noStroke?.();
+			}
+		}
+	}
+
+	_disposeBuffers() {
+		for (const buf of this.buffers) {
+			if (!buf) continue;
+			try {
+				if (typeof buf.remove === "function") {
+					buf.remove();
+				}
+			} catch {
+				// Ignore disposal errors; we'll recreate fresh buffers below.
+			}
+		}
+		this.buffers = [];
 	}
 
 	addPass(passName, uniformsProvider = () => ({})) {
@@ -90,5 +127,11 @@ export class ShaderPipeline {
 				ping = 1 - ping;
 			}
 		}
+	}
+
+	destroy() {
+		this.clearPasses();
+		this._disposeBuffers();
+		this.initialized = false;
 	}
 }

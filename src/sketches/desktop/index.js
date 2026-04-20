@@ -207,7 +207,7 @@ function drawBottomNav(buf, w, h, locationLabel, weatherLabel, p) {
 	const iconSize = Math.max(navSz * 2.5, w * 0.022);
 	applyThemeCanvasFont(buf, iconSize, p);
 	buf.textAlign(p.RIGHT, p.CENTER);
-	buf.text(icon, w * 0.48, barY + barH * 0.35);
+	buf.text(icon, w * 0.48, barY + barH * 0.4);
 	applyThemeCanvasFont(buf, navSz, p);
 	buf.textAlign(p.LEFT, p.CENTER);
 	buf.text(text, w * 0.485, barY + barH * 0.5);
@@ -355,7 +355,7 @@ function drawSystemCard(buf, w, h, p, blink, gazeXNorm, gazeYNorm) {
 	buf.drawingContext.beginPath();
 	buf.drawingContext.rect(eyeX, eyeY + (eyeH - eyeVisibleH) * 0.5, eyeW, eyeVisibleH);
 	buf.drawingContext.clip();
-	buf.fill(...THEME.GREEN_MID, 85);
+	buf.fill(255, 255, 255, 85);
 	buf.ellipse(eyeX + eyeW * 0.5, eyeY + eyeH * 0.53, eyeW * 0.78, eyeH * 0.75);
 	buf.fill(...THEME.BG, 210);
 	buf.circle(eyeX + eyeW * 0.5 + gazeX, eyeY + eyeH * 0.53 + gazeY, eyeH * 0.48);
