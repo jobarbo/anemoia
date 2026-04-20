@@ -72,7 +72,7 @@ export default function (container) {
 
 			// ── Title ─────────────────────────────────────────────────────────────
 			const titleSz = w * 0.032;
-			drawTitleAberration(artBuffer, "Le directoire", w / 2, titleH / 2, titleSz, 255, sketch);
+			drawTitleAberration(artBuffer, "Les quartiers états", w / 2, titleH / 2, titleSz, 255, sketch);
 
 			// ── Neighborhood pins ─────────────────────────────────────────────────
 			const hoveredPin = findPinAtMouse();

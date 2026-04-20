@@ -17,12 +17,14 @@ export default function (container) {
 		let artBuffer;
 		let backRect = null;
 		let backHovered = false;
+		let scrollContainer = null;
 
 		sketch.setup = () => {
 			const w = window.innerWidth;
 			const h = window.innerHeight;
 			const canvas = sketch.createCanvas(w, h);
 			canvas.parent(container);
+			scrollContainer = container.closest("[data-game-screen]");
 			artBuffer = sketch.createGraphics(w, h);
 			artBuffer.noStroke();
 		};
@@ -44,6 +46,8 @@ export default function (container) {
 			const backX = framePad + Math.max(12, Math.round(w * 0.01)) + backW * 0.5;
 			const backY = framePad * 0.5;
 			backRect = drawButton(artBuffer, backLabel, backX, backY, backSize, backHovered, sketch);
+			const mouseInCanvas = sketch.mouseX >= 0 && sketch.mouseX <= w && sketch.mouseY >= 0 && sketch.mouseY <= h;
+			backHovered = Boolean(mouseInCanvas && backRect && hitTest(sketch.mouseX, sketch.mouseY, backRect));
 
 			artBuffer.textAlign(sketch.RIGHT, sketch.TOP);
 
@@ -57,17 +61,20 @@ export default function (container) {
 
 			sketch.clear();
 			sketch.image(artBuffer, 0, 0);
+			sketch.cursor(backHovered ? sketch.HAND : sketch.ARROW);
 			container.style.cursor = backHovered ? "pointer" : "default";
-		};
-
-		sketch.mouseMoved = () => {
-			backHovered = Boolean(backRect && hitTest(sketch.mouseX, sketch.mouseY, backRect));
 		};
 
 		sketch.mousePressed = () => {
 			if (backRect && hitTest(sketch.mouseX, sketch.mouseY, backRect)) {
 				sceneNavigate("overworld");
 			}
+		};
+
+		sketch.mouseWheel = (event) => {
+			if (!(scrollContainer instanceof HTMLElement)) return true;
+			scrollContainer.scrollTop += event.deltaY;
+			return false;
 		};
 
 		sketch.keyPressed = () => {
@@ -88,7 +95,7 @@ export default function (container) {
 }
 
 function drawOpaqueFrame(buf, w, h, framePad) {
-	const outerRadius = Math.max(28, Math.round(framePad * 0.75));
+	const outerRadius = Math.min(0, Math.round(framePad * 0.75));
 	const innerRadius = Math.max(38, outerRadius - framePad);
 	buf.noStroke();
 	buf.fill(...THEME.BG, 255);

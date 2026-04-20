@@ -83,6 +83,8 @@ export async function mount(container, params, data) {
 	neighborhoodOverlayContainer.dataset.sketchContainer = "";
 	neighborhoodOverlayContainer.dataset.sketch = "neighborhood";
 	neighborhoodOverlayContainer.dataset.slot = "foreground";
+	neighborhoodOverlayContainer.dataset.interactive = "true";
+	neighborhoodOverlayContainer.style.pointerEvents = "auto";
 	neighborhoodOverlayContainer.dataset.sketchData = JSON.stringify({
 		slug,
 		name: neighborhood.name ?? slug,
@@ -422,8 +424,14 @@ function distributeSlottedContent(scene) {
 		}
 		const target = scene.querySelector(`[data-slot-outlet="${targetName}"]`);
 		if (target) {
+			if (child.dataset.interactive === "true") {
+				target.style.pointerEvents = "auto";
+			}
 			target.appendChild(child);
 			return;
+		}
+		if (child.dataset.interactive === "true" && sceneOutlet) {
+			sceneOutlet.style.pointerEvents = "auto";
 		}
 		if (sceneOutlet) sceneOutlet.appendChild(child);
 	});

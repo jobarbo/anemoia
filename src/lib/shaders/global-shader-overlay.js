@@ -122,6 +122,16 @@ const DEFAULT_EFFECTS = {
 };
 
 /**
+ * Clone helper to avoid mutating shared default objects.
+ * @param {Record<string, any>} value
+ * @returns {Record<string, any>}
+ */
+function cloneEffectsConfig(value) {
+	if (typeof structuredClone === "function") return structuredClone(value);
+	return JSON.parse(JSON.stringify(value));
+}
+
+/**
  * @param {CanvasRenderingContext2D} ctx
  * @param {HTMLElement} el
  * @param {number} w viewport width
@@ -323,7 +333,8 @@ export class GlobalShaderOverlay {
 	 * @param {{ effects?: Record<string, object> }} [options]
 	 */
 	constructor(options = {}) {
-		this._effects = options.effects ?? DEFAULT_EFFECTS;
+		const baseEffects = options.effects ?? DEFAULT_EFFECTS;
+		this._effects = cloneEffectsConfig(baseEffects);
 
 		/** @type {p5|null} */
 		this._p5Instance = null;
@@ -500,11 +511,8 @@ export class GlobalShaderOverlay {
 			merged[key] = {...val};
 		}
 
-		// Update the backing object so constructor-time reads stay consistent
-		for (const [key, val] of Object.entries(merged)) {
-			if (!this._effects[key]) this._effects[key] = {};
-			Object.assign(this._effects[key], val);
-		}
+		// Keep an owned snapshot of active effects without mutating shared defaults.
+		this._effects = cloneEffectsConfig(merged);
 
 		// Apply to the live pipeline if it's already running
 		if (this._shaderEffects) {
