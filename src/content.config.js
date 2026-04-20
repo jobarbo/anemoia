@@ -1,9 +1,9 @@
-import { defineCollection } from "astro:content";
-import { glob, file } from "astro/loaders";
-import { z } from "astro/zod";
+import {defineCollection} from "astro:content";
+import {glob, file} from "astro/loaders";
+import {z} from "astro/zod";
 
 const stories = defineCollection({
-	loader: glob({ pattern: "**/*.md", base: "./src/data/stories" }),
+	loader: glob({pattern: "**/*.md", base: "./src/data/stories"}),
 	schema: z.object({
 		title: z.string(),
 		neighborhood: z.string(),
@@ -24,8 +24,8 @@ const neighborhoods = defineCollection({
 		scenePath: z.string(),
 		audioSrc: z.string().optional(),
 		stories: z.array(z.string()),
-		position: z.object({ x: z.number(), y: z.number() }),
+		position: z.object({x: z.number(), y: z.number()}),
 	}),
 });
 
-export const collections = { stories, neighborhoods };
+export const collections = {stories, neighborhoods};

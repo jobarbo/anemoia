@@ -88,20 +88,20 @@ export default function (container) {
 }
 
 function drawOpaqueFrame(buf, w, h, framePad) {
+	const outerRadius = Math.max(28, Math.round(framePad * 0.75));
+	const innerRadius = Math.max(38, outerRadius - framePad);
 	buf.noStroke();
 	buf.fill(...THEME.BG, 255);
-	// Top
-	buf.rect(0, 0, w, framePad);
-	// Bottom
-	buf.rect(0, h - framePad, w, framePad);
-	// Left
-	buf.rect(0, framePad, framePad, h - framePad * 2);
-	// Right
-	buf.rect(w - framePad, framePad, framePad, h - framePad * 2);
+	buf.rect(0, 0, w, h, outerRadius);
+
+	// Cut out the center so border thickness and inner radius are explicit.
+	buf.erase();
+	buf.rect(framePad, framePad, w - framePad * 2, h - framePad * 2, innerRadius);
+	buf.noErase();
 
 	buf.noFill();
 	buf.stroke(...THEME.GREEN_MID, 120);
 	buf.strokeWeight(2);
-	buf.rect(framePad, framePad, w - framePad * 2, h - framePad * 2, 8);
+	buf.rect(framePad, framePad, w - framePad * 2, h - framePad * 2, innerRadius);
 	buf.noStroke();
 }
