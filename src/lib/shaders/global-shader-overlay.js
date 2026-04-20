@@ -50,11 +50,11 @@ function domCompositeFilter(domNode) {
 const DEFAULT_EFFECTS = {
 	pixelGrid: {
 		enabled: false,
-		gridCols: 1660.0,
-		gridRows: 6120.0,
+		gridCols: 320.0,
+		gridRows: 320.0,
 		cellRatio: 1.0,
 		mode: 1.0,
-		diffuse: 1.0,
+		diffuse: 0.0,
 		gapSize: 0.0,
 		gapBrightness: 1.0,
 	},
@@ -75,7 +75,7 @@ const DEFAULT_EFFECTS = {
 	},
 	zoom: {
 		enabled: true,
-		zoomAmount: 0.8,
+		zoomAmount: 0.78,
 		zoomSpeed: 0.8,
 		animateZoom: 0.0,
 		easingMode: 4.0,
@@ -89,7 +89,7 @@ const DEFAULT_EFFECTS = {
 		rgbGain: [1.0, 1.0, 1.0],
 		dotRadius: 0.41,
 		dotFalloff: 0.4,
-		filterMode: 1.0,
+		filterMode: 0.0,
 	},
 
 	crtWarp: {
