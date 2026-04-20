@@ -60,15 +60,14 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 		buf.noStroke();
 
 		// ── Box dimensions ────────────────────────────────────────────────────
-		const boxW = Math.min(w * 0.52, 1920);
-		const boxH = Math.min(h * 0.42, 1080);
+		const boxW = Math.min(w * 0.7, h * 0.7);
+		const boxH = Math.min(h * 0.4, w * 0.4);
 		const boxX = (w - boxW) / 2;
 		const boxY = (h - boxH) / 2 - h * 0.04;
 
 		// Box fill — dark teal, referencing the Bell Atlantic image vibe
 		buf.fill(12, 36, 72);
-		buf.noFill();
-		buf.noStroke(0, 255, 0);
+		buf.noStroke();
 		buf.rect(boxX, boxY, boxW, boxH);
 
 		// Box border (double-line effect: outer thick, inner thin)
@@ -83,9 +82,17 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 
 		// ── Pixel-art logo mark ────────────────────────────────────────────────
 		// A simple stylized "B" made of pixel blocks (Boot-Boy mascot silhouette)
-		const cx = w / 2;
-		const markY = boxY + boxH * 0.13;
 		const px = Math.max(4, Math.round(w * 0.007)); // pixel size
+		const markGridW = 7;
+		const markGridH = 9;
+		const markH = markGridH * px;
+		const titleSz = Math.round(w * 0.055);
+		const subSz = Math.round(w * 0.022);
+		const titleOffsetY = markH + titleSz * 0.7;
+		const subtitleOffsetY = titleOffsetY + titleSz * 0.85;
+		const logoBlockH = subtitleOffsetY + subSz * 0.5;
+		const cx = boxX + boxW / 2;
+		const markY = boxY + boxH / 2 - logoBlockH / 2;
 
 		// Pixel map: rows of [col, row] offsets (0-indexed) relative to top-left of mark
 		// Draws a chunky capital B in a 7-wide × 9-tall pixel grid
@@ -122,8 +129,6 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 			[1, 6],
 		];
 
-		const markGridW = 7;
-		const markGridH = 9;
 		const markTotalW = markGridW * px;
 		const markStartX = cx - markTotalW / 2;
 
@@ -134,16 +139,14 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 		}
 
 		// ── Title ─────────────────────────────────────────────────────────────
-		const titleSz = Math.round(w * 0.055);
-		const titleY = markY + markGridH * px + titleSz * 0.7;
+		const titleY = markY + titleOffsetY;
 		drawTitleAberration(buf, "BOOT-BOY OS", cx, titleY, titleSz, 255, sketch, canvasFont, fontApi?.getCanvasFontWeight?.() ?? THEME.FONT_WEIGHT);
 
 		// ── Subtitle ──────────────────────────────────────────────────────────
-		const subSz = Math.round(w * 0.022);
 		buf.textAlign(sketch.CENTER, sketch.CENTER);
 		fontApi?.applyCanvasFont?.(buf, subSz) ?? (buf.textFont(canvasFont), buf.textSize(subSz));
 		buf.fill(0, 200, 240, 200);
-		buf.text("RELEASE  3.0", cx, titleY + titleSz * 0.85);
+		buf.text("RELEASE  3.0", cx, markY + subtitleOffsetY);
 
 		// ── Version info (below box) ───────────────────────────────────────────
 		const infoSz = Math.max(10, Math.round(w * 0.013));
