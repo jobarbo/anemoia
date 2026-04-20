@@ -3,13 +3,13 @@
  *
  * State machine:
  *   BIOS  — POST-style diagnostic text streams in
- *   LOGO  — "Boot-Boy OS 3.0" splash box; any key advances
+ *   LOGO  — "Boot-Boy OS 3.0" splash box; mouse click advances
  *   LOGIN — automated terminal login sequence
- *   TITLE — cinematic title card; key press advances
+ *   TITLE — cinematic title card; mouse click advances
  *   EXIT  — white flash → dispatch 'splash:complete'
  *
  * Each phase lives in this folder.
- * This file owns the p5 lifecycle (setup / draw / keyPressed / windowResized)
+ * This file owns the p5 lifecycle (setup / draw / mousePressed / windowResized)
  * and the artBuffer → visible canvas pipeline.
  */
 
@@ -187,10 +187,16 @@ export default function (container) {
 
 		// ── Input ──────────────────────────────────────────────────────────────
 
+		sketch.mousePressed = () => {
+			if (phase === PHASE.LOGO) logo.onPointerPressed();
+			if (phase === PHASE.TITLE) title.onPointerPressed();
+			return false;
+		};
+
 		sketch.keyPressed = () => {
-			if (phase === PHASE.LOGO) logo.onKeyPressed();
+			if (phase === PHASE.LOGO) logo.onPointerPressed();
 			if (phase === PHASE.LOGIN) login.onKeyPressed(sketch.keyCode, sketch.key);
-			if (phase === PHASE.TITLE) title.onKeyPressed();
+			if (phase === PHASE.TITLE) title.onPointerPressed();
 			return false; // prevent default browser scroll
 		};
 

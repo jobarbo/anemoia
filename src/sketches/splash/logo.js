@@ -1,12 +1,12 @@
 /**
  * LOGO phase — centered OS splash box with pixel-art boot mark,
- * title text, version info, and a blinking "press any key" prompt.
+ * title text, version info, and a blinking "click to continue" prompt.
  *
- * The user can advance at any time by pressing a key.
+ * The user can advance at any time by clicking.
  * Auto-advances after AUTO_ADVANCE_MS if no input.
  *
  * Interface:
- *   createLogoPhase(sketch, artBuffer, fontApi) → { draw(now), isDone(), onKeyPressed(), reset() }
+ *   createLogoPhase(sketch, artBuffer, fontApi) → { draw(now), isDone(), onPointerPressed(), reset() }
  */
 
 import {THEME, drawTitleAberration} from "../../lib/utils/retro-theme.js";
@@ -38,7 +38,7 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 		return advanced || sketch.millis() - startTime > AUTO_ADVANCE_MS;
 	}
 
-	function onKeyPressed() {
+	function onPointerPressed() {
 		advanced = true;
 	}
 
@@ -164,9 +164,9 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 			buf.textAlign(sketch.CENTER, sketch.CENTER);
 			fontApi?.applyCanvasFont?.(buf, promptSz) ?? buf.textSize(promptSz);
 			buf.fill(...THEME.GREEN_MID, 210);
-			buf.text("[ PRESS ANY KEY TO CONTINUE ]", cx, h - h * 0.07);
+			buf.text("[ CLICK TO CONTINUE ]", cx, h - h * 0.07);
 		}
 	}
 
-	return {draw, isDone, onKeyPressed, reset};
+	return {draw, isDone, onPointerPressed, reset};
 }

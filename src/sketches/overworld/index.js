@@ -23,7 +23,6 @@ export default function (container) {
 	return (sketch) => {
 		/** P2D offscreen buffer — all drawing happens here, GlobalShaderOverlay handles GLSL. */
 		let artBuffer;
-
 		/** Keyboard selection index: 0..neighborhoods.length-1 = a pin, neighborhoods.length = back button */
 		let selectedPin = 0;
 
@@ -85,11 +84,12 @@ export default function (container) {
 			drawTitleAberration(artBuffer, "Le directoire", w / 2, titleH / 2, titleSz, 255, sketch);
 
 			// ── Neighborhood pins ─────────────────────────────────────────────────
+			const hoveredPin = findPinAtMouse();
 			for (let i = 0; i < neighborhoods.length; i++) {
 				const hood = neighborhoods[i];
 				const px = mapX + (hood.position.x / 100) * mapW;
 				const py = mapY + (hood.position.y / 100) * mapH;
-				drawPin(artBuffer, px, py, hood.name, selectedPin === i, sketch);
+				drawPin(artBuffer, px, py, hood.name, selectedPin === i || hoveredPin === i, sketch);
 			}
 
 			// ── Back button ───────────────────────────────────────────────────────

@@ -20,7 +20,7 @@ export async function mount(container) {
 	// splash.js dispatches "splash:complete" when the boot sequence finishes.
 	// Use scene-nav (lazy) to avoid circular import with scene-router.
 	const onComplete = () => {
-		sceneNavigate("overworld");
+		sceneNavigate("desktop");
 	};
 	document.addEventListener("splash:complete", onComplete, {once: true});
 

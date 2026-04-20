@@ -57,7 +57,7 @@ export class SceneRouter {
 
 	/**
 	 * Navigate to a named route, pushing to history.
-	 * @param {string} route - 'splash' | 'overworld' | 'neighborhood' | 'story'
+	 * @param {string} route - 'splash' | 'desktop' | 'overworld' | 'neighborhood' | 'story'
 	 * @param {Record<string,string>} [params] - e.g. { slug: 'saint-roch' }
 	 */
 	async navigateTo(route, params = {}) {
@@ -153,6 +153,7 @@ function parseUrl(pathname) {
 	const storyMatch = pathname.match(/^\/story\/([^/]+)\/?$/);
 	if (storyMatch) return {route: "story", params: {slug: storyMatch[1]}};
 
+	if (pathname === "/desktop" || pathname === "/desktop/") return {route: "desktop", params: {}};
 	if (pathname === "/overworld" || pathname === "/overworld/") return {route: "overworld", params: {}};
 
 	return {route: "splash", params: {}};
@@ -165,6 +166,7 @@ function parseUrl(pathname) {
  */
 function buildUrl(route, params) {
 	if (route === "splash") return "/";
+	if (route === "desktop") return "/desktop";
 	if (route === "overworld") return "/overworld";
 	if (route === "neighborhood") return `/neighborhood/${params.slug}`;
 	if (route === "story") return `/story/${params.slug}`;
@@ -178,6 +180,7 @@ function buildUrl(route, params) {
  */
 function buildTitle(route, params) {
 	if (route === "splash") return "Anemoia";
+	if (route === "desktop") return "Anemoia — Desktop";
 	if (route === "overworld") return "Anemoia — Carte";
 	if (route === "neighborhood") {
 		const hood = getNeighborhoods().find((n) => n.slug === params.slug);
@@ -199,6 +202,8 @@ async function loadSceneModule(route) {
 			return import("../../scenes/splash-scene.js");
 		case "overworld":
 			return import("../../scenes/overworld-scene.js");
+		case "desktop":
+			return import("../../scenes/desktop-scene.js");
 		case "neighborhood":
 			return import("../../scenes/neighborhood-scene.js");
 		case "story":

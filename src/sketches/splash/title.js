@@ -3,7 +3,7 @@
  * centered title, creator credit, atmospheric particles, CRT overlays.
  *
  * Interface:
- *   createTitlePhase(sketch, artBuffer, fontApi) → { draw(now), isDone(), onKeyPressed(), reset() }
+ *   createTitlePhase(sketch, artBuffer, fontApi) → { draw(now), isDone(), onPointerPressed(), reset() }
  */
 
 import {THEME, drawScanLines, drawTitleAberration, drawVignette} from "../../lib/utils/retro-theme.js";
@@ -18,7 +18,7 @@ const TITLE_FONT = {
 
 const TITLE_TEXT = "ANEMOIA";
 const AUTHOR_TEXT = "Olivier Laforest  ·  Jonathan Barbeau";
-const PROMPT_TEXT = "[ APPUYER SUR UNE TOUCHE POUR CONTINUER ]";
+const PROMPT_TEXT = "[ CLIQUEZ POUR CONTINUER ]";
 const TITLE_REVEAL_MS = 1600;
 const AUTHOR_FADE_MS = 900;
 const DONE_HOLD_MS = 950;
@@ -122,7 +122,7 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 		return doneAt !== null && sketch.millis() - doneAt > DONE_HOLD_MS;
 	}
 
-	function onKeyPressed() {
+	function onPointerPressed() {
 		if (!revealComplete || doneAt !== null) return;
 		doneAt = sketch.millis();
 	}
@@ -183,5 +183,5 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 		drawVignette(buf);
 	}
 
-	return {draw, isDone, onKeyPressed, reset};
+	return {draw, isDone, onPointerPressed, reset};
 }
