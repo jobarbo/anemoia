@@ -5,6 +5,7 @@
  *   BIOS  — POST-style diagnostic text streams in
  *   LOGO  — "Boot-Boy OS 3.0" splash box; any key advances
  *   LOGIN — automated terminal login sequence
+ *   TITLE — cinematic title card; key press advances
  *   EXIT  — white flash → dispatch 'splash:complete'
  *
  * Each phase lives in this folder.
@@ -189,6 +190,7 @@ export default function (container) {
 		sketch.keyPressed = () => {
 			if (phase === PHASE.LOGO) logo.onKeyPressed();
 			if (phase === PHASE.LOGIN) login.onKeyPressed(sketch.keyCode, sketch.key);
+			if (phase === PHASE.TITLE) title.onKeyPressed();
 			return false; // prevent default browser scroll
 		};
 

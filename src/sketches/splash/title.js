@@ -1,19 +1,51 @@
 /**
- * TITLE phase — prints the project title using the active splash font,
- * revealed progressively across the word itself.
+ * TITLE phase — cinematic hero composition inspired by the old splash:
+ * centered title, creator credit, atmospheric particles, CRT overlays.
  *
  * Interface:
- *   createTitlePhase(sketch, artBuffer, fontApi) → { draw(now), isDone(), reset() }
+ *   createTitlePhase(sketch, artBuffer, fontApi) → { draw(now), isDone(), onKeyPressed(), reset() }
  */
 
-import {THEME} from "../../lib/utils/retro-theme.js";
+import {THEME, drawScanLines, drawTitleAberration, drawVignette} from "../../lib/utils/retro-theme.js";
 
 const BG = [...THEME.BG];
 
+const TITLE_FONT = {
+	family: "Pixelify Sans",
+	weight: "400",
+	cssUrl: "https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap",
+};
+
 const TITLE_TEXT = "ANEMOIA";
-const PROGRESS_STEP_COUNT = 30;
-const ROW_STEP_MS = 128;
+const AUTHOR_TEXT = "Olivier Laforest  ·  Jonathan Barbeau";
+const PROMPT_TEXT = "[ APPUYER SUR UNE TOUCHE POUR CONTINUER ]";
+const TITLE_REVEAL_MS = 1600;
+const AUTHOR_FADE_MS = 900;
 const DONE_HOLD_MS = 950;
+const PARTICLE_DENSITY = 0.055;
+const PARTICLE_MIN = 240;
+const PARTICLE_MAX = 2980;
+const loadedTitleStylesheets = new Set();
+
+async function ensureTitleGoogleFontLoaded() {
+	if (!TITLE_FONT.cssUrl || !TITLE_FONT.family || typeof document === "undefined") return false;
+
+	if (!loadedTitleStylesheets.has(TITLE_FONT.cssUrl)) {
+		const link = document.createElement("link");
+		link.rel = "stylesheet";
+		link.href = TITLE_FONT.cssUrl;
+		document.head.appendChild(link);
+		loadedTitleStylesheets.add(TITLE_FONT.cssUrl);
+	}
+
+	if (!document.fonts?.load) return false;
+	try {
+		await document.fonts.load(`${TITLE_FONT.weight ?? "700"} 16px "${TITLE_FONT.family}"`);
+		return true;
+	} catch {
+		return false;
+	}
+}
 
 /**
  * @param {import('p5')} sketch
@@ -21,145 +53,135 @@ const DONE_HOLD_MS = 950;
  * @param {{ getCanvasFont?: () => string | import('p5').Font, getCanvasFontVersion?: () => number, getCanvasFontWeight?: () => string | number, applyCanvasFont?: (buf: import('p5').Graphics, size: number, options?: { weight?: string | number, style?: "normal" | "italic" }) => void }} [fontApi]
  */
 export function createTitlePhase(sketch, artBuffer, fontApi) {
-	let revealedRows = 0;
-	let totalRows = 0;
-	let lastStep = 0;
+	let phaseStart = 0;
+	let revealComplete = false;
 	let doneAt = null;
-	let blinkVisible = true;
+	let particles = [];
+	let particleFieldW = 0;
+	let particleFieldH = 0;
+	let promptVisible = true;
 	let lastBlink = 0;
-	let titleLayer = null;
-	let layout = null;
-	let layerFontVersion = -1;
+	let titleFontReady = false;
+	let titleFontLoadStarted = false;
 
-	function ensureLayer(w, h) {
-		const currentFontVersion = fontApi?.getCanvasFontVersion?.() ?? 0;
-		if (titleLayer && titleLayer.width === w && titleLayer.height === h && layout && layerFontVersion === currentFontVersion) return;
+	function particleCountFor(w, h) {
+		const byArea = Math.round(w * h * PARTICLE_DENSITY);
+		return sketch.constrain(byArea, PARTICLE_MIN, PARTICLE_MAX);
+	}
 
-		titleLayer = sketch.createGraphics(w, h);
-		titleLayer.clear();
-
-		const canvasFont = fontApi?.getCanvasFont?.() ?? "monospace";
-		const titleSize = Math.max(54, Math.round(w * 0.135));
-		const titleX = w / 2;
-		const titleY = h * 0.52;
-
-		titleLayer.textAlign(sketch.LEFT, sketch.BASELINE);
-		fontApi?.applyCanvasFont?.(titleLayer, titleSize, {weight: fontApi?.getCanvasFontWeight?.() ?? "700"}) ?? (titleLayer.textFont(canvasFont), titleLayer.textSize(titleSize));
-		const metrics = titleLayer.drawingContext.measureText(TITLE_TEXT);
-		const titleWidth = Math.ceil(titleLayer.textWidth(TITLE_TEXT));
-		const titleAscent = titleLayer.textAscent();
-		const titleDescent = titleLayer.textDescent();
-		const actualLeft = Number.isFinite(metrics.actualBoundingBoxLeft) ? metrics.actualBoundingBoxLeft : 0;
-		const actualRight = Number.isFinite(metrics.actualBoundingBoxRight) ? metrics.actualBoundingBoxRight : titleWidth;
-		const actualAscent = Number.isFinite(metrics.actualBoundingBoxAscent) ? metrics.actualBoundingBoxAscent : titleAscent;
-		const actualDescent = Number.isFinite(metrics.actualBoundingBoxDescent) ? metrics.actualBoundingBoxDescent : titleDescent;
-		const inkWidth = Math.ceil(Math.max(titleWidth, actualLeft + actualRight));
-		const inkHeight = Math.ceil(actualAscent + actualDescent);
-		const titlePaddingX = 4;
-		const titlePaddingY = 4;
-		const titleBaseline = Math.round(titleY + (actualAscent - actualDescent) / 2);
-		const titleDrawX = Math.round(titleX - inkWidth / 2 + actualLeft);
-		const titleLeft = Math.max(0, Math.round(titleDrawX - actualLeft - titlePaddingX));
-		const titleTop = Math.max(0, Math.round(titleBaseline - actualAscent - titlePaddingY));
-		const titleBoundsWidth = Math.ceil(inkWidth + titlePaddingX * 2);
-		const titleBoundsHeight = Math.ceil(inkHeight + titlePaddingY * 2);
-
-		// Slight glow pass
-		titleLayer.fill(...THEME.GREEN_PRIMARY, 70);
-		titleLayer.text(TITLE_TEXT, titleDrawX + 2, titleBaseline + 2);
-
-		// Main title pass
-		titleLayer.fill(...THEME.GREEN_PRIMARY, 240);
-		titleLayer.text(TITLE_TEXT, titleDrawX, titleBaseline);
-
-		layout = {
-			titleY,
-			titleLeft,
-			titleTop,
-			titleWidth: Math.min(w - titleLeft, titleBoundsWidth),
-			titleHeight: Math.min(h - titleTop, titleBoundsHeight),
-			headingX: w * 0.08,
-			headingY: titleY - titleSize * 0.9,
-			statusY: titleY + titleSize * 0.85,
+	function makeParticle(randomY, w, h) {
+		return {
+			x: sketch.random(0, w),
+			y: randomY ? sketch.random(0, h) : h + sketch.random(8, 56),
+			size: sketch.random(0.55, 2.6),
+			speed: sketch.random(0.12, 0.42),
+			drift: sketch.random(-0.2, 0.2),
+			alpha: sketch.random(28, 112),
 		};
+	}
 
-		totalRows = PROGRESS_STEP_COUNT;
-		revealedRows = Math.min(revealedRows, totalRows);
-		layerFontVersion = currentFontVersion;
+	function ensureParticles(w, h) {
+		if (particles.length > 0 && particleFieldW === w && particleFieldH === h) return;
+		particleFieldW = w;
+		particleFieldH = h;
+		const particleCount = particleCountFor(w, h);
+		particles = new Array(particleCount);
+		for (let i = 0; i < particleCount; i++) particles[i] = makeParticle(true, w, h);
+	}
+
+	function updateAndDrawParticles(buf) {
+		const w = buf.width;
+		const h = buf.height;
+		buf.noStroke();
+		for (let i = 0; i < particles.length; i++) {
+			const p = particles[i];
+			p.y -= p.speed;
+			p.x += p.drift;
+			if (p.x < -8) p.x = w + sketch.random(1, 8);
+			if (p.x > w + 8) p.x = -sketch.random(1, 8);
+			if (p.y < -5) particles[i] = makeParticle(false, w, h);
+			buf.fill(160, 200, 230, p.alpha);
+			buf.circle(p.x, p.y, p.size);
+		}
 	}
 
 	function reset() {
-		revealedRows = 0;
-		totalRows = 0;
-		lastStep = 0;
+		phaseStart = 0;
+		revealComplete = false;
 		doneAt = null;
-		blinkVisible = true;
+		particles = [];
+		particleFieldW = 0;
+		particleFieldH = 0;
+		promptVisible = true;
 		lastBlink = 0;
-		titleLayer = null;
-		layout = null;
-		layerFontVersion = -1;
+		titleFontReady = false;
+		titleFontLoadStarted = false;
 	}
 
 	function isDone() {
 		return doneAt !== null && sketch.millis() - doneAt > DONE_HOLD_MS;
 	}
 
-	function draw(now) {
-		if (now - lastBlink > THEME.BLINK_MS) {
-			blinkVisible = !blinkVisible;
-			lastBlink = now;
-		}
+	function onKeyPressed() {
+		if (!revealComplete || doneAt !== null) return;
+		doneAt = sketch.millis();
+	}
 
+	function draw(now) {
 		const buf = artBuffer;
 		const w = buf.width;
 		const h = buf.height;
-		ensureLayer(w, h);
-
-		if (doneAt === null && now - lastStep > ROW_STEP_MS) {
-			lastStep = now;
-			revealedRows = Math.min(revealedRows + 1, totalRows);
-			if (revealedRows >= totalRows) doneAt = now;
+		if (phaseStart === 0) phaseStart = now;
+		const elapsed = now - phaseStart;
+		ensureParticles(w, h);
+		if (!titleFontLoadStarted) {
+			titleFontLoadStarted = true;
+			ensureTitleGoogleFontLoaded().then((ok) => {
+				if (ok) titleFontReady = true;
+			});
 		}
-
-		const canvasFont = fontApi?.getCanvasFont?.() ?? "monospace";
-		const headingX = layout?.headingX ?? w * 0.08;
-		const headingY = layout?.headingY ?? h * 0.28;
-		const statusY = layout?.statusY ?? h * 0.74;
 
 		buf.background(...BG);
-		buf.noStroke();
-		fontApi?.applyCanvasFont?.(buf, Math.max(12, Math.round(w * 0.016))) ?? (buf.textFont(canvasFont), buf.textSize(Math.max(12, Math.round(w * 0.016))));
-		buf.textAlign(sketch.LEFT, sketch.TOP);
+		updateAndDrawParticles(buf);
 
-		// shell-like heading
-		buf.fill(...THEME.GREEN_SUBTLE, 160);
-		buf.text("ARCHIVISTE@ANEMOIA:~$ cat /boot/title.bin", headingX, headingY);
+		const titleSize = Math.max(54, Math.round(w * 0.128));
+		const titleX = w / 2;
+		const titleY = h * 0.45;
+		const revealProgress = sketch.constrain(elapsed / TITLE_REVEAL_MS, 0, 1);
+		const charCount = Math.max(1, Math.floor(TITLE_TEXT.length * revealProgress + 0.0001));
+		const visibleTitle = TITLE_TEXT.slice(0, charCount);
+		const titleAlpha = Math.round(sketch.lerp(0, 255, revealProgress));
+		const glowAlpha = Math.round(sketch.lerp(0, 95, revealProgress));
+		const titleFamily = titleFontReady ? TITLE_FONT.family : (fontApi?.getCanvasFont?.() ?? "monospace");
+		const titleWeight = titleFontReady ? TITLE_FONT.weight : (fontApi?.getCanvasFontWeight?.() ?? "700");
 
-		// Reveal the word itself vertically based on progress.
-		const revealProgress = revealedRows / Math.max(1, totalRows);
-		const titleLeft = layout?.titleLeft ?? 0;
-		const titleTop = layout?.titleTop ?? 0;
-		const titleWidth = layout?.titleWidth ?? w;
-		const titleHeight = layout?.titleHeight ?? h;
-		const revealHeight = Math.floor(revealProgress * titleHeight);
-		if (revealHeight > 0) {
-			buf.image(titleLayer, titleLeft, titleTop, titleWidth, revealHeight, titleLeft, titleTop, titleWidth, revealHeight);
+		drawTitleAberration(buf, visibleTitle, titleX, titleY + 2, titleSize, glowAlpha, sketch, titleFamily, titleWeight);
+		drawTitleAberration(buf, visibleTitle, titleX, titleY, titleSize, titleAlpha, sketch, titleFamily, titleWeight);
+
+		const subtitleProgress = sketch.constrain((elapsed - TITLE_REVEAL_MS) / AUTHOR_FADE_MS, 0, 1);
+		const subtitleAlpha = Math.round(sketch.lerp(0, 198, subtitleProgress));
+		buf.textAlign(sketch.CENTER, sketch.CENTER);
+		fontApi?.applyCanvasFont?.(buf, Math.max(14, Math.round(w * 0.018)), {weight: fontApi?.getCanvasFontWeight?.() ?? "400"}) ?? buf.textSize(Math.max(14, Math.round(w * 0.018)));
+		buf.fill(...THEME.GREEN_SUBTLE, subtitleAlpha);
+		buf.text(AUTHOR_TEXT, titleX, titleY + titleSize * 0.68);
+		revealComplete = subtitleProgress >= 1;
+
+		if (revealComplete) {
+			if (now - lastBlink > THEME.BLINK_MS) {
+				promptVisible = !promptVisible;
+				lastBlink = now;
+			}
+			if (promptVisible) {
+				const promptSize = Math.max(11, Math.round(w * 0.013));
+				fontApi?.applyCanvasFont?.(buf, promptSize, {weight: fontApi?.getCanvasFontWeight?.() ?? "400"}) ?? buf.textSize(promptSize);
+				buf.fill(...THEME.GREEN_MID, 208);
+				buf.text(PROMPT_TEXT, titleX, titleY + titleSize * 1.2);
+			}
 		}
 
-		buf.textAlign(sketch.LEFT, sketch.TOP);
-		fontApi?.applyCanvasFont?.(buf, Math.max(11, Math.round(w * 0.013))) ?? buf.textSize(Math.max(11, Math.round(w * 0.013)));
-		buf.fill(...THEME.GREEN_MID, 170);
-		const pct = Math.floor((revealedRows / Math.max(1, totalRows)) * 100);
-		buf.text(`LOADING TITLE IMAGE... ${pct}%`, headingX, statusY);
-
-		if (blinkVisible) {
-			const prompt = doneAt === null ? "█" : "[ OK ]";
-			const cursorY = statusY + Math.max(18, Math.round(w * 0.016));
-			fontApi?.applyCanvasFont?.(buf, Math.max(12, Math.round(w * 0.014))) ?? buf.textSize(Math.max(12, Math.round(w * 0.014)));
-			buf.fill(...THEME.GREEN_PRIMARY);
-			buf.text(prompt, headingX, cursorY);
-		}
+		drawScanLines(buf, now, sketch);
+		drawVignette(buf);
 	}
 
-	return {draw, isDone, reset};
+	return {draw, isDone, onKeyPressed, reset};
 }
