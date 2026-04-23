@@ -16,7 +16,7 @@ const TITLE_FONT = {
 	cssUrl: "https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap",
 };
 
-const TITLE_TEXT = "ANEMOIA";
+const TITLE_TEXT = "ANÉMOIA";
 const AUTHOR_TEXT = "Olivier Laforest  ·  Jonathan Barbeau";
 const PROMPT_TEXT = "[ CLIQUEZ POUR CONTINUER ]";
 const TITLE_REVEAL_MS = 1600;
@@ -73,8 +73,8 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 			y: randomY ? sketch.random(0, h) : h + sketch.random(8, 56),
 			size: sketch.random(0.55, 2.6),
 			speed: sketch.random(0.12, 0.42),
-			drift: sketch.random(-0.2, 0.2),
-			alpha: sketch.random(28, 112),
+			drift: sketch.random(-2.2, 2.2),
+			alpha: sketch.random(255, 255),
 		};
 	}
 

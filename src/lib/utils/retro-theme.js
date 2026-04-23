@@ -1,7 +1,7 @@
 /**
  * Shared visual language for all canvas sketches (splash, overworld, story).
  *
- * Phosphor-green terminal aesthetic — late 90s / early 2000s CRT monitor.
+ * Amber terminal aesthetic — late 90s / early 2000s CRT monitor.
  * All draw utilities operate on a p5.Graphics P2D buffer (artBuffer).
  */
 
@@ -35,12 +35,12 @@ const THEME_FONT_STACK = `"${THEME_FONT.family}", "${THEME_FONT.fallbackFamily}"
 export const THEME = {
 	/** Deep blue-black background */
 	BG: [16, 18, 28],
-	/** Phosphor green — titles, active elements, primary UI */
-	GREEN_PRIMARY: [8, 170, 80],
-	/** Medium green — CTAs, prompts, borders, pin markers */
-	GREEN_MID: [5, 255, 65],
-	/** Desaturated green — body text, secondary labels */
-	GREEN_SUBTLE: [170, 200, 170],
+	/** Warm orange — titles, active elements, primary UI */
+	GREEN_PRIMARY: [255, 142, 48],
+	/** Bright yellow — CTAs, prompts, borders, pin markers */
+	GREEN_MID: [255, 214, 84],
+	/** Desaturated amber — body text, secondary labels */
+	GREEN_SUBTLE: [230, 200, 145],
 	/** Shared terminal font stack used across all canvas scenes */
 	FONT: THEME_FONT_STACK,
 	FONT_WEIGHT: THEME_FONT.weight,
