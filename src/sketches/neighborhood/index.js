@@ -23,12 +23,14 @@ export default function (container) {
 		let scrollContainer = null;
 
 		sketch.setup = () => {
+			sketch.pixelDensity(1);
 			const w = window.innerWidth;
 			const h = window.innerHeight;
 			const canvas = sketch.createCanvas(w, h);
 			canvas.parent(container);
 			scrollContainer = container.closest("[data-game-screen]");
 			artBuffer = sketch.createGraphics(w, h);
+			artBuffer.pixelDensity(1);
 			artBuffer.noStroke();
 		};
 
@@ -93,6 +95,7 @@ export default function (container) {
 			const h = window.innerHeight;
 			sketch.resizeCanvas(w, h);
 			artBuffer.resizeCanvas(w, h);
+			artBuffer.pixelDensity(1);
 		};
 	};
 }

@@ -36,6 +36,7 @@ export default function (container) {
 		let hoveredOverlaySlug = null;
 
 		sketch.setup = () => {
+			sketch.pixelDensity(1);
 			const w = window.innerWidth;
 			const h = window.innerHeight;
 			const canvas = sketch.createCanvas(w, h);
@@ -43,6 +44,7 @@ export default function (container) {
 			canvas.elt.tabIndex = 0;
 			canvas.elt.focus();
 			artBuffer = sketch.createGraphics(w, h);
+			artBuffer.pixelDensity(1);
 			artBuffer.noStroke();
 			artBuffer.textFont(THEME.FONT);
 
@@ -179,6 +181,7 @@ export default function (container) {
 			const h = window.innerHeight;
 			sketch.resizeCanvas(w, h);
 			artBuffer.resizeCanvas(w, h);
+			artBuffer.pixelDensity(1);
 		};
 
 		function findPinAtMouse() {

@@ -1,0 +1,26 @@
+---
+/**
+ * Pré-génère les routes SPA connues pour que le serveur Astro (dev + build)
+ * renvoie toujours le shell HTML au lieu d’un 404 sur rechargement / lien direct.
+ */
+import GameShell from "../components/GameShell.astro";
+import {getCollection} from "astro:content";
+
+export async function getStaticPaths() {
+	const neighborhoods = await getCollection("neighborhoods");
+	const stories = await getCollection("stories");
+
+	return [
+		{params: {slug: "desktop"}},
+		{params: {slug: "overworld"}},
+		...neighborhoods.map((n) => ({
+			params: {slug: `neighborhood/${n.data.slug}`},
+		})),
+		...stories.map((s) => ({
+			params: {slug: `story/${s.id}`},
+		})),
+	];
+}
+---
+
+<GameShell />

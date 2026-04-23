@@ -28,12 +28,11 @@
 import p5 from "p5";
 import {toCanvas} from "html-to-image";
 import {drawElementLikeObjectFit} from "../utils/canvas-object-fit-draw.js";
+import {DEFAULT_MAX_RENDER_PIXELS} from "../utils/render-size.js";
 import {ShaderEffects} from "./shader-effects.js";
 
 /** Min delay between successful DOM snapshots (html-to-image is heavy). */
 const DOM_SNAPSHOT_INTERVAL_MS = 1000;
-const DEFAULT_MAX_RENDER_PIXELS = 800 * 800;
-
 /**
  * @param {number} value
  * @param {number} min
