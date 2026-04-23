@@ -151,7 +151,7 @@ export default function (container) {
 			if (phase === PHASE.TITLE && title.isDone()) phase = PHASE.EXIT;
 
 			// Delegate drawing to active phase
-			/* switch (phase) {
+			switch (phase) {
 				case PHASE.BIOS:
 					bios.draw(now);
 					break;
@@ -167,9 +167,8 @@ export default function (container) {
 				case PHASE.EXIT:
 					drawExit();
 					break;
-			} */
+			}
 
-			title.draw(now);
 			// Blit artBuffer onto visible canvas
 			sketch.clear();
 			sketch.image(artBuffer, 0, 0);
