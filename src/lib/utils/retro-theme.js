@@ -13,9 +13,9 @@
  * project consumes THEME.FONT and THEME.FONT_WEIGHT derived below.
  */
 const toGoogleFontFamily = (family) => family.trim().replace(/\s+/g, "+");
-const THEME_FONT_FAMILY = "Fira Mono";
-const THEME_FONT_FALLBACK_FAMILY = "monospace";
-const THEME_FONT_GOOGLE_CSS_URL = `https://fonts.googleapis.com/css2?family=${toGoogleFontFamily(THEME_FONT_FAMILY)}:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=${toGoogleFontFamily(THEME_FONT_FALLBACK_FAMILY)}:wght@300..700&display=swap`;
+const THEME_FONT_FAMILY = "Orbitron";
+const THEME_FONT_FALLBACK_FAMILY = "sans-serif";
+const THEME_FONT_GOOGLE_CSS_URL = `https://fonts.googleapis.com/css2?family=${toGoogleFontFamily(THEME_FONT_FAMILY)}:wght@400;500;600;700;800;900&display=swap`;
 
 export const THEME_FONT = {
 	// "google" | "local" | "system"
@@ -24,7 +24,7 @@ export const THEME_FONT = {
 	family: THEME_FONT_FAMILY,
 	// Secondary stack used after the primary family
 	fallbackFamily: THEME_FONT_FALLBACK_FAMILY,
-	weight: "150",
+	weight: "400",
 	googleCssUrl: THEME_FONT_GOOGLE_CSS_URL,
 	// Used for provider: "local" (served from /public)
 	localPath: "/assets/fonts/splash.ttf",
@@ -33,14 +33,14 @@ export const THEME_FONT = {
 const THEME_FONT_STACK = `"${THEME_FONT.family}", "${THEME_FONT.fallbackFamily}", monospace`;
 
 export const THEME = {
-	/** Deep blue-black background */
-	BG: [16, 18, 28],
-	/** Phosphor green — titles, active elements, primary UI */
-	GREEN_PRIMARY: [8, 170, 80],
-	/** Medium green — CTAs, prompts, borders, pin markers */
-	GREEN_MID: [5, 255, 65],
-	/** Desaturated green — body text, secondary labels */
-	GREEN_SUBTLE: [170, 200, 170],
+	/** Deep navy-black background */
+	BG: [8, 12, 28],
+	/** Chrome silver-blue — titles, active elements, primary UI */
+	GREEN_PRIMARY: [205, 215, 245],
+	/** Bright white-silver — CTAs, prompts, borders, pin markers */
+	GREEN_MID: [238, 245, 255],
+	/** Muted blue-grey — body text, secondary labels */
+	GREEN_SUBTLE: [165, 180, 215],
 	/** Shared terminal font stack used across all canvas scenes */
 	FONT: THEME_FONT_STACK,
 	FONT_WEIGHT: THEME_FONT.weight,
@@ -96,7 +96,7 @@ export function applyThemeCanvasFont(buf, size, sketch, options = {}) {
  */
 export function drawScanLines(buf, now, p) {
 	const flicker = 0.12 + p.noise(now * 0.0003) * 0.08;
-	buf.fill(0, 0, 0, flicker * 255);
+	buf.fill(200, 210, 240, flicker * 10);
 	buf.noStroke();
 	for (let y = 0; y < buf.height; y += 3) {
 		buf.rect(0, y, buf.width, 1);

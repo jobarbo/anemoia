@@ -143,30 +143,62 @@ export default function (container) {
 
 function drawDesktopBackground(buf, w, h, p) {
 	buf.background(...THEME.BG);
-	buf.stroke(...THEME.GREEN_PRIMARY, 26);
-	buf.strokeWeight(1);
-
-	const cols = 36;
-	const rows = 22;
+	buf.noStroke();
+	buf.fill(...THEME.GREEN_PRIMARY, 20);
+	const cols = 38;
+	const rows = 24;
+	const dotSize = Math.max(1.5, Math.min(w / cols, h / rows) * 0.14);
 	for (let c = 0; c <= cols; c++) {
-		const x = (c / cols) * w;
-		buf.line(x, 0, x, h);
-	}
-	for (let r = 0; r <= rows; r++) {
-		const y = (r / rows) * h;
-		buf.line(0, y, w, y);
+		for (let r = 0; r <= rows; r++) {
+			buf.ellipse((c / cols) * w, (r / rows) * h, dotSize, dotSize);
+		}
 	}
 }
 
 function drawTopBar(buf, w, h, p) {
 	const barH = h * 0.07;
-	buf.noStroke();
-	buf.fill(8, 24, 38, 230);
-	buf.rect(0, 0, w, barH);
 
-	buf.stroke(...THEME.GREEN_MID, 90);
+	// Chrome gradient title bar
+	const ctx = buf.drawingContext;
+	const grad = ctx.createLinearGradient(0, 0, 0, barH);
+	grad.addColorStop(0, "rgba(55, 68, 115, 0.97)");
+	grad.addColorStop(0.45, "rgba(30, 40, 80, 0.97)");
+	grad.addColorStop(1, "rgba(10, 14, 32, 0.98)");
+	ctx.fillStyle = grad;
+	ctx.fillRect(0, 0, w, barH);
+
+	// Highlight line at very top
+	buf.stroke(...THEME.GREEN_PRIMARY, 55);
+	buf.strokeWeight(1);
+	buf.line(0, 0, w, 0);
+	// Bottom separator (bright + faint secondary)
+	buf.stroke(...THEME.GREEN_MID, 100);
 	buf.strokeWeight(2);
 	buf.line(0, barH, w, barH);
+	buf.stroke(...THEME.GREEN_PRIMARY, 35);
+	buf.strokeWeight(1);
+	buf.line(0, barH - 3, w, barH - 3);
+	buf.noStroke();
+
+	// Window control buttons (Winamp/XP style)
+	const btnH = barH * 0.56;
+	const btnW = barH * 0.52;
+	const btnY = (barH - btnH) * 0.5;
+	const btnGap = Math.max(2, w * 0.003);
+	const btnsRightEdge = w - w * 0.012;
+
+	// Close button
+	const closeBtnX = btnsRightEdge - btnW;
+	const minBtnX = closeBtnX - btnW - btnGap;
+	const maxBtnX = minBtnX - btnW - btnGap;
+
+	buf.fill(160, 50, 50, 220);
+	buf.rect(closeBtnX, btnY, btnW, btnH, 2);
+	buf.fill(...THEME.GREEN_PRIMARY, 60);
+	buf.stroke(...THEME.GREEN_MID, 80);
+	buf.strokeWeight(1);
+	buf.rect(minBtnX, btnY, btnW, btnH, 2);
+	buf.rect(maxBtnX, btnY, btnW, btnH, 2);
 	buf.noStroke();
 
 	const textSize = Math.max(12, w * 0.014);
@@ -175,7 +207,7 @@ function drawTopBar(buf, w, h, p) {
 	buf.textAlign(p.LEFT, p.CENTER);
 	buf.text("Boot-Boy OS 3.0.1", w * 0.025, barH * 0.5);
 	buf.textAlign(p.RIGHT, p.CENTER);
-	buf.text(formatTopBarDateTime(new Date()), w * 0.975, barH * 0.5);
+	buf.text(formatTopBarDateTime(new Date()), maxBtnX - w * 0.015, barH * 0.5);
 }
 
 function formatTopBarDateTime(now) {
@@ -190,12 +222,22 @@ function formatTopBarDateTime(now) {
 function drawBottomNav(buf, w, h, locationLabel, weatherLabel, p) {
 	const barH = h * 0.072;
 	const barY = h - barH;
-	buf.noStroke();
-	buf.fill(8, 24, 38, 235);
-	buf.rect(0, barY, w, barH);
+
+	// Chrome gradient status bar
+	const ctx = buf.drawingContext;
+	const grad = ctx.createLinearGradient(0, barY, 0, barY + barH);
+	grad.addColorStop(0, "rgba(10, 14, 32, 0.98)");
+	grad.addColorStop(0.55, "rgba(30, 40, 80, 0.97)");
+	grad.addColorStop(1, "rgba(55, 68, 115, 0.97)");
+	ctx.fillStyle = grad;
+	ctx.fillRect(0, barY, w, barH);
+
 	buf.stroke(...THEME.GREEN_MID, 100);
 	buf.strokeWeight(2);
 	buf.line(0, barY, w, barY);
+	buf.stroke(...THEME.GREEN_PRIMARY, 35);
+	buf.strokeWeight(1);
+	buf.line(0, barY + 3, w, barY + 3);
 	buf.noStroke();
 
 	const navSz = Math.max(11, w * 0.012);
@@ -316,8 +358,26 @@ function drawInteractivePanel(buf, w, h, hoveredAction, p) {
 			interactiveRows.push({action: row.action, rect: rowRect});
 			const rowHovered = hoveredAction === row.action;
 			buf.noStroke();
-			buf.fill(...THEME.GREEN_PRIMARY, rowHovered ? 75 : 45);
-			buf.rect(rowBoxX, rowBoxY, rowBoxW, rowBoxH, 4);
+			if (rowHovered) {
+				const ctx = buf.drawingContext;
+				const rg = ctx.createLinearGradient(rowBoxX, 0, rowBoxX + rowBoxW, 0);
+				rg.addColorStop(0, `rgba(${THEME.GREEN_MID.join(",")}, 0.06)`);
+				rg.addColorStop(0.45, `rgba(${THEME.GREEN_MID.join(",")}, 0.20)`);
+				rg.addColorStop(1, `rgba(${THEME.GREEN_MID.join(",")}, 0.06)`);
+				ctx.fillStyle = rg;
+				const r = 4;
+				ctx.beginPath();
+				ctx.roundRect(rowBoxX, rowBoxY, rowBoxW, rowBoxH, r);
+				ctx.fill();
+				buf.noFill();
+				buf.stroke(...THEME.GREEN_MID, 80);
+				buf.strokeWeight(1);
+				buf.rect(rowBoxX, rowBoxY, rowBoxW, rowBoxH, r);
+				buf.noStroke();
+			} else {
+				buf.fill(...THEME.GREEN_PRIMARY, 28);
+				buf.rect(rowBoxX, rowBoxY, rowBoxW, rowBoxH, 4);
+			}
 		}
 
 		buf.noStroke();
@@ -376,6 +436,8 @@ function pClamp(value, min, max) {
 
 function drawAngledPanel(buf, x, y, w, h, opts) {
 	const cut = Math.min(w, h) * 0.08;
+
+	// Main fill
 	buf.noStroke();
 	buf.fill(...THEME.BG, opts.bgAlpha);
 	buf.beginShape();
@@ -386,9 +448,19 @@ function drawAngledPanel(buf, x, y, w, h, opts) {
 	buf.vertex(x, y + h);
 	buf.endShape(buf.CLOSE);
 
+	// Chrome gradient header strip
+	const ctx = buf.drawingContext;
+	const headerH = Math.min(h * 0.065, 16);
+	const hGrad = ctx.createLinearGradient(x, y, x, y + headerH);
+	hGrad.addColorStop(0, `rgba(${THEME.GREEN_PRIMARY.join(",")}, 0.32)`);
+	hGrad.addColorStop(1, `rgba(${THEME.GREEN_PRIMARY.join(",")}, 0.04)`);
+	ctx.fillStyle = hGrad;
+	ctx.fillRect(x, y, w, headerH);
+
+	// Outer bright border (highlight)
 	buf.noFill();
 	buf.stroke(...THEME.GREEN_MID, opts.borderAlpha);
-	buf.strokeWeight(2);
+	buf.strokeWeight(1.5);
 	buf.beginShape();
 	buf.vertex(x, y);
 	buf.vertex(x + w, y);
@@ -396,9 +468,21 @@ function drawAngledPanel(buf, x, y, w, h, opts) {
 	buf.vertex(x + w - cut, y + h);
 	buf.vertex(x, y + h);
 	buf.endShape(buf.CLOSE);
-
-	// Explicit left border to keep panel framing balanced.
 	buf.line(x, y, x, y + h);
+
+	// Inner inset shadow border
+	const inset = 3;
+	buf.stroke(...THEME.GREEN_PRIMARY, opts.borderAlpha * 0.28);
+	buf.strokeWeight(1);
+	buf.beginShape();
+	buf.vertex(x + inset, y + inset);
+	buf.vertex(x + w - inset, y + inset);
+	buf.vertex(x + w - inset, y + h - cut - inset);
+	buf.vertex(x + w - cut - inset, y + h - inset);
+	buf.vertex(x + inset, y + h - inset);
+	buf.endShape(buf.CLOSE);
+	buf.line(x + inset, y + inset, x + inset, y + h - inset);
+	buf.noStroke();
 }
 
 async function startLiveContext(onUpdate) {

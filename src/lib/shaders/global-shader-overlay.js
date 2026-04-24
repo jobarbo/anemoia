@@ -175,7 +175,7 @@ const DEFAULT_EFFECTS = {
 	},
 	crtDisplay: {
 		enabled: true,
-		brightness: 0.99,
+		brightness: 2.99,
 		cellSize: 2,
 		gapOpacity: 0.6,
 		rgbOpacity: 0.0,

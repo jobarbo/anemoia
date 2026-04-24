@@ -55,18 +55,30 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 		const boxX = (w - boxW) / 2;
 		const boxY = (h - boxH) / 2 - h * 0.04;
 
-		// Box fill — dark teal, referencing the Bell Atlantic image vibe
-		buf.fill(12, 36, 72);
-		buf.noStroke();
-		buf.rect(boxX, boxY, boxW, boxH);
+		// Box fill — chrome gradient (dark navy, lighter toward center)
+		const ctx = buf.drawingContext;
+		const boxGrad = ctx.createLinearGradient(boxX, boxY, boxX, boxY + boxH);
+		boxGrad.addColorStop(0, "rgba(28, 40, 80, 1)");
+		boxGrad.addColorStop(0.5, "rgba(14, 22, 55, 1)");
+		boxGrad.addColorStop(1, "rgba(6, 12, 35, 1)");
+		ctx.fillStyle = boxGrad;
+		ctx.fillRect(boxX, boxY, boxW, boxH);
+
+		// Left accent stripe (Winamp title-bar chrome stripe)
+		const stripeW = boxW * 0.055;
+		const sGrad = ctx.createLinearGradient(boxX, boxY, boxX + stripeW, boxY);
+		sGrad.addColorStop(0, "rgba(160, 180, 225, 0.55)");
+		sGrad.addColorStop(1, "rgba(80, 100, 180, 0)");
+		ctx.fillStyle = sGrad;
+		ctx.fillRect(boxX, boxY, stripeW, boxH);
 
 		// Box border (double-line effect: outer thick, inner thin)
 		buf.noFill();
-		buf.stroke(0, 180, 255, 220);
+		buf.stroke(160, 180, 225, 220);
 		buf.strokeWeight(3);
 		buf.rect(boxX, boxY, boxW, boxH);
 		buf.strokeWeight(1);
-		buf.stroke(0, 120, 200, 120);
+		buf.stroke(100, 130, 185, 120);
 		buf.rect(boxX + 6, boxY + 6, boxW - 12, boxH - 12);
 		buf.noStroke();
 
@@ -122,7 +134,7 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 		const markTotalW = markGridW * px;
 		const markStartX = cx - markTotalW / 2;
 
-		buf.fill(0, 220, 255, 240);
+		buf.fill(215, 230, 255, 240);
 		buf.noStroke();
 		for (const [col, row] of MARK_PIXELS) {
 			buf.rect(markStartX + col * px, markY + row * px, px - 1, px - 1);
@@ -135,7 +147,7 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 		// ── Subtitle ──────────────────────────────────────────────────────────
 		buf.textAlign(sketch.CENTER, sketch.CENTER);
 		fontApi?.applyCanvasFont?.(buf, subSz) ?? (buf.textFont(canvasFont), buf.textSize(subSz));
-		buf.fill(0, 200, 240, 200);
+		buf.fill(160, 180, 225, 200);
 		buf.text("VERSION  3.0", cx, markY + subtitleOffsetY);
 
 		// ── Version info (below box) ───────────────────────────────────────────

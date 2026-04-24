@@ -256,9 +256,9 @@ export default function (container) {
 			const thumbY = barY + (sy / max) * (barH - thumbH);
 
 			buf.noStroke();
-			buf.fill(...THEME.GREEN_PRIMARY, 30);
+			buf.fill(...THEME.GREEN_PRIMARY, 80);
 			buf.rect(barX - 2, barY, 4, barH, 2);
-			buf.fill(...THEME.GREEN_MID, 100);
+			buf.fill(...THEME.GREEN_MID, 200);
 			buf.rect(barX - 2, thumbY, 4, thumbH, 2);
 		}
 	};
@@ -301,45 +301,53 @@ function wrapText(buf, text, maxWidth) {
 
 function drawDesktopBackground(buf, w, h) {
 	buf.background(...THEME.BG);
-	buf.stroke(...THEME.GREEN_PRIMARY, 26);
-	buf.strokeWeight(1);
-	const cols = 36;
-	const rows = 22;
+	buf.noStroke();
+	buf.fill(...THEME.GREEN_PRIMARY, 22);
+	const cols = 38;
+	const rows = 24;
+	const dotSize = Math.max(1.5, Math.min(w / cols, h / rows) * 0.14);
 	for (let c = 0; c <= cols; c++) {
-		const x = (c / cols) * w;
-		buf.line(x, 0, x, h);
-	}
-	for (let r = 0; r <= rows; r++) {
-		const y = (r / rows) * h;
-		buf.line(0, y, w, y);
+		for (let r = 0; r <= rows; r++) {
+			buf.ellipse((c / cols) * w, (r / rows) * h, dotSize, dotSize);
+		}
 	}
 }
 
 function drawWindowTopBar(buf, w, h, closeHovered, p) {
 	const barH = h * 0.07;
-	buf.noStroke();
-	buf.fill(8, 24, 38, 230);
-	buf.rect(0, 0, w, barH);
-	buf.stroke(...THEME.GREEN_MID, 90);
+	const ctx = buf.drawingContext;
+	const grad = ctx.createLinearGradient(0, 0, 0, barH);
+	grad.addColorStop(0, "rgba(55, 68, 115, 0.97)");
+	grad.addColorStop(0.45, "rgba(30, 40, 80, 0.97)");
+	grad.addColorStop(1, "rgba(10, 14, 32, 0.98)");
+	ctx.fillStyle = grad;
+	ctx.fillRect(0, 0, w, barH);
+	buf.stroke(...THEME.GREEN_PRIMARY, 55);
+	buf.strokeWeight(1);
+	buf.line(0, 0, w, 0);
+	buf.stroke(...THEME.GREEN_MID, 150);
 	buf.strokeWeight(2);
 	buf.line(0, barH, w, barH);
+	buf.stroke(...THEME.GREEN_PRIMARY, 55);
+	buf.strokeWeight(1);
+	buf.line(0, barH - 3, w, barH - 3);
 	buf.noStroke();
 
 	const btnSize = barH * 0.58;
 	const btnX = w * 0.022;
 	const btnY = (barH - btnSize) * 0.5;
-	buf.stroke(...THEME.GREEN_MID, closeHovered ? 210 : 150);
+	buf.stroke(...THEME.GREEN_MID, closeHovered ? 240 : 180);
 	buf.strokeWeight(2);
-	buf.fill(...THEME.GREEN_PRIMARY, closeHovered ? 70 : 35);
+	buf.fill(...THEME.GREEN_PRIMARY, closeHovered ? 120 : 70);
 	buf.rect(btnX, btnY, btnSize, btnSize, 4);
 	buf.noStroke();
 	applyThemeCanvasFont(buf, Math.max(11, w * 0.013), p);
-	buf.fill(...THEME.GREEN_SUBTLE, closeHovered ? 255 : 220);
+	buf.fill(...THEME.GREEN_SUBTLE, closeHovered ? 255 : 240);
 	buf.textAlign(p.CENTER, p.CENTER);
 	buf.text("X", btnX + btnSize * 0.5, btnY + btnSize * 0.52);
 
 	applyThemeCanvasFont(buf, Math.max(12, w * 0.014), p);
-	buf.fill(...THEME.GREEN_SUBTLE, 210);
+	buf.fill(...THEME.GREEN_SUBTLE, 240);
 	buf.textAlign(p.LEFT, p.CENTER);
 	buf.text("Lecteur d'histoire", btnX + btnSize + w * 0.02, barH * 0.5);
 
