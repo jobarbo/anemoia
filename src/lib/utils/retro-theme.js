@@ -1,7 +1,7 @@
 /**
  * Shared visual language for all canvas sketches (splash, overworld, story).
  *
- * Phosphor-green terminal aesthetic — late 90s / early 2000s CRT monitor.
+ * Phosphor-amber / orange terminal aesthetic — late 90s / early 2000s CRT monitor.
  * All draw utilities operate on a p5.Graphics P2D buffer (artBuffer).
  */
 
@@ -33,14 +33,14 @@ export const THEME_FONT = {
 const THEME_FONT_STACK = `"${THEME_FONT.family}", "${THEME_FONT.fallbackFamily}", monospace`;
 
 export const THEME = {
-	/** Deep navy-black background */
+	/** Near-black with warm brown undertone */
 	BG: [8, 12, 28],
-	/** Chrome silver-blue — titles, active elements, primary UI */
-	GREEN_PRIMARY: [205, 215, 245],
-	/** Bright white-silver — CTAs, prompts, borders, pin markers */
-	GREEN_MID: [238, 245, 255],
-	/** Muted blue-grey — body text, secondary labels */
-	GREEN_SUBTLE: [165, 180, 215],
+	/** Bright amber — titles, active elements, primary UI */
+	GREEN_PRIMARY: [255, 155, 82],
+	/** Soft peach-white — CTAs, prompts, borders, pin markers */
+	GREEN_MID: [255, 228, 198],
+	/** Dusty orange-brown — body text, secondary labels */
+	GREEN_SUBTLE: [195, 125, 78],
 	/** Shared terminal font stack used across all canvas scenes */
 	FONT: THEME_FONT_STACK,
 	FONT_WEIGHT: THEME_FONT.weight,
@@ -96,7 +96,7 @@ export function applyThemeCanvasFont(buf, size, sketch, options = {}) {
  */
 export function drawScanLines(buf, now, p) {
 	const flicker = 0.12 + p.noise(now * 0.0003) * 0.08;
-	buf.fill(200, 210, 240, flicker * 10);
+	buf.fill(255, 200, 165, flicker * 10);
 	buf.noStroke();
 	for (let y = 0; y < buf.height; y += 3) {
 		buf.rect(0, y, buf.width, 1);

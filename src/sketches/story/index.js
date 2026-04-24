@@ -317,9 +317,9 @@ function drawWindowTopBar(buf, w, h, closeHovered, p) {
 	const barH = h * 0.07;
 	const ctx = buf.drawingContext;
 	const grad = ctx.createLinearGradient(0, 0, 0, barH);
-	grad.addColorStop(0, "rgba(55, 68, 115, 0.97)");
-	grad.addColorStop(0.45, "rgba(30, 40, 80, 0.97)");
-	grad.addColorStop(1, "rgba(10, 14, 32, 0.98)");
+	grad.addColorStop(0, "rgba(95, 48, 28, 0.97)");
+	grad.addColorStop(0.45, "rgba(52, 28, 16, 0.97)");
+	grad.addColorStop(1, "rgba(16, 9, 5, 0.98)");
 	ctx.fillStyle = grad;
 	ctx.fillRect(0, 0, w, barH);
 	buf.stroke(...THEME.GREEN_PRIMARY, 55);

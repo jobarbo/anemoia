@@ -175,7 +175,7 @@ const DEFAULT_EFFECTS = {
 	},
 	crtDisplay: {
 		enabled: true,
-		brightness: 2.99,
+		brightness: 0.99,
 		cellSize: 2,
 		gapOpacity: 0.6,
 		rgbOpacity: 0.0,
@@ -340,7 +340,7 @@ function applyCrtBeamTransition(raw, dest, t, direction) {
 		if (hRatio < 0.1 && hRatio > 0.002) {
 			sctx.globalCompositeOperation = "screen";
 			const glow = Math.min(0.55, (0.1 - hRatio) / 0.1);
-			sctx.fillStyle = `rgba(130, 255, 170, ${glow * 0.42})`;
+			sctx.fillStyle = `rgba(255, 170, 95, ${glow * 0.42})`;
 			sctx.fillRect(0, y0, w, dh);
 			sctx.globalCompositeOperation = "source-over";
 		}
@@ -373,7 +373,7 @@ function applyCrtBeamTransition(raw, dest, t, direction) {
 
 		if (hRatio < 0.14) {
 			sctx.globalCompositeOperation = "screen";
-			sctx.fillStyle = "rgba(120, 240, 160, 0.18)";
+			sctx.fillStyle = "rgba(255, 175, 110, 0.2)";
 			sctx.fillRect(0, y0, w, dh);
 			sctx.globalCompositeOperation = "source-over";
 		}
@@ -730,9 +730,9 @@ export class GlobalShaderOverlay {
 		el.style.left = "12px";
 		el.style.zIndex = "10001";
 		el.style.padding = "6px 8px";
-		el.style.border = "1px solid rgba(122, 255, 122, 0.5)";
+		el.style.border = "1px solid rgba(255, 165, 90, 0.55)";
 		el.style.background = "rgba(0, 0, 0, 0.72)";
-		el.style.color = "#7aff7a";
+		el.style.color = "#ffb86c";
 		el.style.fontFamily = "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace";
 		el.style.fontSize = "12px";
 		el.style.lineHeight = "1.2";

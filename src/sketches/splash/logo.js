@@ -58,17 +58,17 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 		// Box fill — chrome gradient (dark navy, lighter toward center)
 		const ctx = buf.drawingContext;
 		const boxGrad = ctx.createLinearGradient(boxX, boxY, boxX, boxY + boxH);
-		boxGrad.addColorStop(0, "rgba(28, 40, 80, 1)");
-		boxGrad.addColorStop(0.5, "rgba(14, 22, 55, 1)");
-		boxGrad.addColorStop(1, "rgba(6, 12, 35, 1)");
+		boxGrad.addColorStop(0, "rgba(72, 38, 22, 1)");
+		boxGrad.addColorStop(0.5, "rgba(38, 20, 12, 1)");
+		boxGrad.addColorStop(1, "rgba(18, 10, 6, 1)");
 		ctx.fillStyle = boxGrad;
 		ctx.fillRect(boxX, boxY, boxW, boxH);
 
 		// Left accent stripe (Winamp title-bar chrome stripe)
 		const stripeW = boxW * 0.055;
 		const sGrad = ctx.createLinearGradient(boxX, boxY, boxX + stripeW, boxY);
-		sGrad.addColorStop(0, "rgba(160, 180, 225, 0.55)");
-		sGrad.addColorStop(1, "rgba(80, 100, 180, 0)");
+		sGrad.addColorStop(0, "rgba(255, 165, 100, 0.5)");
+		sGrad.addColorStop(1, "rgba(100, 50, 28, 0)");
 		ctx.fillStyle = sGrad;
 		ctx.fillRect(boxX, boxY, stripeW, boxH);
 

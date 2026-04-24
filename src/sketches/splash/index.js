@@ -69,7 +69,6 @@ export default function (container) {
 	let splashFontVersion = 0;
 
 	let phase = PHASE.BIOS;
-	let exitFlashFrames = 0;
 
 	/** Phase instances — created in setup once artBuffer is ready. */
 	let bios = null;
@@ -175,14 +174,8 @@ export default function (container) {
 		// ── Exit flash ─────────────────────────────────────────────────────────
 
 		function drawExit() {
-			exitFlashFrames++;
-			const alpha = sketch.map(exitFlashFrames, 0, sketch.frameRate() * 0.4, 255, 0);
-			artBuffer.background(255, 255, 255, Math.max(0, alpha));
-
-			if (exitFlashFrames > sketch.frameRate() * 0.18) {
-				sketch.noLoop();
-				document.dispatchEvent(new CustomEvent("splash:complete"));
-			}
+			sketch.noLoop();
+			document.dispatchEvent(new CustomEvent("splash:complete"));
 		}
 
 		// ── Input ──────────────────────────────────────────────────────────────

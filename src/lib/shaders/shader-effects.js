@@ -1022,7 +1022,7 @@ export class ShaderEffects {
 			// Color based on performance
 			let textColor;
 			if (this.currentFPS >= 55) {
-				textColor = "#64ff64"; // Green
+				textColor = "#ffd08a"; // Bright amber (good FPS)
 			} else if (this.currentFPS >= 30) {
 				textColor = "#ffc864"; // Orange
 			} else {

@@ -11,9 +11,9 @@ import {THEME, drawScanLines, drawTitleAberration, drawVignette} from "../../lib
 const BG = [...THEME.BG];
 
 const TITLE_FONT = {
-	family: "Pixelify Sans",
-	weight: "400",
-	cssUrl: "https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap",
+	family: "Nabla",
+	weight: "700",
+	cssUrl: "https://fonts.googleapis.com/css2?family=Nabla&display=swap",
 };
 
 const TITLE_TEXT = "ANEMOIA";
