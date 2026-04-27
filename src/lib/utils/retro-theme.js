@@ -160,7 +160,7 @@ export function drawTitleAberration(buf, text, x, y, size, alpha, p, fontOverrid
  * @param {p5} p
  * @param {number} [alpha=210]
  */
-export function drawBlinkingPrompt(buf, text, x, y, size, visible, p, alpha = 210) {
+export function drawBlinkingPrompt(buf, text, x, y, size, visible, p, alpha = 255) {
 	if (!visible) return;
 	buf.textAlign(p.CENTER, p.CENTER);
 	applyThemeCanvasFont(buf, size, p);

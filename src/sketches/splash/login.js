@@ -186,14 +186,14 @@ export function createLoginPhase(sketch, artBuffer, fontApi) {
 
 		// Separator line
 		const sepY = headerY + fontSize * 2.4;
-		buf.stroke(...THEME.GREEN_PRIMARY, 160);
+		buf.stroke(...THEME.GREEN_PRIMARY, 210);
 		buf.strokeWeight(1);
 		buf.line(padLeft, sepY, w - padLeft, sepY);
 		buf.noStroke();
 
 		// Status line
 		fontApi?.applyCanvasFont?.(buf, fontSize) ?? buf.textSize(fontSize);
-		buf.fill(...THEME.GREEN_SUBTLE, 180);
+		buf.fill(...THEME.GREEN_SUBTLE, 230);
 		buf.text("CONNECTÉ À : ANEMOIA-SRV-01", padLeft, sepY + fontSize * 0.8);
 
 		// ── Committed lines ───────────────────────────────────────────────────
@@ -232,7 +232,7 @@ export function createLoginPhase(sketch, artBuffer, fontApi) {
 			if (lines.length === 1) {
 				buf.textAlign(sketch.LEFT, sketch.TOP);
 				fontApi?.applyCanvasFont?.(buf, Math.max(10, Math.round(w * 0.012))) ?? buf.textSize(Math.max(10, Math.round(w * 0.012)));
-				buf.fill(...THEME.GREEN_SUBTLE, 100);
+				buf.fill(...THEME.GREEN_SUBTLE, 200);
 				buf.text("Entrez le mot de passe et appuyez sur ENTRÉE", padLeft, currentY + lineH);
 			}
 		} else if (step === STEPS.AUTH_DOTS) {

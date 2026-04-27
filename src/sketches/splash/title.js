@@ -140,7 +140,7 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 		buf.background(...BG);
 		updateAndDrawParticles(buf);
 
-		const titleSize = Math.max(54, Math.round(w * 0.128));
+		const titleSize = Math.max(54, Math.round(w * 0.17));
 		const titleX = w / 2;
 		const titleY = h * 0.45;
 		const revealProgress = sketch.constrain(elapsed / TITLE_REVEAL_MS, 0, 1);
@@ -155,18 +155,18 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 		drawTitleAberration(buf, visibleTitle, titleX, titleY, titleSize, titleAlpha, sketch, titleFamily, titleWeight);
 
 		const subtitleProgress = sketch.constrain((elapsed - TITLE_REVEAL_MS) / AUTHOR_FADE_MS, 0, 1);
-		const subtitleAlpha = Math.round(sketch.lerp(0, 198, subtitleProgress));
+		const subtitleAlpha = Math.round(sketch.lerp(0, 255, subtitleProgress));
 		buf.textAlign(sketch.CENTER, sketch.CENTER);
-		fontApi?.applyCanvasFont?.(buf, Math.max(14, Math.round(w * 0.018)), {weight: fontApi?.getCanvasFontWeight?.() ?? "400"}) ?? buf.textSize(Math.max(14, Math.round(w * 0.018)));
+		fontApi?.applyCanvasFont?.(buf, Math.max(14, Math.round(w * 0.028)), {weight: fontApi?.getCanvasFontWeight?.() ?? "400"}) ?? buf.textSize(Math.max(14, Math.round(w * 0.022)));
 		buf.fill(...THEME.GREEN_SUBTLE, subtitleAlpha);
-		buf.text(AUTHOR_TEXT, titleX, titleY + titleSize * 0.68);
+		buf.text(AUTHOR_TEXT, titleX, titleY + titleSize * 1.0);
 		revealComplete = subtitleProgress >= 1;
 
 		if (revealComplete) {
-			const promptSize = Math.max(11, Math.round(w * 0.013));
+			const promptSize = Math.max(11, Math.round(w * 0.022));
 			fontApi?.applyCanvasFont?.(buf, promptSize, {weight: fontApi?.getCanvasFontWeight?.() ?? "400"}) ?? buf.textSize(promptSize);
-			buf.fill(...THEME.GREEN_MID, 208);
-			buf.text(PROMPT_TEXT, titleX, titleY + titleSize * 1.2);
+			buf.fill(...THEME.GREEN_MID, 255);
+			buf.text(PROMPT_TEXT, titleX, titleY + titleSize * 2.0);
 		}
 
 		drawScanLines(buf, now, sketch);
