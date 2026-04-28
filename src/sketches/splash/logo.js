@@ -49,9 +49,35 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 		buf.background(...BG);
 		buf.noStroke();
 
-		// ── Box dimensions ────────────────────────────────────────────────────
-		const boxW = Math.min(w * 0.7, h * 0.7);
-		const boxH = Math.min(h * 0.4, w * 0.4);
+		// ── Pixel-art logo mark + typography metrics ──────────────────────────
+		// The splash box should fit its content to avoid clipping/overflow.
+		const px = Math.max(4, Math.round(w * 0.007)); // pixel size
+		const markGridW = 7;
+		const markGridH = 9;
+		const markTotalW = markGridW * px;
+		const markH = markGridH * px;
+		const titleSz = Math.round(w * 0.055);
+		const subSz = Math.round(w * 0.022);
+		const titleOffsetY = markH + titleSz * 0.7;
+		const subtitleOffsetY = titleOffsetY + titleSz * 0.85;
+
+		// Measure text using the same font config used at draw time.
+		fontApi?.applyCanvasFont?.(buf, titleSz) ?? (buf.textFont(canvasFont), buf.textSize(titleSz));
+		const titleW = buf.textWidth("BOOT-BOY OS");
+		fontApi?.applyCanvasFont?.(buf, subSz) ?? (buf.textFont(canvasFont), buf.textSize(subSz));
+		const subtitleW = buf.textWidth("VERSION  3.0");
+
+		const contentW = Math.max(markTotalW, titleW, subtitleW);
+		const contentH = subtitleOffsetY + subSz * 0.5;
+		const padX = Math.max(26, w * 0.04);
+		const padY = Math.max(20, h * 0.035);
+		const minBoxW = w * 0.35;
+		const minBoxH = h * 0.22;
+		const maxBoxW = w * 0.9;
+		const maxBoxH = h * 0.6;
+
+		const boxW = sketch.constrain(contentW + padX * 2, minBoxW, maxBoxW);
+		const boxH = sketch.constrain(contentH + padY * 2, minBoxH, maxBoxH);
 		const boxX = (w - boxW) / 2;
 		const boxY = (h - boxH) / 2 - h * 0.04;
 
@@ -84,15 +110,7 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 
 		// ── Pixel-art logo mark ────────────────────────────────────────────────
 		// A simple stylized "B" made of pixel blocks (Boot-Boy mascot silhouette)
-		const px = Math.max(4, Math.round(w * 0.007)); // pixel size
-		const markGridW = 7;
-		const markGridH = 9;
-		const markH = markGridH * px;
-		const titleSz = Math.round(w * 0.055);
-		const subSz = Math.round(w * 0.022);
-		const titleOffsetY = markH + titleSz * 0.7;
-		const subtitleOffsetY = titleOffsetY + titleSz * 0.85;
-		const logoBlockH = subtitleOffsetY + subSz * 0.5;
+		const logoBlockH = contentH;
 		const cx = boxX + boxW / 2;
 		const markY = boxY + boxH / 2 - logoBlockH / 2;
 
@@ -131,7 +149,6 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 			[1, 6],
 		];
 
-		const markTotalW = markGridW * px;
 		const markStartX = cx - markTotalW / 2;
 
 		buf.fill(215, 230, 255, 240);
