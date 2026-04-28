@@ -91,7 +91,7 @@ export default function (container) {
 
 			// ── Title ─────────────────────────────────────────────────────────────
 			const titleSz = w * 0.028;
-			drawTitleAberration(artBuffer, "Les quartiers états", w / 2, topBarH + titleH * 0.45, titleSz, 255, sketch);
+			drawTitleAberration(artBuffer, "Les villes verticales", w / 2, topBarH + titleH * 0.45, titleSz, 255, sketch);
 
 			// ── Neighborhood pins (only when no polygon overlay — avoids duplicate dot + label) ──
 			const hoveredPin = findPinAtMouse();
@@ -793,7 +793,7 @@ function drawWindowTopBar(buf, w, h, closeHovered, p) {
 	applyThemeCanvasFont(buf, Math.max(12, w * 0.014), p);
 	buf.fill(...THEME.GREEN_SUBTLE, 240);
 	buf.textAlign(p.LEFT, p.CENTER);
-	buf.text("Gestionnaire de quartiers", btnX + btnSize + w * 0.02, barH * 0.5);
+	buf.text("Retour au menu principal", btnX + btnSize + w * 0.02, barH * 0.5);
 
 	return {
 		height: barH,

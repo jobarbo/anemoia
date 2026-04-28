@@ -304,7 +304,7 @@ function drawInteractivePanel(buf, w, h, hoveredAction, p) {
 
 	const rows = [
 		{label: "LISMOI", depth: 0, interactive: true, action: "story:lismoi"},
-		{label: "Les quartiers états", depth: 1, interactive: true, action: "overworld"},
+		{label: "Les villes verticales", depth: 1, interactive: true, action: "overworld"},
 	];
 
 	buf.stroke(...branchColor);
