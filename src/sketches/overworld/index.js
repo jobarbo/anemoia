@@ -234,7 +234,6 @@ function drawPin(buf, x, y, name, hovered, p) {
 	const labelSz = w * 0.013;
 
 	const dotColor = hovered ? THEME.GREEN_PRIMARY : THEME.GREEN_MID;
-	const labelColor = hovered ? THEME.GREEN_MID : THEME.GREEN_SUBTLE;
 
 	// Outer glow ring
 	buf.noFill();
@@ -251,7 +250,7 @@ function drawPin(buf, x, y, name, hovered, p) {
 	buf.textAlign(p.CENTER, p.CENTER);
 	applyThemeCanvasFont(buf, labelSz, p);
 	buf.noStroke();
-	buf.fill(...labelColor, hovered ? 255 : 220);
+	buf.fill(255, 255, 255, 255);
 	buf.text(name, x, y + dotR * 3.5);
 
 	buf.noStroke();
@@ -600,7 +599,7 @@ function drawOverlayAnchor(buf, mapRect, overlay, isHovered, isSelected, geoBoun
 
 	applyThemeCanvasFont(buf, labelSz, p);
 	buf.textAlign(p.CENTER, p.BOTTOM);
-	buf.fill(...THEME.GREEN_SUBTLE, isActive ? 255 : 230);
+	buf.fill(255, 255, 255, 255);
 	buf.text(overlay.name, center.x, center.y - dotR * 2.1);
 }
 
