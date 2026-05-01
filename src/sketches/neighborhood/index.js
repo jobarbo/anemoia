@@ -57,11 +57,11 @@ export default function (container) {
 			artBuffer.textAlign(sketch.RIGHT, sketch.TOP);
 
 			applyThemeCanvasFont(artBuffer, Math.max(14, Math.round(w * 0.018)), sketch, {weight: THEME.FONT_WEIGHT});
-			artBuffer.fill(...THEME.GREEN_PRIMARY, 235);
+			artBuffer.fill(...THEME.GREEN_PRIMARY, 255);
 			artBuffer.text(name || slug.toUpperCase(), w - innerPadX, innerPadY / 7);
 
 			applyThemeCanvasFont(artBuffer, Math.max(10, Math.round(w * 0.011)), sketch);
-			artBuffer.fill(...THEME.GREEN_SUBTLE, 180);
+			artBuffer.fill(...THEME.GREEN_SUBTLE, 255);
 			artBuffer.text("SCENE DE QUARTIER ACTIVE", w - innerPadX, innerPadY / 2);
 
 			sketch.clear();

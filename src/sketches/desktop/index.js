@@ -146,30 +146,41 @@ export default function (container) {
 
 function drawDesktopBackground(buf, w, h, p) {
 	buf.background(...THEME.BG);
-	buf.stroke(...THEME.GREEN_PRIMARY, 26);
-	buf.strokeWeight(1);
-
-	const cols = 36;
-	const rows = 22;
+	buf.noStroke();
+	buf.fill(...THEME.GREEN_PRIMARY, 20);
+	const cols = 38;
+	const rows = 24;
+	const dotSize = Math.max(1.5, Math.min(w / cols, h / rows) * 0.14);
 	for (let c = 0; c <= cols; c++) {
-		const x = (c / cols) * w;
-		buf.line(x, 0, x, h);
-	}
-	for (let r = 0; r <= rows; r++) {
-		const y = (r / rows) * h;
-		buf.line(0, y, w, y);
+		for (let r = 0; r <= rows; r++) {
+			buf.ellipse((c / cols) * w, (r / rows) * h, dotSize, dotSize);
+		}
 	}
 }
 
 function drawTopBar(buf, w, h, p) {
 	const barH = h * 0.07;
-	buf.noStroke();
-	buf.fill(8, 24, 38, 230);
-	buf.rect(0, 0, w, barH);
 
-	buf.stroke(...THEME.GREEN_MID, 90);
+	// Chrome gradient title bar
+	const ctx = buf.drawingContext;
+	const grad = ctx.createLinearGradient(0, 0, 0, barH);
+	grad.addColorStop(0, "rgba(95, 48, 28, 0.97)");
+	grad.addColorStop(0.45, "rgba(52, 28, 16, 0.97)");
+	grad.addColorStop(1, "rgba(16, 9, 5, 0.98)");
+	ctx.fillStyle = grad;
+	ctx.fillRect(0, 0, w, barH);
+
+	// Highlight line at very top
+	buf.stroke(...THEME.GREEN_PRIMARY, 55);
+	buf.strokeWeight(1);
+	buf.line(0, 0, w, 0);
+	// Bottom separator (bright + faint secondary)
+	buf.stroke(...THEME.GREEN_MID, 100);
 	buf.strokeWeight(2);
 	buf.line(0, barH, w, barH);
+	buf.stroke(...THEME.GREEN_PRIMARY, 35);
+	buf.strokeWeight(1);
+	buf.line(0, barH - 3, w, barH - 3);
 	buf.noStroke();
 
 	const textSize = Math.max(12, w * 0.014);
@@ -193,12 +204,22 @@ function formatTopBarDateTime(now) {
 function drawBottomNav(buf, w, h, locationLabel, weatherLabel, p) {
 	const barH = h * 0.072;
 	const barY = h - barH;
-	buf.noStroke();
-	buf.fill(8, 24, 38, 235);
-	buf.rect(0, barY, w, barH);
+
+	// Chrome gradient status bar
+	const ctx = buf.drawingContext;
+	const grad = ctx.createLinearGradient(0, barY, 0, barY + barH);
+	grad.addColorStop(0, "rgba(16, 9, 5, 0.98)");
+	grad.addColorStop(0.55, "rgba(52, 28, 16, 0.97)");
+	grad.addColorStop(1, "rgba(95, 48, 28, 0.97)");
+	ctx.fillStyle = grad;
+	ctx.fillRect(0, barY, w, barH);
+
 	buf.stroke(...THEME.GREEN_MID, 100);
 	buf.strokeWeight(2);
 	buf.line(0, barY, w, barY);
+	buf.stroke(...THEME.GREEN_PRIMARY, 35);
+	buf.strokeWeight(1);
+	buf.line(0, barY + 3, w, barY + 3);
 	buf.noStroke();
 
 	const navSz = Math.max(11, w * 0.012);
@@ -235,8 +256,8 @@ function drawInteractivePanel(buf, w, h, hoveredAction, p) {
 	const panelW = w * 0.44;
 	const panelH = h * 0.53;
 	drawAngledPanel(buf, panelX, panelY, panelW, panelH, {
-		bgAlpha: 220,
-		borderAlpha: 180,
+		bgAlpha: 255,
+		borderAlpha: 255,
 	});
 
 	const panelTitleSz = Math.max(13, w * 0.016);
@@ -265,7 +286,7 @@ function drawInteractivePanel(buf, w, h, hoveredAction, p) {
 
 	const rows = [
 		{label: "LISMOI", depth: 0, interactive: true, action: "story:lismoi"},
-		{label: "Les quartiers états", depth: 1, interactive: true, action: "overworld"},
+		{label: "Les villes verticales", depth: 1, interactive: true, action: "overworld"},
 	];
 
 	buf.stroke(...branchColor);
@@ -319,8 +340,26 @@ function drawInteractivePanel(buf, w, h, hoveredAction, p) {
 			interactiveRows.push({action: row.action, rect: rowRect});
 			const rowHovered = hoveredAction === row.action;
 			buf.noStroke();
-			buf.fill(...THEME.GREEN_PRIMARY, rowHovered ? 75 : 45);
-			buf.rect(rowBoxX, rowBoxY, rowBoxW, rowBoxH, 4);
+			if (rowHovered) {
+				const ctx = buf.drawingContext;
+				const rg = ctx.createLinearGradient(rowBoxX, 0, rowBoxX + rowBoxW, 0);
+				rg.addColorStop(0, `rgba(${THEME.GREEN_MID.join(",")}, 0.06)`);
+				rg.addColorStop(0.45, `rgba(${THEME.GREEN_MID.join(",")}, 0.20)`);
+				rg.addColorStop(1, `rgba(${THEME.GREEN_MID.join(",")}, 0.06)`);
+				ctx.fillStyle = rg;
+				const r = 4;
+				ctx.beginPath();
+				ctx.roundRect(rowBoxX, rowBoxY, rowBoxW, rowBoxH, r);
+				ctx.fill();
+				buf.noFill();
+				buf.stroke(...THEME.GREEN_MID, 80);
+				buf.strokeWeight(1);
+				buf.rect(rowBoxX, rowBoxY, rowBoxW, rowBoxH, r);
+				buf.noStroke();
+			} else {
+				buf.fill(...THEME.GREEN_PRIMARY, 28);
+				buf.rect(rowBoxX, rowBoxY, rowBoxW, rowBoxH, 4);
+			}
 		}
 
 		buf.noStroke();
@@ -333,19 +372,41 @@ function drawInteractivePanel(buf, w, h, hoveredAction, p) {
 }
 
 function drawSystemCard(buf, w, h, p, blink, gazeXNorm, gazeYNorm) {
-	const cardX = w * 0.75;
+	const statsText = "HORLOGE CPU\n64 MHZ\n\nRAM TOTALE\n10 MO\n\nRAM LIBRE\n5 MO\n\nMODE E/S\nMIDI";
+	const statsLines = statsText.split("\n");
 	const cardY = h * 0.23;
-	const cardW = w * 0.19;
-	const cardH = h * 0.5;
+	const cardRight = w * 0.95;
+	const cardGapY = Math.max(14, h * 0.03);
+	const cardPadX = Math.max(16, w * 0.018);
+	const cardPadY = Math.max(14, h * 0.024);
+
+	const maxCardW = w * 0.47;
+	let statSz = Math.max(20, w * 0.012);
+	applyThemeCanvasFont(buf, statSz, p);
+	let statsMaxW = Math.max(...statsLines.map((line) => (line ? buf.textWidth(line) : 0)));
+	while (statsMaxW > maxCardW - cardPadX * 2 && statSz > 9) {
+		statSz -= 1;
+		applyThemeCanvasFont(buf, statSz, p);
+		statsMaxW = Math.max(...statsLines.map((line) => (line ? buf.textWidth(line) : 0)));
+	}
+
+	const lineH = statSz * 1.2;
+	const statsH = (statsLines.length - 1) * lineH + statSz;
+	const eyeW = Math.max(statsMaxW, w * 0.22);
+	const eyeH = Math.max(76, eyeW * 0.28);
+	const contentW = Math.max(eyeW, statsMaxW);
+	const contentH = eyeH + cardGapY + statsH;
+
+	const cardW = contentW + cardPadX * 2;
+	const cardH = contentH + cardPadY * 2;
+	const cardX = cardRight - cardW;
 	drawAngledPanel(buf, cardX, cardY, cardW, cardH, {
-		bgAlpha: 200,
-		borderAlpha: 200,
+		bgAlpha: 255,
+		borderAlpha: 255,
 	});
 
-	const eyeX = cardX + cardW * 0.1;
-	const eyeY = cardY + cardH * 0.08;
-	const eyeW = cardW * 0.8;
-	const eyeH = cardH * 0.22;
+	const eyeX = cardX + (cardW - eyeW) * 0.5;
+	const eyeY = cardY + cardPadY;
 	const gazeX = p.map(gazeXNorm, -1, 1, -eyeW * 0.09, eyeW * 0.09, true);
 	const gazeY = p.map(gazeYNorm, -1, 1, -eyeH * 0.07, eyeH * 0.07, true);
 	const eyelidOpen = 1 - Math.min(1, Math.max(0, blink));
@@ -364,13 +425,13 @@ function drawSystemCard(buf, w, h, p, blink, gazeXNorm, gazeYNorm) {
 	buf.circle(eyeX + eyeW * 0.5 + gazeX, eyeY + eyeH * 0.53 + gazeY, eyeH * 0.48);
 	buf.drawingContext.restore();
 
-	const statSz = Math.max(11, w * 0.012);
 	applyThemeCanvasFont(buf, statSz, p);
-	buf.fill(...THEME.GREEN_SUBTLE, 210);
+	buf.textLeading(lineH);
+	buf.fill(...THEME.GREEN_SUBTLE, 255);
 	buf.textAlign(p.LEFT, p.TOP);
-	const statsX = cardX + cardW * 0.12;
-	const statsY = cardY + cardH * 0.4;
-	buf.text("HORLOGE CPU\n64 MHZ\n\nRAM TOTALE\n10 MO\n\nRAM LIBRE\n5 MO\n\nMODE E/S\nMIDI", statsX, statsY);
+	const statsX = cardX + (cardW - statsMaxW) * 0.15;
+	const statsY = eyeY + eyeH + cardGapY;
+	buf.text(statsText, statsX, statsY);
 }
 
 function pClamp(value, min, max) {
@@ -379,6 +440,8 @@ function pClamp(value, min, max) {
 
 function drawAngledPanel(buf, x, y, w, h, opts) {
 	const cut = Math.min(w, h) * 0.08;
+
+	// Main fill
 	buf.noStroke();
 	buf.fill(...THEME.BG, opts.bgAlpha);
 	buf.beginShape();
@@ -389,9 +452,19 @@ function drawAngledPanel(buf, x, y, w, h, opts) {
 	buf.vertex(x, y + h);
 	buf.endShape(buf.CLOSE);
 
+	// Chrome gradient header strip
+	const ctx = buf.drawingContext;
+	const headerH = Math.min(h * 0.065, 16);
+	const hGrad = ctx.createLinearGradient(x, y, x, y + headerH);
+	hGrad.addColorStop(0, `rgba(${THEME.GREEN_PRIMARY.join(",")}, 0.32)`);
+	hGrad.addColorStop(1, `rgba(${THEME.GREEN_PRIMARY.join(",")}, 0.04)`);
+	ctx.fillStyle = hGrad;
+	ctx.fillRect(x, y, w, headerH);
+
+	// Outer bright border (highlight)
 	buf.noFill();
 	buf.stroke(...THEME.GREEN_MID, opts.borderAlpha);
-	buf.strokeWeight(2);
+	buf.strokeWeight(1.5);
 	buf.beginShape();
 	buf.vertex(x, y);
 	buf.vertex(x + w, y);
@@ -399,9 +472,21 @@ function drawAngledPanel(buf, x, y, w, h, opts) {
 	buf.vertex(x + w - cut, y + h);
 	buf.vertex(x, y + h);
 	buf.endShape(buf.CLOSE);
-
-	// Explicit left border to keep panel framing balanced.
 	buf.line(x, y, x, y + h);
+
+	// Inner inset shadow border
+	const inset = 3;
+	buf.stroke(...THEME.GREEN_PRIMARY, opts.borderAlpha * 0.28);
+	buf.strokeWeight(1);
+	buf.beginShape();
+	buf.vertex(x + inset, y + inset);
+	buf.vertex(x + w - inset, y + inset);
+	buf.vertex(x + w - inset, y + h - cut - inset);
+	buf.vertex(x + w - cut - inset, y + h - inset);
+	buf.vertex(x + inset, y + h - inset);
+	buf.endShape(buf.CLOSE);
+	buf.line(x + inset, y + inset, x + inset, y + h - inset);
+	buf.noStroke();
 }
 
 async function startLiveContext(onUpdate) {

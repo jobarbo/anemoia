@@ -1,7 +1,7 @@
 /**
  * Shared visual language for all canvas sketches (splash, overworld, story).
  *
- * Amber terminal aesthetic — late 90s / early 2000s CRT monitor.
+ * Phosphor-amber / orange terminal aesthetic — late 90s / early 2000s CRT monitor.
  * All draw utilities operate on a p5.Graphics P2D buffer (artBuffer).
  */
 
@@ -13,9 +13,9 @@
  * project consumes THEME.FONT and THEME.FONT_WEIGHT derived below.
  */
 const toGoogleFontFamily = (family) => family.trim().replace(/\s+/g, "+");
-const THEME_FONT_FAMILY = "Fira Mono";
-const THEME_FONT_FALLBACK_FAMILY = "monospace";
-const THEME_FONT_GOOGLE_CSS_URL = `https://fonts.googleapis.com/css2?family=${toGoogleFontFamily(THEME_FONT_FAMILY)}:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=${toGoogleFontFamily(THEME_FONT_FALLBACK_FAMILY)}:wght@300..700&display=swap`;
+const THEME_FONT_FAMILY = "Orbitron";
+const THEME_FONT_FALLBACK_FAMILY = "sans-serif";
+const THEME_FONT_GOOGLE_CSS_URL = `https://fonts.googleapis.com/css2?family=${toGoogleFontFamily(THEME_FONT_FAMILY)}:wght@400;500;600;700;800;900&display=swap`;
 
 export const THEME_FONT = {
 	// "google" | "local" | "system"
@@ -24,7 +24,7 @@ export const THEME_FONT = {
 	family: THEME_FONT_FAMILY,
 	// Secondary stack used after the primary family
 	fallbackFamily: THEME_FONT_FALLBACK_FAMILY,
-	weight: "150",
+	weight: "400",
 	googleCssUrl: THEME_FONT_GOOGLE_CSS_URL,
 	// Used for provider: "local" (served from /public)
 	localPath: "/assets/fonts/splash.ttf",
@@ -33,14 +33,14 @@ export const THEME_FONT = {
 const THEME_FONT_STACK = `"${THEME_FONT.family}", "${THEME_FONT.fallbackFamily}", monospace`;
 
 export const THEME = {
-	/** Deep blue-black background */
-	BG: [16, 18, 28],
-	/** Warm orange — titles, active elements, primary UI */
-	GREEN_PRIMARY: [255, 142, 48],
-	/** Bright yellow — CTAs, prompts, borders, pin markers */
-	GREEN_MID: [255, 214, 84],
-	/** Desaturated amber — body text, secondary labels */
-	GREEN_SUBTLE: [230, 200, 145],
+	/** Near-black with warm brown undertone */
+	BG: [8, 12, 28],
+	/** Bright amber — titles, active elements, primary UI */
+	GREEN_PRIMARY: [255, 155, 82],
+	/** Soft peach-white — CTAs, prompts, borders, pin markers */
+	GREEN_MID: [255, 228, 198],
+	/** Dusty orange-brown — body text, secondary labels */
+	GREEN_SUBTLE: [195, 125, 78],
 	/** Shared terminal font stack used across all canvas scenes */
 	FONT: THEME_FONT_STACK,
 	FONT_WEIGHT: THEME_FONT.weight,
@@ -96,7 +96,7 @@ export function applyThemeCanvasFont(buf, size, sketch, options = {}) {
  */
 export function drawScanLines(buf, now, p) {
 	const flicker = 0.12 + p.noise(now * 0.0003) * 0.08;
-	buf.fill(0, 0, 0, flicker * 255);
+	buf.fill(255, 200, 165, flicker * 10);
 	buf.noStroke();
 	for (let y = 0; y < buf.height; y += 3) {
 		buf.rect(0, y, buf.width, 1);
@@ -160,7 +160,7 @@ export function drawTitleAberration(buf, text, x, y, size, alpha, p, fontOverrid
  * @param {p5} p
  * @param {number} [alpha=210]
  */
-export function drawBlinkingPrompt(buf, text, x, y, size, visible, p, alpha = 210) {
+export function drawBlinkingPrompt(buf, text, x, y, size, visible, p, alpha = 255) {
 	if (!visible) return;
 	buf.textAlign(p.CENTER, p.CENTER);
 	applyThemeCanvasFont(buf, size, p);

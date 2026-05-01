@@ -11,9 +11,9 @@ import {THEME, drawScanLines, drawTitleAberration, drawVignette} from "../../lib
 const BG = [...THEME.BG];
 
 const TITLE_FONT = {
-	family: "Pixelify Sans",
-	weight: "400",
-	cssUrl: "https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap",
+	family: "Offside",
+	weight: "700",
+	cssUrl: "https://fonts.googleapis.com/css2?family=Offside&display=swap",
 };
 
 const TITLE_TEXT = "ANÉMOIA";
@@ -22,8 +22,8 @@ const PROMPT_TEXT = "[ CLIQUEZ POUR CONTINUER ]";
 const TITLE_REVEAL_MS = 1600;
 const AUTHOR_FADE_MS = 900;
 const DONE_HOLD_MS = 950;
-const PARTICLE_DENSITY = 0.055;
-const PARTICLE_MIN = 240;
+const PARTICLE_DENSITY = 0.55;
+const PARTICLE_MIN = 1240;
 const PARTICLE_MAX = 2980;
 const loadedTitleStylesheets = new Set();
 
@@ -71,10 +71,10 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 		return {
 			x: sketch.random(0, w),
 			y: randomY ? sketch.random(0, h) : h + sketch.random(8, 56),
-			size: sketch.random(0.55, 2.6),
-			speed: sketch.random(0.12, 0.42),
-			drift: sketch.random(-2.2, 2.2),
-			alpha: sketch.random(255, 255),
+			size: sketch.random(1.55, 2.6),
+			speed: sketch.random(0.12, 1.42),
+			drift: sketch.random(-0.2, 0.2),
+			alpha: sketch.random(128, 255),
 		};
 	}
 
@@ -140,9 +140,9 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 		buf.background(...BG);
 		updateAndDrawParticles(buf);
 
-		const titleSize = Math.max(54, Math.round(w * 0.128));
+		const titleSize = Math.max(34, Math.round(w * 0.12));
 		const titleX = w / 2;
-		const titleY = h * 0.45;
+		const titleY = h * 0.35;
 		const revealProgress = sketch.constrain(elapsed / TITLE_REVEAL_MS, 0, 1);
 		const charCount = Math.max(1, Math.floor(TITLE_TEXT.length * revealProgress + 0.0001));
 		const visibleTitle = TITLE_TEXT.slice(0, charCount);
@@ -155,18 +155,18 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 		drawTitleAberration(buf, visibleTitle, titleX, titleY, titleSize, titleAlpha, sketch, titleFamily, titleWeight);
 
 		const subtitleProgress = sketch.constrain((elapsed - TITLE_REVEAL_MS) / AUTHOR_FADE_MS, 0, 1);
-		const subtitleAlpha = Math.round(sketch.lerp(0, 198, subtitleProgress));
+		const subtitleAlpha = Math.round(sketch.lerp(0, 255, subtitleProgress));
 		buf.textAlign(sketch.CENTER, sketch.CENTER);
-		fontApi?.applyCanvasFont?.(buf, Math.max(14, Math.round(w * 0.018)), {weight: fontApi?.getCanvasFontWeight?.() ?? "400"}) ?? buf.textSize(Math.max(14, Math.round(w * 0.018)));
+		fontApi?.applyCanvasFont?.(buf, Math.max(14, Math.round(w * 0.028)), {weight: fontApi?.getCanvasFontWeight?.() ?? "400"}) ?? buf.textSize(Math.max(14, Math.round(w * 0.022)));
 		buf.fill(...THEME.GREEN_SUBTLE, subtitleAlpha);
-		buf.text(AUTHOR_TEXT, titleX, titleY + titleSize * 0.68);
+		buf.text(AUTHOR_TEXT, titleX, titleY + titleSize * 1.0);
 		revealComplete = subtitleProgress >= 1;
 
 		if (revealComplete) {
-			const promptSize = Math.max(11, Math.round(w * 0.013));
+			const promptSize = Math.max(11, Math.round(w * 0.016));
 			fontApi?.applyCanvasFont?.(buf, promptSize, {weight: fontApi?.getCanvasFontWeight?.() ?? "400"}) ?? buf.textSize(promptSize);
-			buf.fill(...THEME.GREEN_MID, 208);
-			buf.text(PROMPT_TEXT, titleX, titleY + titleSize * 1.2);
+			buf.fill(...THEME.GREEN_MID, 255);
+			buf.text(PROMPT_TEXT, titleX, titleY + titleSize * 2.0);
 		}
 
 		drawScanLines(buf, now, sketch);

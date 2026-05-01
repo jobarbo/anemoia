@@ -93,7 +93,7 @@ export default function (container) {
 
 			// ── Title ─────────────────────────────────────────────────────────────
 			const titleSz = w * 0.028;
-			drawTitleAberration(artBuffer, "Les quartiers états", w / 2, topBarH + titleH * 0.45, titleSz, 255, sketch);
+			drawTitleAberration(artBuffer, "Les villes verticales", w / 2, topBarH + titleH * 0.45, titleSz, 255, sketch);
 
 			// ── Neighborhood pins (only when no polygon overlay — avoids duplicate dot + label) ──
 			const hoveredPin = findPinAtMouse();
@@ -109,7 +109,7 @@ export default function (container) {
 			const hintSz = w * 0.011;
 			artBuffer.textAlign(sketch.RIGHT, sketch.CENTER);
 			applyThemeCanvasFont(artBuffer, hintSz, sketch);
-			artBuffer.fill(...THEME.GREEN_SUBTLE, 120);
+			artBuffer.fill(...THEME.GREEN_SUBTLE, 210);
 			artBuffer.text("↑↓ CHOISIR   ENTRÉE CONFIRMER   ESC FERMER", w - w * 0.04, h - bottomBarH * 0.5);
 
 			// Blit artBuffer onto output canvas
@@ -237,24 +237,23 @@ function drawPin(buf, x, y, name, hovered, p) {
 	const labelSz = w * 0.013;
 
 	const dotColor = hovered ? THEME.GREEN_PRIMARY : THEME.GREEN_MID;
-	const labelColor = hovered ? THEME.GREEN_MID : THEME.GREEN_SUBTLE;
 
 	// Outer glow ring
 	buf.noFill();
-	buf.stroke(...dotColor, hovered ? 120 : 60);
+	buf.stroke(...dotColor, hovered ? 200 : 130);
 	buf.strokeWeight(1);
 	buf.circle(x, y, dotR * 3.5);
 
 	// Dot
 	buf.noStroke();
-	buf.fill(...dotColor, hovered ? 255 : 200);
+	buf.fill(...dotColor, hovered ? 255 : 230);
 	buf.circle(x, y, dotR * 2);
 
 	// Label
 	buf.textAlign(p.CENTER, p.CENTER);
 	applyThemeCanvasFont(buf, labelSz, p);
 	buf.noStroke();
-	buf.fill(...labelColor, hovered ? 255 : 180);
+	buf.fill(255, 255, 255, 255);
 	buf.text(name, x, y + dotR * 3.5);
 
 	buf.noStroke();
@@ -265,13 +264,12 @@ function drawPin(buf, x, y, name, hovered, p) {
 function drawMapPlaceholder(buf, x, y, w, h, mapOutline, mapOutlineState, neighborhoodOverlays, hoveredOverlaySlug, selectedPinIndex, geoBounds, p) {
 	// Dark panel
 	buf.fill(...THEME.BG, 200);
-	buf.stroke(...THEME.GREEN_PRIMARY, 18);
+	buf.stroke(...THEME.GREEN_PRIMARY, 55);
 	buf.strokeWeight(12);
-	// rect radius based on size, with min/max clamp
 	const radius = Math.max(10, Math.min(30, Math.min(w, h) * 0.22));
 	buf.rect(x, y, w, h, radius);
 	// Grid lines
-	buf.stroke(...THEME.GREEN_PRIMARY, 18);
+	buf.stroke(...THEME.GREEN_PRIMARY, 45);
 	buf.strokeWeight(1);
 	const cols = 24;
 	const rows = 16;
@@ -289,14 +287,14 @@ function drawMapPlaceholder(buf, x, y, w, h, mapOutline, mapOutlineState, neighb
 
 	// Border
 	buf.noFill();
-	buf.stroke(...THEME.GREEN_MID, 80);
+	buf.stroke(...THEME.GREEN_MID, 180);
 	buf.strokeWeight(2);
 	buf.rect(x, y, w, h, 22);
 
 	const status = mapOutlineState === "loading" ? "Contour QC: chargement..." : "Contour QC: actif";
 	applyThemeCanvasFont(buf, Math.max(10, buf.width * 0.01), p);
 	buf.noStroke();
-	buf.fill(...THEME.GREEN_SUBTLE, 140);
+	buf.fill(...THEME.GREEN_SUBTLE, 220);
 	buf.textAlign(p.RIGHT, p.TOP);
 	buf.text(status, x + w - w * 0.02, y + h * 0.02);
 
@@ -316,7 +314,7 @@ function drawMapOutline(buf, x, y, w, h, mapOutline, geoBounds) {
 		const ring = rings[i];
 		if (!Array.isArray(ring) || ring.length < 2) continue;
 		buf.noFill();
-		buf.stroke(...THEME.GREEN_PRIMARY, 72);
+		buf.stroke(...THEME.GREEN_PRIMARY, 160);
 		buf.strokeWeight(Math.max(1.2, buf.width * 0.0018));
 		buf.beginShape();
 		for (let j = 0; j < ring.length; j++) {
@@ -570,8 +568,8 @@ function drawNeighborhoodOverlays(buf, mapRect, overlays, hoveredSlug, selectedP
 		for (let j = 0; j < overlay.rings.length; j++) {
 			const ring = overlay.rings[j];
 			if (!Array.isArray(ring) || ring.length < 3) continue;
-			buf.fill(...THEME.GREEN_PRIMARY, isActive ? 72 : 36);
-			buf.stroke(...THEME.GREEN_MID, isActive ? 170 : 105);
+			buf.fill(...THEME.GREEN_PRIMARY, isActive ? 120 : 65);
+			buf.stroke(...THEME.GREEN_MID, isActive ? 220 : 160);
 			buf.strokeWeight(isActive ? 1.8 : 1.1);
 			buf.beginShape();
 			for (let k = 0; k < ring.length; k++) {
@@ -594,17 +592,17 @@ function drawOverlayAnchor(buf, mapRect, overlay, isHovered, isSelected, geoBoun
 	const isActive = isHovered || isSelected;
 
 	buf.noFill();
-	buf.stroke(...THEME.GREEN_PRIMARY, isActive ? 170 : 90);
+	buf.stroke(...THEME.GREEN_PRIMARY, isActive ? 220 : 150);
 	buf.strokeWeight(1);
 	buf.circle(center.x, center.y, dotR * 4);
 
 	buf.noStroke();
-	buf.fill(...THEME.GREEN_PRIMARY, isActive ? 245 : 210);
+	buf.fill(...THEME.GREEN_PRIMARY, isActive ? 255 : 230);
 	buf.circle(center.x, center.y, dotR * 2);
 
 	applyThemeCanvasFont(buf, labelSz, p);
 	buf.textAlign(p.CENTER, p.BOTTOM);
-	buf.fill(...THEME.GREEN_SUBTLE, isActive ? 255 : 205);
+	buf.fill(255, 255, 255, 255);
 	buf.text(overlay.name, center.x, center.y - dotR * 2.1);
 }
 
@@ -749,47 +747,55 @@ const FALLBACK_QUEBEC_OUTLINE = [
 
 function drawDesktopBackground(buf, w, h) {
 	buf.background(...THEME.BG);
-	buf.stroke(...THEME.GREEN_PRIMARY, 26);
-	buf.strokeWeight(1);
-	const cols = 36;
-	const rows = 22;
+	buf.noStroke();
+	buf.fill(...THEME.GREEN_PRIMARY, 22);
+	const cols = 38;
+	const rows = 24;
+	const dotSize = Math.max(1.5, Math.min(w / cols, h / rows) * 0.14);
 	for (let c = 0; c <= cols; c++) {
-		const x = (c / cols) * w;
-		buf.line(x, 0, x, h);
-	}
-	for (let r = 0; r <= rows; r++) {
-		const y = (r / rows) * h;
-		buf.line(0, y, w, y);
+		for (let r = 0; r <= rows; r++) {
+			buf.ellipse((c / cols) * w, (r / rows) * h, dotSize, dotSize);
+		}
 	}
 }
 
 function drawWindowTopBar(buf, w, h, closeHovered, p) {
 	const barH = h * 0.07;
-	buf.noStroke();
-	buf.fill(8, 24, 38, 230);
-	buf.rect(0, 0, w, barH);
-	buf.stroke(...THEME.GREEN_MID, 90);
+	const ctx = buf.drawingContext;
+	const grad = ctx.createLinearGradient(0, 0, 0, barH);
+	grad.addColorStop(0, "rgba(95, 48, 28, 0.97)");
+	grad.addColorStop(0.45, "rgba(52, 28, 16, 0.97)");
+	grad.addColorStop(1, "rgba(16, 9, 5, 0.98)");
+	ctx.fillStyle = grad;
+	ctx.fillRect(0, 0, w, barH);
+	buf.stroke(...THEME.GREEN_PRIMARY, 55);
+	buf.strokeWeight(1);
+	buf.line(0, 0, w, 0);
+	buf.stroke(...THEME.GREEN_MID, 150);
 	buf.strokeWeight(2);
 	buf.line(0, barH, w, barH);
+	buf.stroke(...THEME.GREEN_PRIMARY, 55);
+	buf.strokeWeight(1);
+	buf.line(0, barH - 3, w, barH - 3);
 	buf.noStroke();
 
 	const btnSize = barH * 0.58;
 	const btnX = w * 0.022;
 	const btnY = (barH - btnSize) * 0.5;
-	buf.stroke(...THEME.GREEN_MID, closeHovered ? 210 : 150);
+	buf.stroke(...THEME.GREEN_MID, closeHovered ? 240 : 180);
 	buf.strokeWeight(2);
-	buf.fill(...THEME.GREEN_PRIMARY, closeHovered ? 70 : 35);
+	buf.fill(...THEME.GREEN_PRIMARY, closeHovered ? 120 : 70);
 	buf.rect(btnX, btnY, btnSize, btnSize, 4);
 	buf.noStroke();
 	applyThemeCanvasFont(buf, Math.max(11, w * 0.013), p);
-	buf.fill(...THEME.GREEN_SUBTLE, closeHovered ? 255 : 220);
+	buf.fill(...THEME.GREEN_SUBTLE, closeHovered ? 255 : 240);
 	buf.textAlign(p.CENTER, p.CENTER);
 	buf.text("X", btnX + btnSize * 0.5, btnY + btnSize * 0.52);
 
 	applyThemeCanvasFont(buf, Math.max(12, w * 0.014), p);
-	buf.fill(...THEME.GREEN_SUBTLE, 210);
+	buf.fill(...THEME.GREEN_SUBTLE, 240);
 	buf.textAlign(p.LEFT, p.CENTER);
-	buf.text("Gestionnaire de quartiers", btnX + btnSize + w * 0.02, barH * 0.5);
+	buf.text("Retour au menu principal", btnX + btnSize + w * 0.02, barH * 0.5);
 
 	return {
 		height: barH,
@@ -800,17 +806,24 @@ function drawWindowTopBar(buf, w, h, closeHovered, p) {
 function drawBottomStatusBar(buf, w, h, p) {
 	const barH = h * 0.072;
 	const barY = h - barH;
-	buf.noStroke();
-	buf.fill(8, 24, 38, 235);
-	buf.rect(0, barY, w, barH);
-	buf.stroke(...THEME.GREEN_MID, 100);
+	const ctx = buf.drawingContext;
+	const grad = ctx.createLinearGradient(0, barY, 0, barY + barH);
+	grad.addColorStop(0, "rgba(16, 9, 5, 0.98)");
+	grad.addColorStop(0.55, "rgba(52, 28, 16, 0.97)");
+	grad.addColorStop(1, "rgba(95, 48, 28, 0.97)");
+	ctx.fillStyle = grad;
+	ctx.fillRect(0, barY, w, barH);
+	buf.stroke(...THEME.GREEN_MID, 150);
 	buf.strokeWeight(2);
 	buf.line(0, barY, w, barY);
+	buf.stroke(...THEME.GREEN_PRIMARY, 55);
+	buf.strokeWeight(1);
+	buf.line(0, barY + 3, w, barY + 3);
 	buf.noStroke();
 
 	const navSz = Math.max(11, w * 0.012);
 	applyThemeCanvasFont(buf, navSz, p);
-	buf.fill(...THEME.GREEN_MID, 230);
+	buf.fill(...THEME.GREEN_MID, 245);
 	buf.textAlign(p.LEFT, p.CENTER);
 	buf.text("Cartographie active", w * 0.03, barY + barH * 0.5);
 	buf.textAlign(p.CENTER, p.CENTER);

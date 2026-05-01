@@ -28,7 +28,7 @@ const googleFontCssUrl = THEME_FONT.provider === "google" ? THEME_FONT.googleCss
 		<canvas
 			id='ht-debug'
 			data-html2canvas-ignore='true'
-			style='display:none;position:fixed;top:1rem;right:1rem;z-index:9999;border:2px solid #0f0;border-radius:4px;box-shadow:0 0 12px rgba(0,255,0,.4)'></canvas>
+			style='display:none;position:fixed;top:1rem;right:1rem;z-index:9999;border:2px solid #ff9b52;border-radius:4px;box-shadow:0 0 12px rgba(255,155,82,.45)'></canvas>
 		<script is:inline>
 			(function () {
 				const canvas = document.getElementById("ht-debug");
@@ -46,7 +46,7 @@ const googleFontCssUrl = THEME_FONT.provider === "google" ? THEME_FONT.googleCss
 					ctx.drawImage(video, 0, 0, w, h);
 					const dx = ((x + 1) / 2) * w;
 					const dy = ((y + 1) / 2) * h;
-					ctx.strokeStyle = "rgba(0,255,0,0.4)";
+					ctx.strokeStyle = "rgba(255,155,82,0.45)";
 					ctx.lineWidth = 1;
 					ctx.beginPath();
 					ctx.moveTo(dx, 0);
@@ -54,7 +54,7 @@ const googleFontCssUrl = THEME_FONT.provider === "google" ? THEME_FONT.googleCss
 					ctx.moveTo(0, dy);
 					ctx.lineTo(w, dy);
 					ctx.stroke();
-					ctx.fillStyle = "#0f0";
+					ctx.fillStyle = "#ffb86c";
 					ctx.beginPath();
 					ctx.arc(dx, dy, 5, 0, Math.PI * 2);
 					ctx.fill();
