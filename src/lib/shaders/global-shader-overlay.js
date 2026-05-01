@@ -148,8 +148,8 @@ const DEFAULT_EFFECTS = {
 		lineThickness: 0.9,
 		spacingOpacity: 0.9,
 		flicker: 1.2,
-		flickerSpacing: 120.0,
-		timeMultiplier: 1.0,
+		flickerSpacing: 30.0,
+		timeMultiplier: 10.0,
 	},
 	crtWarp: {
 		enabled: true,
