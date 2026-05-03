@@ -16,6 +16,7 @@
 import {sceneNavigate} from "../../lib/router/scene-nav.js";
 import {THEME, drawTitleAberration, hitTest, applyThemeCanvasFont} from "../../lib/utils/retro-theme.js";
 import {createCanvasCursor, drawCanvasCursor} from "../../lib/input/canvas-cursor.js";
+import {getOverworldMapData} from "../../lib/data/overworld-map-data.js";
 
 export default function (container) {
 	const raw = container.dataset.sketchData;
@@ -342,87 +343,11 @@ function drawMapOutline(buf, x, y, w, h, mapOutline, geoBounds) {
 	buf.drawingContext.restore();
 }
 
-async function loadQuebecOutlineRaw() {
-	try {
-		const endpoint = "https://nominatim.openstreetmap.org/search?format=jsonv2&polygon_geojson=1&limit=1&q=";
-		const query = "La Cité-Limoilou, Quebec, Canada";
-		const url = `${endpoint}${encodeURIComponent(query)}`;
-		const res = await fetch(url, {
-			headers: {
-				"Accept-Language": "fr-CA,fr,en",
-			},
-		});
-		if (!res.ok) return {geojson: null, bounds: null};
-		const results = await res.json();
-		if (!Array.isArray(results) || results.length === 0) return {geojson: null, bounds: null};
-		const geojson = results[0]?.geojson;
-		if (!geojson) return {geojson: null, bounds: null};
-		const bounds = computeGeoBounds(extractRawRings(geojson));
-		if (!bounds) return {geojson: null, bounds: null};
-		return {geojson, bounds};
-	} catch {
-		return {geojson: null, bounds: null};
-	}
-}
-
 /**
- * Single shared lon/lat bbox for city + all neighborhood polygons, then one normalization pass.
- * Avoids Limoilou (etc.) looking mis-scaled vs the borough outline when OSM extents differ slightly.
+ * Shared loader now owns fetch policy, request dedupe, and cache persistence.
  */
 async function loadMapData(neighborhoods) {
-	const city = await loadQuebecOutlineRaw();
-	if (!city.geojson || !city.bounds) {
-		return {
-			mapOutline: FALLBACK_QUEBEC_OUTLINE,
-			unionBounds: null,
-			overlays: [],
-		};
-	}
-
-	if (!Array.isArray(neighborhoods) || neighborhoods.length === 0) {
-		const outline = normalizeGeoJsonRings(city.geojson, city.bounds);
-		return {
-			mapOutline: outline.length > 0 ? outline : FALLBACK_QUEBEC_OUTLINE,
-			unionBounds: city.bounds,
-			overlays: [],
-		};
-	}
-
-	const hoodRaw = [];
-	for (let i = 0; i < neighborhoods.length; i++) {
-		const geojson = await fetchFirstNeighborhoodPolygonGeoJson(neighborhoods[i].name);
-		hoodRaw.push({hood: neighborhoods[i], index: i, geojson});
-	}
-
-	let unionBounds = {...city.bounds};
-	for (let i = 0; i < hoodRaw.length; i++) {
-		const g = hoodRaw[i].geojson;
-		if (!g) continue;
-		const b = computeGeoBounds(extractRawRings(g));
-		if (b) unionBounds = mergeGeoBounds(unionBounds, b);
-	}
-
-	const mapOutline = normalizeGeoJsonRings(city.geojson, unionBounds);
-	const overlays = [];
-	for (let i = 0; i < hoodRaw.length; i++) {
-		const {hood, index, geojson} = hoodRaw[i];
-		if (!geojson) continue;
-		const rings = normalizeGeoJsonRings(geojson, unionBounds);
-		if (rings.length === 0) continue;
-		overlays.push({
-			name: hood.name,
-			slug: hood.slug,
-			rings,
-			anchor: computeOverlayAnchor(rings),
-			pinIndex: index,
-		});
-	}
-
-	return {
-		mapOutline: mapOutline.length > 0 ? mapOutline : FALLBACK_QUEBEC_OUTLINE,
-		unionBounds,
-		overlays,
-	};
+	return getOverworldMapData(neighborhoods);
 }
 
 async function fetchFirstNeighborhoodPolygonGeoJson(name) {

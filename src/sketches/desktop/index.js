@@ -8,6 +8,8 @@
  */
 
 import {sceneNavigate} from "../../lib/router/scene-nav.js";
+import {getNeighborhoods} from "../../lib/data/scene-data.js";
+import {prefetchOverworldMapData} from "../../lib/data/overworld-map-data.js";
 import {THEME, applyThemeCanvasFont, hitTest} from "../../lib/utils/retro-theme.js";
 import {createCanvasCursor, drawCanvasCursor} from "../../lib/input/canvas-cursor.js";
 
@@ -64,6 +66,7 @@ export default function (container) {
 				locationLabel = nextLocation;
 				weatherLabel = nextWeather;
 			});
+			void prefetchOverworldMapData(getNeighborhoods());
 		};
 
 		sketch.draw = () => {
