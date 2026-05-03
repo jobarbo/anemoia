@@ -8,6 +8,7 @@
 import {THEME, applyThemeCanvasFont} from "../../lib/utils/retro-theme.js";
 import {sceneNavigate} from "../../lib/router/scene-nav.js";
 import {drawButton, hitTest} from "../../lib/utils/retro-theme.js";
+import {createCanvasCursor, drawCanvasCursor} from "../../lib/input/canvas-cursor.js";
 
 const CUTOUT_DIM_ALPHA = 80;
 const CUTOUT_DIM_RGB = [0, 0, 0];
@@ -18,6 +19,7 @@ export default function (container) {
 
 	return (sketch) => {
 		let artBuffer;
+		let canvasCursor;
 		let backRect = null;
 		let backHovered = false;
 		let scrollContainer = null;
@@ -28,6 +30,7 @@ export default function (container) {
 			const h = window.innerHeight;
 			const canvas = sketch.createCanvas(w, h);
 			canvas.parent(container);
+			canvasCursor = createCanvasCursor({canvasEl: canvas.elt});
 			scrollContainer = container.closest("[data-game-screen]");
 			artBuffer = sketch.createGraphics(w, h);
 			artBuffer.pixelDensity(1);
@@ -37,6 +40,7 @@ export default function (container) {
 		sketch.draw = () => {
 			const w = artBuffer.width;
 			const h = artBuffer.height;
+			const pointer = canvasCursor.beginFrame({mouseX: sketch.mouseX, mouseY: sketch.mouseY, width: w, height: h});
 			const framePad = Math.max(24, Math.round(Math.min(w, h) * 0.065));
 			const innerPadX = framePad + Math.max(14, Math.round(w * 0.012));
 			const innerPadY = framePad + Math.max(10, Math.round(h * 0.01));
@@ -51,8 +55,8 @@ export default function (container) {
 			const backX = framePad + Math.max(12, Math.round(w * 0.01)) + backW * 0.5;
 			const backY = framePad * 0.5;
 			backRect = drawButton(artBuffer, backLabel, backX, backY, backSize, backHovered, sketch);
-			const mouseInCanvas = sketch.mouseX >= 0 && sketch.mouseX <= w && sketch.mouseY >= 0 && sketch.mouseY <= h;
-			backHovered = Boolean(mouseInCanvas && backRect && hitTest(sketch.mouseX, sketch.mouseY, backRect));
+			const mouseInCanvas = pointer.insideCanvas || pointer.locked;
+			backHovered = Boolean(mouseInCanvas && backRect && hitTest(pointer.x, pointer.y, backRect));
 
 			artBuffer.textAlign(sketch.RIGHT, sketch.TOP);
 
@@ -65,13 +69,13 @@ export default function (container) {
 			artBuffer.text("SCENE DE QUARTIER ACTIVE", w - innerPadX, innerPadY / 2);
 
 			sketch.clear();
+			drawCanvasCursor(artBuffer, pointer, {hovered: backHovered});
 			sketch.image(artBuffer, 0, 0);
-			sketch.cursor(backHovered ? sketch.HAND : sketch.ARROW);
-			container.style.cursor = backHovered ? "pointer" : "default";
 		};
 
 		sketch.mousePressed = () => {
-			if (backRect && hitTest(sketch.mouseX, sketch.mouseY, backRect)) {
+			const pointer = canvasCursor.beginFrame({mouseX: sketch.mouseX, mouseY: sketch.mouseY, width: artBuffer.width, height: artBuffer.height});
+			if (backRect && hitTest(pointer.x, pointer.y, backRect)) {
 				sceneNavigate("overworld");
 			}
 		};
@@ -83,6 +87,9 @@ export default function (container) {
 		};
 
 		sketch.keyPressed = () => {
+			if (sketch.keyCode === sketch.ESCAPE && canvasCursor?.isLocked()) {
+				return false;
+			}
 			if (sketch.keyCode === sketch.ESCAPE || sketch.keyCode === sketch.BACKSPACE) {
 				sceneNavigate("overworld");
 				return false;
@@ -97,6 +104,12 @@ export default function (container) {
 			artBuffer.resizeCanvas(w, h);
 			artBuffer.pixelDensity(1);
 		};
+
+		if (typeof sketch.registerMethod === "function") {
+			sketch.registerMethod("remove", () => {
+				canvasCursor?.destroy();
+			});
+		}
 	};
 }
 

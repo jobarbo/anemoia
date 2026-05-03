@@ -9,10 +9,12 @@
 
 import {sceneNavigate} from "../../lib/router/scene-nav.js";
 import {THEME, applyThemeCanvasFont, hitTest} from "../../lib/utils/retro-theme.js";
+import {createCanvasCursor, drawCanvasCursor} from "../../lib/input/canvas-cursor.js";
 
 export default function (container) {
 	return (sketch) => {
 		let artBuffer;
+		let canvasCursor;
 		let interactiveRows = [];
 		let hoveredRowAction = null;
 		let locationLabel = "Localisation...";
@@ -49,6 +51,7 @@ export default function (container) {
 			const h = window.innerHeight;
 			const canvas = sketch.createCanvas(w, h);
 			canvas.parent(container);
+			canvasCursor = createCanvasCursor({canvasEl: canvas.elt});
 
 			artBuffer = sketch.createGraphics(w, h);
 			artBuffer.pixelDensity(1);
@@ -66,6 +69,8 @@ export default function (container) {
 		sketch.draw = () => {
 			const w = artBuffer.width;
 			const h = artBuffer.height;
+			const pointer = canvasCursor.beginFrame({mouseX: sketch.mouseX, mouseY: sketch.mouseY, width: w, height: h});
+			hoveredRowAction = interactiveRows.find((row) => hitTest(pointer.x, pointer.y, row.rect))?.action ?? null;
 
 			drawDesktopBackground(artBuffer, w, h, sketch);
 			drawTopBar(artBuffer, w, h, sketch);
@@ -111,19 +116,15 @@ export default function (container) {
 				}
 			}
 			drawSystemCard(artBuffer, w, h, sketch, blink, gazeX, gazeY);
+			drawCanvasCursor(artBuffer, pointer, {hovered: Boolean(hoveredRowAction)});
 
 			sketch.clear();
 			sketch.image(artBuffer, 0, 0);
-			container.style.cursor = hoveredRowAction ? "pointer" : "default";
-		};
-
-		sketch.mouseMoved = () => {
-			const hoveredRow = interactiveRows.find((row) => hitTest(sketch.mouseX, sketch.mouseY, row.rect));
-			hoveredRowAction = hoveredRow?.action ?? null;
 		};
 
 		sketch.mousePressed = () => {
-			const clickedRow = interactiveRows.find((row) => hitTest(sketch.mouseX, sketch.mouseY, row.rect));
+			const pointer = canvasCursor.beginFrame({mouseX: sketch.mouseX, mouseY: sketch.mouseY, width: artBuffer.width, height: artBuffer.height});
+			const clickedRow = interactiveRows.find((row) => hitTest(pointer.x, pointer.y, row.rect));
 			if (!clickedRow) return;
 			if (clickedRow.action === "story:lismoi") {
 				sceneNavigate("story", {slug: "la-memoire"});
@@ -141,6 +142,12 @@ export default function (container) {
 			artBuffer.resizeCanvas(w, h);
 			artBuffer.pixelDensity(1);
 		};
+
+		if (typeof sketch.registerMethod === "function") {
+			sketch.registerMethod("remove", () => {
+				canvasCursor?.destroy();
+			});
+		}
 	};
 }
 

@@ -18,6 +18,7 @@ import {createLogoPhase} from "./logo.js";
 import {createLoginPhase} from "./login.js";
 import {createTitlePhase} from "./title.js";
 import {THEME_FONT, applyThemeCanvasFont} from "../../lib/utils/retro-theme.js";
+import {createCanvasCursor, drawCanvasCursor} from "../../lib/input/canvas-cursor.js";
 
 const PHASE = {BIOS: 0, LOGO: 1, LOGIN: 2, TITLE: 3, EXIT: 4};
 
@@ -63,6 +64,7 @@ async function ensureLocalFontLoaded(path, family, weight) {
 export default function (container) {
 	/** P2D offscreen buffer — all phase drawing happens here. */
 	let artBuffer;
+	let canvasCursor;
 	/** Font family string for canvas when using google/system provider */
 	let splashFontFamily = THEME_FONT.family;
 	let splashFontWeight = THEME_FONT.weight ?? "400";
@@ -97,6 +99,7 @@ export default function (container) {
 			const h = window.innerHeight;
 			const canvas = sketch.createCanvas(w, h);
 			canvas.parent(container);
+			canvasCursor = createCanvasCursor({canvasEl: canvas.elt});
 
 			artBuffer = sketch.createGraphics(w, h);
 			artBuffer.pixelDensity(1);
@@ -142,6 +145,7 @@ export default function (container) {
 
 		sketch.draw = () => {
 			const now = sketch.millis();
+			const pointer = canvasCursor.beginFrame({mouseX: sketch.mouseX, mouseY: sketch.mouseY, width: artBuffer.width, height: artBuffer.height});
 
 			// Advance state machine
 			if (phase === PHASE.BIOS && bios.isDone()) phase = PHASE.LOGO;
@@ -169,6 +173,7 @@ export default function (container) {
 			}
 
 			// Blit artBuffer onto visible canvas
+			drawCanvasCursor(artBuffer, pointer, {hovered: phase === PHASE.LOGO || phase === PHASE.TITLE});
 			sketch.clear();
 			sketch.image(artBuffer, 0, 0);
 		};
@@ -204,5 +209,11 @@ export default function (container) {
 			artBuffer.resizeCanvas(w, h);
 			artBuffer.pixelDensity(1);
 		};
+
+		if (typeof sketch.registerMethod === "function") {
+			sketch.registerMethod("remove", () => {
+				canvasCursor?.destroy();
+			});
+		}
 	};
 }

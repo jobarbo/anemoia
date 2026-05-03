@@ -24,6 +24,7 @@
 import gsap from "gsap";
 import {sceneNavigate} from "../../lib/router/scene-nav.js";
 import {THEME, drawTitleAberration, hitTest, applyThemeCanvasFont} from "../../lib/utils/retro-theme.js";
+import {createCanvasCursor, drawCanvasCursor} from "../../lib/input/canvas-cursor.js";
 
 export default function (container) {
 	const raw = container.dataset.sketchData;
@@ -32,6 +33,7 @@ export default function (container) {
 	return (sketch) => {
 		/** P2D artBuffer — all drawing; GlobalShaderOverlay handles GLSL post. */
 		let artBuffer;
+		let canvasCursor;
 
 		// ── Scroll state ──────────────────────────────────────────────────────────
 		let scrollY = 0;
@@ -59,6 +61,7 @@ export default function (container) {
 			const h = window.innerHeight;
 			const canvas = sketch.createCanvas(w, h);
 			canvas.parent(container);
+			canvasCursor = createCanvasCursor({canvasEl: canvas.elt});
 			artBuffer = sketch.createGraphics(w, h);
 			artBuffer.pixelDensity(1);
 			artBuffer.noStroke();
@@ -71,6 +74,7 @@ export default function (container) {
 		sketch.draw = () => {
 			const w = artBuffer.width;
 			const h = artBuffer.height;
+			const pointer = canvasCursor.beginFrame({mouseX: sketch.mouseX, mouseY: sketch.mouseY, width: w, height: h});
 
 			// Smooth scroll
 			scrollY += (targetScrollY - scrollY) * THEME.SCROLL_LERP;
@@ -82,6 +86,7 @@ export default function (container) {
 			drawDesktopBackground(artBuffer, w, h);
 			const topBar = drawWindowTopBar(artBuffer, w, h, closeHovered, sketch);
 			closeRect = topBar.closeRect;
+			closeHovered = closeRect ? hitTest(pointer.x, pointer.y, closeRect) : false;
 
 			// ── Content blocks ────────────────────────────────────────────────────
 			const contentX = w * 0.12;
@@ -105,10 +110,9 @@ export default function (container) {
 			drawScrollbar(artBuffer, scrollY, maxScroll);
 
 			// Blit to output
+			drawCanvasCursor(artBuffer, pointer, {hovered: closeHovered});
 			sketch.clear();
 			sketch.image(artBuffer, 0, 0);
-
-			container.style.cursor = closeHovered ? "pointer" : "default";
 		};
 
 		// ── Input ─────────────────────────────────────────────────────────────────
@@ -118,12 +122,9 @@ export default function (container) {
 			return false; // prevent page scroll
 		};
 
-		sketch.mouseMoved = () => {
-			closeHovered = closeRect ? hitTest(sketch.mouseX, sketch.mouseY, closeRect) : false;
-		};
-
 		sketch.mousePressed = () => {
-			if (closeRect && hitTest(sketch.mouseX, sketch.mouseY, closeRect)) {
+			const pointer = canvasCursor.beginFrame({mouseX: sketch.mouseX, mouseY: sketch.mouseY, width: artBuffer.width, height: artBuffer.height});
+			if (closeRect && hitTest(pointer.x, pointer.y, closeRect)) {
 				if (returnTo === "desktop") {
 					sceneNavigate("desktop");
 				} else {
@@ -169,6 +170,12 @@ export default function (container) {
 				}
 			}
 		};
+
+		if (typeof sketch.registerMethod === "function") {
+			sketch.registerMethod("remove", () => {
+				canvasCursor?.destroy();
+			});
+		}
 
 		// ── Layout computation ────────────────────────────────────────────────────
 

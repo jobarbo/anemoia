@@ -15,6 +15,7 @@
 
 import {sceneNavigate} from "../../lib/router/scene-nav.js";
 import {THEME, drawTitleAberration, hitTest, applyThemeCanvasFont} from "../../lib/utils/retro-theme.js";
+import {createCanvasCursor, drawCanvasCursor} from "../../lib/input/canvas-cursor.js";
 
 export default function (container) {
 	const raw = container.dataset.sketchData;
@@ -23,6 +24,8 @@ export default function (container) {
 	return (sketch) => {
 		/** P2D offscreen buffer — all drawing happens here, GlobalShaderOverlay handles GLSL. */
 		let artBuffer;
+		let canvasCursor;
+		let pointer = {x: 0, y: 0, insideCanvas: false, locked: false, visible: false};
 		/** Keyboard selection index: 0..neighborhoods.length-1 = pin */
 		let selectedPin = 0;
 
@@ -41,6 +44,7 @@ export default function (container) {
 			const h = window.innerHeight;
 			const canvas = sketch.createCanvas(w, h);
 			canvas.parent(container);
+			canvasCursor = createCanvasCursor({canvasEl: canvas.elt});
 			canvas.elt.tabIndex = 0;
 			canvas.elt.focus();
 			artBuffer = sketch.createGraphics(w, h);
@@ -67,12 +71,14 @@ export default function (container) {
 		sketch.draw = () => {
 			const w = artBuffer.width;
 			const h = artBuffer.height;
+			pointer = canvasCursor.beginFrame({mouseX: sketch.mouseX, mouseY: sketch.mouseY, width: w, height: h});
 
 			// ── Background ────────────────────────────────────────────────────────
 			drawDesktopBackground(artBuffer, w, h);
 
 			const topBar = drawWindowTopBar(artBuffer, w, h, closeHovered, sketch);
 			closeRect = topBar.closeRect;
+			closeHovered = Boolean(closeRect && hitTest(pointer.x, pointer.y, closeRect));
 			const topBarH = topBar.height;
 			const bottomBarH = drawBottomStatusBar(artBuffer, w, h, sketch);
 
@@ -113,9 +119,9 @@ export default function (container) {
 			artBuffer.text("↑↓ CHOISIR   ENTRÉE CONFIRMER   ESC FERMER", w - w * 0.04, h - bottomBarH * 0.5);
 
 			// Blit artBuffer onto output canvas
+			drawCanvasCursor(artBuffer, pointer, {hovered: closeHovered || hoveredPin >= 0 || hoveredOverlaySlug != null});
 			sketch.clear();
 			sketch.image(artBuffer, 0, 0);
-			container.style.cursor = closeHovered || findPinAtMouse() >= 0 || hoveredOverlaySlug != null ? "pointer" : "default";
 		};
 
 		sketch.keyPressed = () => {
@@ -124,7 +130,10 @@ export default function (container) {
 
 		function handleKeyInput(key) {
 			if (neighborhoods.length === 0) {
-				if (key === sketch.ESCAPE) sceneNavigate("desktop");
+				if (key === sketch.ESCAPE) {
+					if (canvasCursor?.isLocked()) return false;
+					sceneNavigate("desktop");
+				}
 				return false;
 			}
 			if (key === sketch.UP_ARROW || key === sketch.LEFT_ARROW) {
@@ -134,6 +143,7 @@ export default function (container) {
 			} else if (key === sketch.ENTER || key === sketch.RETURN) {
 				sceneNavigate("neighborhood", {slug: neighborhoods[selectedPin].slug});
 			} else if (key === sketch.ESCAPE) {
+				if (canvasCursor?.isLocked()) return false;
 				sceneNavigate("desktop");
 			}
 			return false; // prevent default browser scroll
@@ -154,12 +164,9 @@ export default function (container) {
 			handleKeyInput(mapped);
 		}
 
-		sketch.mouseMoved = () => {
-			closeHovered = Boolean(closeRect && hitTest(sketch.mouseX, sketch.mouseY, closeRect));
-		};
-
 		sketch.mousePressed = () => {
-			if (closeRect && hitTest(sketch.mouseX, sketch.mouseY, closeRect)) {
+			pointer = canvasCursor.beginFrame({mouseX: sketch.mouseX, mouseY: sketch.mouseY, width: artBuffer.width, height: artBuffer.height});
+			if (closeRect && hitTest(pointer.x, pointer.y, closeRect)) {
 				sceneNavigate("desktop");
 				return;
 			}
@@ -184,6 +191,12 @@ export default function (container) {
 			artBuffer.pixelDensity(1);
 		};
 
+		if (typeof sketch.registerMethod === "function") {
+			sketch.registerMethod("remove", () => {
+				canvasCursor?.destroy();
+			});
+		}
+
 		function findPinAtMouse() {
 			if (!mapBounds.w || !mapBounds.h) return -1;
 			const hitRadius = Math.max(14, artBuffer.width * 0.02);
@@ -192,8 +205,8 @@ export default function (container) {
 				const hood = neighborhoods[i];
 				const px = mapBounds.x + (hood.position.x / 100) * mapBounds.w;
 				const py = mapBounds.y + (hood.position.y / 100) * mapBounds.h;
-				const dx = sketch.mouseX - px;
-				const dy = sketch.mouseY - py;
+				const dx = pointer.x - px;
+				const dy = pointer.y - py;
 				if (dx * dx + dy * dy <= hitRadius * hitRadius) return i;
 			}
 			return -1;
@@ -208,8 +221,8 @@ export default function (container) {
 				const overlay = neighborhoodOverlays[i];
 				if (!overlay?.anchor) continue;
 				const anchor = toScreenPoint(overlay.anchor, mapBounds, cityGeoBounds);
-				const dx = sketch.mouseX - anchor.x;
-				const dy = sketch.mouseY - anchor.y;
+				const dx = pointer.x - anchor.x;
+				const dy = pointer.y - anchor.y;
 				if (dx * dx + dy * dy <= pointHitRadius * pointHitRadius) return overlay;
 			}
 			for (let i = 0; i < neighborhoodOverlays.length; i++) {
@@ -217,7 +230,7 @@ export default function (container) {
 				for (let j = 0; j < overlay.rings.length; j++) {
 					const screenRing = toScreenRing(overlay.rings[j], mapBounds, cityGeoBounds);
 					if (screenRing.length < 3) continue;
-					if (pointInPolygon(sketch.mouseX, sketch.mouseY, screenRing)) return overlay;
+					if (pointInPolygon(pointer.x, pointer.y, screenRing)) return overlay;
 				}
 			}
 			return null;

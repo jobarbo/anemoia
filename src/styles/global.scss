@@ -10,3 +10,8 @@
 	--game-shader-overlay-z: 9000;
 	--game-ui-above-shader-z: 9500;
 }
+
+[data-game-screen],
+[data-game-screen] * {
+	cursor: none !important;
+}
