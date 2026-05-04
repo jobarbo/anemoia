@@ -2,13 +2,14 @@
  * Desktop sketch — retro GUI landing screen between splash and overworld.
  *
  * Interactions:
- * - Mouse hover highlights the desktop shortcut.
- * - Mouse click on shortcut navigates to overworld.
+ * - Mouse hover highlights tree rows.
+ * - Click navigates: readme story, overworld, each neighborhood, and per-neighborhood
+ *   stories (from `src/data/neighborhoods/index.json` + embedded story content).
  * - No keyboard navigation.
  */
 
 import {sceneNavigate} from "../../lib/router/scene-nav.js";
-import {getNeighborhoods} from "../../lib/data/scene-data.js";
+import {getNeighborhoods, getStory} from "../../lib/data/scene-data.js";
 import {prefetchOverworldMapData} from "../../lib/data/overworld-map-data.js";
 import {THEME, applyThemeCanvasFont, hitTest} from "../../lib/utils/retro-theme.js";
 import {createCanvasCursor, drawCanvasCursor} from "../../lib/input/canvas-cursor.js";
@@ -129,13 +130,7 @@ export default function (container) {
 			const pointer = canvasCursor.beginFrame({mouseX: sketch.mouseX, mouseY: sketch.mouseY, width: artBuffer.width, height: artBuffer.height});
 			const clickedRow = interactiveRows.find((row) => hitTest(pointer.x, pointer.y, row.rect));
 			if (!clickedRow) return;
-			if (clickedRow.action === "story:lismoi") {
-				sceneNavigate("story", {slug: "la-memoire"});
-				return;
-			}
-			if (clickedRow.action === "overworld") {
-				sceneNavigate("overworld");
-			}
+			navigateFromDesktopAction(clickedRow.action);
 		};
 
 		sketch.windowResized = () => {
@@ -272,6 +267,57 @@ function isWeatherIconToken(token) {
 	return Array.from(value).length <= 3;
 }
 
+/** Labels + depths + route ids for the file-manager tree (single source: neighborhoods JSON). */
+function buildDesktopTreeRows() {
+	let storyRowKey = 0;
+	const nextStoryAction = (slug) => `story:${slug}#${storyRowKey++}`;
+
+	const rows = [
+		{label: "LISMOI", depth: 0, interactive: true, action: nextStoryAction("la-memoire")},
+		{label: "Les villes verticales", depth: 0, interactive: true, action: "overworld"},
+	];
+	for (const n of getNeighborhoods()) {
+		rows.push({
+			label: n.name,
+			depth: 1,
+			interactive: true,
+			action: `neighborhood:${n.slug}`,
+		});
+		const storySlugs = Array.isArray(n.stories) ? n.stories : [];
+		for (const slug of storySlugs) {
+			const story = getStory(slug);
+			if (!story) continue;
+			rows.push({
+				label: story.title ?? slug,
+				depth: 2,
+				interactive: true,
+				action: nextStoryAction(slug),
+			});
+		}
+	}
+	return rows;
+}
+
+/** action: `overworld` | `story:<slug>#<uid>` | `neighborhood:<slug>` — `#uid` keeps hover ids unique when the same story appears twice. */
+function navigateFromDesktopAction(action) {
+	if (action === "overworld") {
+		sceneNavigate("overworld");
+		return;
+	}
+	const sep = action.indexOf(":");
+	if (sep <= 0) return;
+	const kind = action.slice(0, sep);
+	let payload = action.slice(sep + 1);
+	if (!payload) return;
+	if (kind === "story") {
+		const hash = payload.indexOf("#");
+		if (hash >= 0) payload = payload.slice(0, hash);
+		sceneNavigate("story", {slug: payload});
+	} else if (kind === "neighborhood") {
+		sceneNavigate("neighborhood", {slug: payload});
+	}
+}
+
 function drawInteractivePanel(buf, w, h, hoveredAction, p) {
 	const panelX = w * 0.08;
 	const panelY = h * 0.23;
@@ -306,10 +352,7 @@ function drawInteractivePanel(buf, w, h, hoveredAction, p) {
 	const nestedTrunkX = panelX + panelW * 0.21;
 	const branchColor = [...THEME.GREEN_MID, 120];
 
-	const rows = [
-		{label: "LISMOI", depth: 0, interactive: true, action: "story:lismoi"},
-		{label: "Les villes verticales", depth: 1, interactive: true, action: "overworld"},
-	];
+	const rows = buildDesktopTreeRows();
 
 	buf.stroke(...branchColor);
 	buf.strokeWeight(2);
