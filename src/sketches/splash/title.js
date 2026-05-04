@@ -25,6 +25,15 @@ const DONE_HOLD_MS = 950;
 const PARTICLE_DENSITY = 0.55;
 const PARTICLE_MIN = 1240;
 const PARTICLE_MAX = 2980;
+const SUNSET_TOP = [10, 10, 6];
+const SUNSET_MID = [18, 10, 26];
+const SUNSET_HORIZON = [56, 28, 36];
+const SKYLINE_BASE = [10, 10, 10, 255];
+const SKYLINE_FAR = [30, 10, 10, 255];
+const SKYLINE_MID = [10, 10, 10, 255];
+const SKYLINE_LIGHT = [88, 88, 94, 255];
+const SKYLINE_STATE = [10, 10, 10, 255];
+const SKYLINE_ACCENT = [10, 10, 10, 255];
 const loadedTitleStylesheets = new Set();
 
 async function ensureTitleGoogleFontLoaded() {
@@ -59,8 +68,193 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 	let particles = [];
 	let particleFieldW = 0;
 	let particleFieldH = 0;
+	let skyline = null;
 	let titleFontReady = false;
 	let titleFontLoadStarted = false;
+
+	function hash01(seed) {
+		const raw = Math.sin(seed * 127.1 + 311.7) * 43758.5453123;
+		return raw - Math.floor(raw);
+	}
+
+	function buildStrip(startX, endX, baseY, px, minBlocks, maxBlocks, minHeight, maxHeight, seedBase) {
+		const list = [];
+		let cursor = startX;
+		let idx = 0;
+		while (cursor < endX) {
+			const widthBlocks = Math.round(sketch.lerp(minBlocks, maxBlocks, hash01(seedBase + idx * 1.77)));
+			const heightBlocks = Math.round(sketch.lerp(minHeight, maxHeight, hash01(seedBase + idx * 2.93 + 0.37)));
+			const gapBlocks = Math.round(sketch.lerp(1, 4, hash01(seedBase + idx * 3.31 + 0.81)));
+			const bw = Math.max(px * 2, widthBlocks * px);
+			const bh = Math.max(px * 3, heightBlocks * px);
+			list.push({x: cursor, y: baseY - bh, w: bw, h: bh, seed: seedBase + idx * 7.41});
+			cursor += bw + gapBlocks * px;
+			idx++;
+		}
+		return list;
+	}
+
+	function ensureSkyline(w, h) {
+		if (skyline && skyline.w === w && skyline.h === h) return;
+
+		const px = Math.max(2, Math.round(Math.min(w, h) * 0.0048));
+		const horizonY = Math.round(h * 0.72);
+		const stripStart = -px * 8;
+		const stripEnd = w + px * 8;
+
+		skyline = {
+			w,
+			h,
+			px,
+			horizonY,
+			far: buildStrip(stripStart, stripEnd, horizonY + px * 2, px, 3, 7, 6, 14, 12.5),
+			mid: buildStrip(stripStart, stripEnd, horizonY + px * 5, px, 4, 10, 8, 18, 48.75),
+			states: [
+				{
+					x: Math.round(w * 0.2),
+					baseW: px * 24,
+					coreW: px * 13,
+					height: px * 38,
+					tiers: [
+						{w: px * 22, h: px * 8},
+						{w: px * 18, h: px * 8},
+						{w: px * 14, h: px * 8},
+					],
+					seed: 21.3,
+				},
+				{
+					x: Math.round(w * 0.5),
+					baseW: px * 30,
+					coreW: px * 16,
+					height: px * 46,
+					tiers: [
+						{w: px * 28, h: px * 8},
+						{w: px * 22, h: px * 8},
+						{w: px * 18, h: px * 9},
+					],
+					seed: 47.6,
+				},
+				{
+					x: Math.round(w * 0.78),
+					baseW: px * 26,
+					coreW: px * 14,
+					height: px * 40,
+					tiers: [
+						{w: px * 24, h: px * 8},
+						{w: px * 20, h: px * 8},
+						{w: px * 15, h: px * 8},
+					],
+					seed: 73.2,
+				},
+			],
+			ruinBridge: {
+				leftX: Math.round(w * 0.1),
+				rightX: Math.round(w * 0.9),
+				y: horizonY - px * 18,
+				gapStart: Math.round(w * 0.42),
+				gapEnd: Math.round(w * 0.58),
+			},
+		};
+	}
+
+	function drawWindowDots(buf, building, amount) {
+		const px = skyline?.px ?? 2;
+		for (let i = 0; i < amount; i++) {
+			const wx = building.x + px + Math.floor(hash01(building.seed + i * 1.27) * Math.max(px, building.w - px * 2));
+			const wy = building.y + px + Math.floor(hash01(building.seed + i * 2.61 + 4.0) * Math.max(px, building.h - px * 2));
+			buf.rect(wx, wy, px, px);
+		}
+	}
+
+	function drawVerticalCityStates(buf) {
+		if (!skyline) return;
+		const {px, horizonY, states, ruinBridge} = skyline;
+
+		// Cliff-like foundation that supports the city-states.
+		buf.fill(0, 0, 0, 255);
+		for (let x = -px * 6; x < skyline.w + px * 6; x += px * 2) {
+			const rise = Math.round(hash01(x * 0.031 + 1.7) * px * 6);
+			buf.rect(x, horizonY + px * 4 - rise, px * 2, skyline.h - (horizonY + px * 4 - rise));
+		}
+
+		for (let i = 0; i < states.length; i++) {
+			const state = states[i];
+			const baseX = state.x - Math.round(state.baseW * 0.5);
+			const baseY = horizonY - px * 10;
+
+			// Fortified lower base.
+			buf.fill(...SKYLINE_STATE);
+			buf.rect(baseX, baseY, state.baseW, px * 10);
+
+			// Vertical core tower.
+			const coreX = state.x - Math.round(state.coreW * 0.5);
+			const coreY = horizonY - state.height;
+			buf.fill(...SKYLINE_STATE);
+			buf.rect(coreX, coreY, state.coreW, state.height - px * 2);
+
+			// Stacked district terraces (city-state layers).
+			let tierTop = baseY;
+			for (let t = 0; t < state.tiers.length; t++) {
+				const tier = state.tiers[t];
+				tierTop -= tier.h;
+				const tierX = state.x - Math.round(tier.w * 0.5);
+				buf.fill(...SKYLINE_MID);
+				buf.rect(tierX, tierTop, tier.w, tier.h);
+				buf.fill(...SKYLINE_ACCENT);
+				buf.rect(tierX + px, tierTop + px, tier.w - px * 2, px);
+			}
+
+			// Crown spire.
+			buf.fill(...SKYLINE_ACCENT);
+			buf.triangle(coreX - px, coreY, state.x, coreY - px * 7, coreX + state.coreW + px, coreY);
+
+			// Defensive buttresses.
+			buf.fill(...SKYLINE_MID);
+			buf.rect(baseX - px * 2, baseY + px * 2, px * 2, px * 8);
+			buf.rect(baseX + state.baseW, baseY + px * 1, px * 2, px * 9);
+
+			// Localized windows for each vertical city-state.
+			buf.fill(...SKYLINE_LIGHT);
+			drawWindowDots(buf, {x: coreX, y: coreY, w: state.coreW, h: state.height - px * 3, seed: state.seed}, 14);
+			drawWindowDots(buf, {x: baseX, y: baseY, w: state.baseW, h: px * 10, seed: state.seed + 8.2}, 9);
+		}
+	}
+
+	function drawSkyline(buf) {
+		if (!skyline) return;
+		const {far, mid, horizonY, h} = skyline;
+		buf.noStroke();
+
+		const skyGrad = buf.drawingContext.createLinearGradient(0, 0, 0, horizonY);
+		skyGrad.addColorStop(0, `rgba(${SUNSET_TOP[0]}, ${SUNSET_TOP[1]}, ${SUNSET_TOP[2]}, 1)`);
+		skyGrad.addColorStop(0.58, `rgba(${SUNSET_MID[0]}, ${SUNSET_MID[1]}, ${SUNSET_MID[2]}, 1)`);
+		skyGrad.addColorStop(1, `rgba(${SUNSET_HORIZON[0]}, ${SUNSET_HORIZON[1]}, ${SUNSET_HORIZON[2]}, 1)`);
+		buf.drawingContext.fillStyle = skyGrad;
+		buf.drawingContext.fillRect(0, 0, skyline.w, horizonY);
+
+		buf.fill(...SKYLINE_BASE);
+		buf.rect(0, horizonY, skyline.w, h - horizonY);
+
+		buf.fill(...SKYLINE_FAR);
+		for (let i = 0; i < far.length; i++) {
+			const b = far[i];
+			buf.rect(b.x, b.y, b.w, b.h);
+		}
+
+		buf.fill(...SKYLINE_MID);
+		for (let i = 0; i < mid.length; i++) {
+			const b = mid[i];
+			buf.rect(b.x, b.y, b.w, b.h);
+		}
+
+		buf.fill(...SKYLINE_LIGHT);
+		for (let i = 0; i < far.length; i++) drawWindowDots(buf, far[i], 3);
+
+		buf.fill(...SKYLINE_LIGHT);
+		for (let i = 0; i < mid.length; i++) drawWindowDots(buf, mid[i], 5);
+
+		drawVerticalCityStates(buf);
+	}
 
 	function particleCountFor(w, h) {
 		const byArea = Math.round(w * h * PARTICLE_DENSITY);
@@ -110,6 +304,7 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 		particles = [];
 		particleFieldW = 0;
 		particleFieldH = 0;
+		skyline = null;
 		titleFontReady = false;
 		titleFontLoadStarted = false;
 	}
@@ -130,6 +325,7 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 		if (phaseStart === 0) phaseStart = now;
 		const elapsed = now - phaseStart;
 		ensureParticles(w, h);
+		ensureSkyline(w, h);
 		if (!titleFontLoadStarted) {
 			titleFontLoadStarted = true;
 			ensureTitleGoogleFontLoaded().then((ok) => {
@@ -138,6 +334,7 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 		}
 
 		buf.background(...BG);
+		drawSkyline(buf);
 		updateAndDrawParticles(buf);
 
 		const titleSize = Math.max(34, Math.round(w * 0.12));
