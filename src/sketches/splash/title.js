@@ -168,6 +168,19 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 		}
 	}
 
+	function drawSkyscraperRoof(buf, state, coreX, coreY) {
+		const px = skyline?.px ?? 2;
+		const topTier = state.tiers.at(-1);
+		const roofInset = px;
+		const roofW = topTier?.w ?? state.coreW + px * 4;
+		const roofX = state.x - Math.round(roofW * 0.5);
+		const roofY = coreY - px * 2;
+		buf.fill(...SKYLINE_ACCENT);
+		buf.rect(roofX + roofInset, roofY + px, roofW - roofInset * 2, px);
+
+		buf.fill(...SKYLINE_MID);
+	}
+
 	function drawVerticalCityStates(buf, horizonY) {
 		if (!skyline) return;
 		const {px, states} = skyline;
@@ -206,9 +219,7 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 				buf.rect(tierX + px, tierTop + px, tier.w - px * 2, px);
 			}
 
-			// Crown spire.
-			buf.fill(...SKYLINE_ACCENT);
-			buf.triangle(coreX - px, coreY, state.x, coreY - px * 7, coreX + state.coreW + px, coreY);
+			drawSkyscraperRoof(buf, state, coreX, coreY);
 
 			// Defensive buttresses.
 			buf.fill(...SKYLINE_MID);
