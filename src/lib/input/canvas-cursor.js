@@ -243,20 +243,21 @@ export function drawCanvasCursor(buf, pointer, options = {}) {
 		void ensureCursorSprites();
 	}
 
+	const sprite_state = hovered ? "hover" : "normal";
 	const sprite = hovered ? CURSOR_SPRITES.hover : CURSOR_SPRITES.normal;
 	const size = hovered ? 40 : 40;
 
 	if (sprite && sprite.complete && sprite.naturalWidth > 0) {
 		buf.push();
-		buf.drawingContext.drawImage(sprite, pointer.x, pointer.y, size, size);
+		if (sprite_state === "normal") {
+			buf.drawingContext.drawImage(sprite, pointer.x - 7, pointer.y - 7, size, size);
+		} else {
+			buf.drawingContext.drawImage(sprite, pointer.x - 15, pointer.y - 4, size, size);
+		}
+		//! DEBUG
+		buf.fill(0, 255, 82, 255);
+		buf.circle(pointer.x, pointer.y, size / 12);
 		buf.pop();
 		return;
 	}
-
-	buf.push();
-	buf.stroke(255, 155, 82, hovered ? 255 : 230);
-	buf.strokeWeight(1.4);
-	buf.fill(252, 246, 236, hovered ? 250 : 238);
-	buf.triangle(pointer.x, pointer.y, pointer.x + 2.2, pointer.y + 20, pointer.x + 14, pointer.y + 15.5);
-	buf.pop();
 }

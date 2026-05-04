@@ -116,7 +116,7 @@ const DEFAULT_EFFECTS = {
 	},
 	chromatic: {
 		enabled: true,
-		amount: 0.0035,
+		amount: 0.0025,
 		timeMultiplier: 0.0,
 	},
 
