@@ -7,6 +7,45 @@ function isFinePointerDevice() {
 	return window.matchMedia("(pointer: fine)").matches;
 }
 
+const POINTER_LOCK_PREFERENCE_KEY = "anemoia:pointer-lock-preferred";
+
+function readPointerLockPreference() {
+	if (typeof window === "undefined") return false;
+	try {
+		return window.sessionStorage.getItem(POINTER_LOCK_PREFERENCE_KEY) === "1";
+	} catch {
+		return false;
+	}
+}
+
+function writePointerLockPreference(preferred) {
+	if (typeof window === "undefined") return;
+	try {
+		if (preferred) {
+			window.sessionStorage.setItem(POINTER_LOCK_PREFERENCE_KEY, "1");
+		} else {
+			window.sessionStorage.removeItem(POINTER_LOCK_PREFERENCE_KEY);
+		}
+	} catch {
+		// Ignore storage failures (private mode, blocked storage, etc.)
+	}
+}
+
+const pointerLockPreference = {
+	wantsLock: readPointerLockPreference(),
+	escListenerBound: false,
+};
+
+function bindEscapePreferenceListener() {
+	if (pointerLockPreference.escListenerBound || typeof document === "undefined") return;
+	pointerLockPreference.escListenerBound = true;
+	document.addEventListener("keydown", (e) => {
+		if (e.key !== "Escape") return;
+		pointerLockPreference.wantsLock = false;
+		writePointerLockPreference(false);
+	});
+}
+
 /**
  * Track a software cursor position in canvas space and optionally lock
  * the pointer to the canvas (FPS-style). Escape exits lock natively.
@@ -31,6 +70,17 @@ export function createCanvasCursor(options) {
 		locked: false,
 	};
 
+	bindEscapePreferenceListener();
+
+	let didAutoRelockAttempt = false;
+
+	function tryRestorePointerLock() {
+		if (!finePointer || !lockOnClick) return;
+		if (!pointerLockPreference.wantsLock) return;
+		if (document.pointerLockElement === canvasEl) return;
+		canvasEl.requestPointerLock?.();
+	}
+
 	function syncFromClient(clientX, clientY) {
 		const rect = canvasEl.getBoundingClientRect();
 		if (rect.width <= 0 || rect.height <= 0) return;
@@ -52,6 +102,8 @@ export function createCanvasCursor(options) {
 		}
 		insideCanvas = true;
 		if (!lockOnClick || e.button !== 0) return;
+		pointerLockPreference.wantsLock = true;
+		writePointerLockPreference(true);
 		if (document.pointerLockElement === canvasEl) return;
 		canvasEl.requestPointerLock?.();
 	}
@@ -69,6 +121,10 @@ export function createCanvasCursor(options) {
 
 	function onPointerLockChange() {
 		state.locked = document.pointerLockElement === canvasEl;
+		if (state.locked) {
+			pointerLockPreference.wantsLock = true;
+			writePointerLockPreference(true);
+		}
 	}
 
 	canvasEl.addEventListener("mousedown", onCanvasMouseDown);
@@ -87,6 +143,11 @@ export function createCanvasCursor(options) {
 		beginFrame(frame) {
 			canvasW = Math.max(1, frame.width);
 			canvasH = Math.max(1, frame.height);
+
+			if (!didAutoRelockAttempt) {
+				didAutoRelockAttempt = true;
+				tryRestorePointerLock();
+			}
 
 			if (!hasPosition) {
 				x = canvasW * 0.5;
@@ -120,9 +181,6 @@ export function createCanvasCursor(options) {
 			canvasEl.removeEventListener("mousedown", onCanvasMouseDown);
 			window.removeEventListener("mousemove", onWindowMouseMove);
 			document.removeEventListener("pointerlockchange", onPointerLockChange);
-			if (document.pointerLockElement === canvasEl) {
-				document.exitPointerLock?.();
-			}
 		},
 	};
 }
