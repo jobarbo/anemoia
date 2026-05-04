@@ -241,7 +241,7 @@ function drawBottomNav(buf, w, h, locationLabel, weatherLabel, p) {
 	const iconSize = Math.max(navSz * 2.5, w * 0.022);
 	applyThemeCanvasFont(buf, iconSize, p);
 	buf.textAlign(p.RIGHT, p.CENTER);
-	buf.text(icon, w * 0.48, barY + barH * 0.4);
+	buf.text(icon, w * 0.48, barY + barH * 0.5);
 	applyThemeCanvasFont(buf, navSz, p);
 	buf.textAlign(p.LEFT, p.CENTER);
 	buf.text(text, w * 0.485, barY + barH * 0.5);
@@ -254,10 +254,22 @@ function splitWeatherLabel(label) {
 	if (!raw) return {icon: "◌", text: "Météo : --"};
 	const firstSpace = raw.indexOf(" ");
 	if (firstSpace <= 0) return {icon: "◌", text: raw};
+	const maybeIcon = raw.slice(0, firstSpace);
+	const rest = raw.slice(firstSpace + 1).trim();
+	if (!isWeatherIconToken(maybeIcon)) {
+		return {icon: "◌", text: raw};
+	}
 	return {
-		icon: raw.slice(0, firstSpace),
-		text: raw.slice(firstSpace + 1),
+		icon: maybeIcon,
+		text: rest || "Météo : --",
 	};
+}
+
+function isWeatherIconToken(token) {
+	const value = String(token ?? "").trim();
+	if (!value) return false;
+	if (/[\p{L}\p{N}]/u.test(value)) return false;
+	return Array.from(value).length <= 3;
 }
 
 function drawInteractivePanel(buf, w, h, hoveredAction, p) {
