@@ -26,9 +26,6 @@ const DONE_HOLD_MS = 950;
 const PARTICLE_DENSITY = 0.55;
 const PARTICLE_MIN = 1240;
 const PARTICLE_MAX = 2980;
-const STAR_DENSITY = 0.00012;
-const STAR_MIN = 140;
-const STAR_MAX = 360;
 const SUNSET_TOP = [10, 10, 6];
 const SUNSET_MID = [28, 20, 36];
 const SUNSET_HORIZON = [56, 28, 36];
@@ -72,9 +69,6 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 	let particles = [];
 	let particleFieldW = 0;
 	let particleFieldH = 0;
-	let stars = [];
-	let starFieldW = 0;
-	let starFieldH = 0;
 	let skyline = null;
 	let titleFontReady = false;
 	let titleFontLoadStarted = false;
@@ -116,7 +110,7 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 
 		const states = [
 			{
-				x: Math.round(w * 0.2),
+				x: Math.round(w * 0.72),
 				baseW: px * 24,
 				coreW: px * 13,
 				height: px * 48,
@@ -128,7 +122,7 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 				seed: 21.3,
 			},
 			{
-				x: Math.round(w * 0.5),
+				x: Math.round(w * 0.85),
 				baseW: px * 30,
 				coreW: px * 16,
 				height: px * 92,
@@ -140,7 +134,7 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 				seed: 47.6,
 			},
 			{
-				x: Math.round(w * 0.78),
+				x: Math.round(w * 0.95),
 				baseW: px * 26,
 				coreW: px * 14,
 				height: px * 67,
@@ -163,48 +157,6 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 			states,
 			maxStateHeight: Math.max(...states.map((state) => state.height)),
 		};
-	}
-
-	function starCountFor(w, h) {
-		const byArea = Math.round(w * h * STAR_DENSITY);
-		return sketch.constrain(byArea, STAR_MIN, STAR_MAX);
-	}
-
-	function makeStar(w, h) {
-		return {
-			x: sketch.random(0, w),
-			y: sketch.random(0, h),
-			size: sketch.random(1, 2.3),
-			alpha: sketch.random(120, 255),
-			parallax: sketch.random(0.18, 0.52),
-			driftX: sketch.random(-0.018, 0.018),
-			twinkleSpeed: sketch.random(0.001, 0.004),
-			twinklePhase: sketch.random(0, Math.PI * 2),
-		};
-	}
-
-	function ensureStars(w, h) {
-		if (stars.length > 0 && starFieldW === w && starFieldH === h) return;
-		starFieldW = w;
-		starFieldH = h;
-		const starCount = starCountFor(w, h);
-		stars = new Array(starCount);
-		for (let i = 0; i < starCount; i++) stars[i] = makeStar(w, h);
-	}
-
-	function drawStars(buf, now, skyBottomY, horizonShiftY) {
-		const limitY = Math.min(buf.height, Math.max(0, skyBottomY));
-		if (limitY <= 0) return;
-		buf.noStroke();
-		for (let i = 0; i < stars.length; i++) {
-			const star = stars[i];
-			const starX = ((star.x + now * star.driftX) % buf.width + buf.width) % buf.width;
-			const starY = ((star.y + horizonShiftY * star.parallax) % buf.height + buf.height) % buf.height;
-			if (starY > limitY) continue;
-			const flicker = 0.7 + 0.3 * Math.sin(now * star.twinkleSpeed + star.twinklePhase);
-			buf.fill(224, 232, 255, Math.round(star.alpha * flicker));
-			buf.rect(starX, starY, star.size, star.size);
-		}
 	}
 
 	function drawWindowDots(buf, building, amount) {
@@ -284,8 +236,6 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 		buf.drawingContext.fillStyle = skyGrad;
 		buf.drawingContext.fillRect(0, 0, skyline.w, Math.min(h, Math.max(0, shiftedHorizonY)));
 
-		drawStars(buf, now, shiftedHorizonY, horizonShiftY);
-
 		buf.fill(...SKYLINE_BASE);
 		buf.rect(0, shiftedHorizonY, skyline.w, h - shiftedHorizonY);
 
@@ -364,9 +314,6 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 		particles = [];
 		particleFieldW = 0;
 		particleFieldH = 0;
-		stars = [];
-		starFieldW = 0;
-		starFieldH = 0;
 		skyline = null;
 		titleFontReady = false;
 		titleFontLoadStarted = false;
@@ -388,7 +335,6 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 		if (phaseStart === 0) phaseStart = now;
 		const elapsed = now - phaseStart;
 		ensureParticles(w, h);
-		ensureStars(w, h);
 		ensureSkyline(w, h);
 		if (!titleFontLoadStarted) {
 			titleFontLoadStarted = true;
@@ -399,9 +345,7 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 
 		buf.background(...BG);
 		const panProgress = sketch.constrain(elapsed / SKY_PAN_MS, 0, 1);
-		const introStartShift = skyline
-			? Math.max(h * 0.42, (h - skyline.horizonY) + skyline.maxStateHeight + skyline.px * 24)
-			: h * 0.42;
+		const introStartShift = skyline ? Math.max(h * 0.42, h - skyline.horizonY + skyline.maxStateHeight + skyline.px * 24) : h * 0.42;
 		const horizonShiftY = sketch.lerp(introStartShift, 0, easeOutCubic(panProgress));
 		drawSkyline(buf, now, horizonShiftY);
 		updateAndDrawParticles(buf);
