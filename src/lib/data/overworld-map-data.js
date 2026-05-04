@@ -163,13 +163,7 @@ function writePersistedCache(record) {
 }
 
 function isValidMapDataShape(data) {
-	return Boolean(
-		data &&
-			typeof data === "object" &&
-			Array.isArray(data.mapOutline) &&
-			Array.isArray(data.overlays) &&
-			("unionBounds" in data)
-	);
+	return Boolean(data && typeof data === "object" && Array.isArray(data.mapOutline) && Array.isArray(data.overlays) && "unionBounds" in data);
 }
 
 function createNeighborhoodSignature(neighborhoods) {
@@ -178,7 +172,7 @@ function createNeighborhoodSignature(neighborhoods) {
 		neighborhoods.map((hood) => ({
 			name: String(hood?.name ?? ""),
 			slug: String(hood?.slug ?? ""),
-		}))
+		})),
 	);
 }
 
