@@ -8,6 +8,8 @@
  * Manifests (scene layer data) are loaded lazily via fetch() from public/.
  */
 
+import {compareRemDates} from "./rem-calendar.js";
+
 /** @type {{ neighborhoods: NeighborhoodData[], stories: Record<string, StoryData> } | null} */
 let _cache = null;
 
