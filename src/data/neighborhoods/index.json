@@ -1,7 +1,7 @@
 [
 	{
 		"id": "saint-roch",
-		"name": "Saint-Roch",
+		"name": "Plywood-City",
 		"slug": "saint-roch",
 		"order": 1,
 		"description": "The vibrant neighborhood at the heart of the city.",
@@ -10,6 +10,19 @@
 		"audioSrc": "/assets/scenes/saint-roch/ambient.mp3",
 		"stories": ["la-memoire"],
 		"apiSearchTerms": ["Saint-Roch, Quebec City, Quebec, Canada"],
+		"position": {"x": 45, "y": 60}
+	},
+	{
+		"id": "saint-sauveur",
+		"name": "Brasse Ville",
+		"slug": "saint-sauveur",
+		"order": 1,
+		"description": "The vibrant neighborhood at the heart of the city.",
+		"viewEnabled": false,
+		"scenePath": "/assets/scenes/saint-sauveur/manifest.json",
+		"audioSrc": "/assets/scenes/saint-sauveur/ambient.mp3",
+		"stories": ["la-memoire"],
+		"apiSearchTerms": ["Saint-Sauveur, Quebec City, Quebec, Canada"],
 		"position": {"x": 45, "y": 60}
 	},
 	{
@@ -40,7 +53,7 @@
 	},
 	{
 		"id": "lairet",
-		"name": "Lairet",
+		"name": "Loiret",
 		"slug": "lairet",
 		"order": 4,
 		"description": "The historic neighborhood with a rich cultural heritage.",
@@ -53,7 +66,7 @@
 	},
 	{
 		"id": "maizerets",
-		"name": "Maizerets",
+		"name": "Maizango",
 		"slug": "maizerets",
 		"order": 5,
 		"description": "The suburban neighborhood with a rich history.",
@@ -66,7 +79,7 @@
 	},
 	{
 		"id": "st-rodrigue",
-		"name": "District 4 6",
+		"name": "District 4-6",
 		"slug": "st-rodrigue",
 		"order": 6,
 		"description": "The suburban neighborhood with a rich history.",
@@ -80,7 +93,7 @@
 
 	{
 		"id": "vanier",
-		"name": "Vanier",
+		"name": "Québec-Centre ",
 		"slug": "vanier",
 		"order": 7,
 		"description": "The suburban neighborhood with a rich history.",
