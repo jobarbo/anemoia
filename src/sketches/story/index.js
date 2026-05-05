@@ -193,12 +193,45 @@ export default function (container) {
 				const sz = fontSizeForType(block.type, w);
 				applyThemeCanvasFont(artBuffer, sz, sketch);
 
-				// p5 textWidth works on single lines; wrap manually to get height
-				const lines = wrapText(artBuffer, block.text, contentW, block.type === "p" ? sz * 1.55 : sz * 1.3);
-				const blockH = lines.length * sz * (block.type === "p" ? 1.55 : 1.3);
+				if (block.type === "table") {
+					const pad = sz * 0.6;
+					const lineH = sz * 1.4;
+					const cellPadV = sz * 0.55;
+					const colCount = block.headers.length;
 
-				blockLayout.push({y: cursorY, h: blockH, lines, sz});
-				cursorY += blockH + (block.type === "p" ? blockGap : blockGap * 0.5);
+					// 1. Measure natural (unwrapped) width per column to get proportions
+					const naturalW = block.headers.map((h, c) => {
+						const maxCell = Math.max(artBuffer.textWidth(h), ...block.rows.map((row) => artBuffer.textWidth(row[c] ?? "")));
+						return maxCell + pad * 2;
+					});
+					const totalNatural = naturalW.reduce((a, b) => a + b, 0);
+					const colWidths = naturalW.map((nw) => (nw / totalNatural) * contentW);
+
+					// 2. Wrap each cell and compute row heights
+					const wrapCell = (text, col) => wrapText(artBuffer, text, colWidths[col] - pad * 2);
+					const headerLines = block.headers.map((h, c) => wrapCell(h, c));
+					const headerH = Math.max(...headerLines.map((l) => l.length)) * lineH + cellPadV * 2;
+
+					const rowData = block.rows.map((row) => {
+						const cellLines = row.map((cell, c) => wrapCell(cell, c));
+						const rowH = Math.max(...cellLines.map((l) => l.length)) * lineH + cellPadV * 2;
+						return {cellLines, rowH};
+					});
+
+					const tableH = headerH + rowData.reduce((a, r) => a + r.rowH, 0);
+					blockLayout.push({y: cursorY, h: tableH, lines: [], sz, indent: 0, colWidths, headerLines, headerH, rowData, pad, lineH, cellPadV});
+					cursorY += tableH + blockGap;
+					continue;
+				}
+				const isLi = block.type === "li";
+				const indent = isLi ? sz * 1.6 : 0;
+				const lineScale = block.type === "p" || isLi ? 1.55 : 1.3;
+				const lines = wrapText(artBuffer, block.text, contentW - indent);
+				const blockH = lines.length * sz * lineScale;
+
+				blockLayout.push({y: cursorY, h: blockH, lines, sz, indent});
+				const gap = block.type === "p" ? blockGap : isLi ? blockGap * 0.22 : blockGap * 0.5;
+				cursorY += blockH + gap;
 			}
 
 			maxScroll = Math.max(0, cursorY - h * 0.85);
@@ -231,24 +264,99 @@ export default function (container) {
 			if (!layout) return;
 
 			const alpha = Math.round(opacity * 255);
-			const lineH = layout.sz * (block.type === "p" ? 1.55 : 1.3);
+
+			if (block.type === "table") {
+				const {headers, rows} = block;
+				const colCount = headers.length;
+				const {colWidths, headerLines, headerH, rowData, pad, lineH, cellPadV} = layout;
+				const totalH = layout.h;
+
+				// Cumulative x offsets
+				const colX = [];
+				let cx = x;
+				for (const cw of colWidths) {
+					colX.push(cx);
+					cx += cw;
+				}
+
+				applyThemeCanvasFont(buf, layout.sz, p);
+				buf.textAlign(p.LEFT, p.TOP);
+
+				// Header background
+				buf.noStroke();
+				buf.fill(...THEME.GREEN_MID, Math.round(alpha * 0.12));
+				buf.rect(x, y, maxW, headerH);
+
+				// Outer border
+				buf.noFill();
+				buf.stroke(...THEME.GREEN_MID, Math.round(alpha * 0.7));
+				buf.strokeWeight(1);
+				buf.rect(x, y, maxW, totalH);
+
+				// Header separator
+				buf.line(x, y + headerH, x + maxW, y + headerH);
+
+				// Row separators at variable heights
+				let rowY = y + headerH;
+				buf.stroke(...THEME.GREEN_MID, Math.round(alpha * 0.3));
+				for (let r = 0; r < rowData.length - 1; r++) {
+					rowY += rowData[r].rowH;
+					buf.line(x, rowY, x + maxW, rowY);
+				}
+
+				// Column dividers
+				buf.stroke(...THEME.GREEN_MID, Math.round(alpha * 0.4));
+				for (let c = 1; c < colCount; c++) {
+					buf.line(colX[c], y, colX[c], y + totalH);
+				}
+
+				// Header text (wrapped)
+				buf.noStroke();
+				headerLines.forEach((lines, c) => {
+					buf.fill(...THEME.GREEN_MID, alpha);
+					lines.forEach((line, li) => {
+						buf.text(line, colX[c] + pad, y + cellPadV + li * lineH);
+					});
+				});
+
+				// Data rows (wrapped)
+				let curRowY = y + headerH;
+				rowData.forEach(({cellLines, rowH}) => {
+					cellLines.forEach((lines, c) => {
+						buf.fill(...THEME.GREEN_SUBTLE, alpha);
+						lines.forEach((line, li) => {
+							buf.text(line, colX[c] + pad, curRowY + cellPadV + li * lineH);
+						});
+					});
+					curRowY += rowH;
+				});
+				return;
+			}
+
+			const isLi = block.type === "li";
+			const lineH = layout.sz * (block.type === "p" || isLi ? 1.55 : 1.3);
+			const indent = layout.indent ?? 0;
 
 			applyThemeCanvasFont(buf, layout.sz, p);
 			buf.textAlign(p.LEFT, p.TOP);
 			buf.noStroke();
 
 			if (block.type === "h1") {
-				// Chromatic aberration title
 				drawTitleAberration(buf, block.text, x + maxW / 2, y + layout.sz / 2, layout.sz, alpha, p);
 				return;
 			}
 
 			const color = block.type === "h2" ? THEME.GREEN_MID : THEME.GREEN_SUBTLE;
 
+			if (isLi) {
+				buf.fill(...THEME.GREEN_MID, Math.round(alpha * 0.75));
+				buf.text("—", x, y);
+			}
+
 			let lineY = y;
 			for (const line of layout.lines) {
 				buf.fill(...color, alpha);
-				buf.text(line, x, lineY);
+				buf.text(line, x + indent, lineY);
 				lineY += lineH;
 			}
 		}
@@ -288,7 +396,6 @@ function fontSizeForType(type, canvasW) {
  * @param {p5.Graphics} buf
  * @param {string} text
  * @param {number} maxWidth
- * @param {number} lineH - unused here, kept for signature consistency
  * @returns {string[]}
  */
 function wrapText(buf, text, maxWidth) {

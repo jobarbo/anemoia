@@ -5,12 +5,38 @@ returnTo: desktop
 order: 0
 ---
 
-C’est à Québec, cette curieuse ville nordique, que nous devons l’apparition des villes verticales.
+## Registrarium — Notice d’accès
 
-Tout a commencé en l’an 12 avant la Révolution Écolomobiliste (-12 REM), lors d’un énième conseil municipal portant sur la construction d’un septième lien entre l’ancien Haut-Lieu de Lévis et Québec (également autrefois appelée, selon les archives les plus anciennes, « l’accent d’Amérique »). Les citoyens, jusqu’alors déchirés sur les questions de mobilité, d’interurbanisme et d’écologie, s’unirent lorsque les maires Montpetit et Taschereau apprirent à leur population respective que le pont en question ne servirait qu’à soutenir des gazoducs (dix-huit, selon les registres, empilés les uns sur les autres). Une trahison qui aura eu raison des dirigeants municipaux, provinciaux et fédéraux de l’époque. Tous furent emprisonnés dans le Complexe G par une coalition de milices révolutionnaires. La construction du pont, quant à elle, pourtant déjà bien entamée, ne connaîtra jamais son terme : il est d'ailleurs toujours possible d’apercevoir ses ruines, les matins sans fumée, de l’autre côté de la rive. 
+Vous avez obtenu l’accès à l’ordinateur de l’Archiviste.
 
-À la suite de cette prise de pouvoir sans précédent par la population, les citoyens eurent l’occasion de refonder une société nouvelle, plus juste, plus riche, plus démocratique.
+Ce terminal contient les journaux, les cartes et les fragments de mémoire collectés avant la disparition de son propriétaire. Il n’a pas été modifié. Les lacunes, les entrées manquantes et les quartiers inaccessibles sont documentés tels quels.
 
-Mais rien de tout cela ne se produisit.
+La navigation est simple. Elle a été conçue pour être utilisée seul, dans l’urgence ou dans l’obscurité.
 
-Ce sont les circonstances ayant mené à l’ère « Anémoia ». Une époque que tout le monde idéalise, mais que jamais personne n’a vécues. Tout ce qui nous reste de cette époque sont accessible via les journaux de la machine-registre du vieil Archiviste, sans qui nous ne pourrions documenter ce qui s'est réellement passé.  
+---
+
+## Navigation
+
+| Écran               | Ce que vous voyez                  | Comment avancer                                     |
+| ------------------- | ---------------------------------- | --------------------------------------------------- |
+| Bureau              | Menu principal du registrarium     | Cliquez sur un fichier                              |
+| Carte des quartiers | Vue aérienne de la ville verticale | Clic sur un quartier — ou flèches + Entrée          |
+| Quartier            | Décor interactif                   | Cliquez sur les zones actives                       |
+| Histoire            | Texte défilant                     | Molette ou glisser — bouton retour en haut à gauche |
+
+---
+
+## Remarques
+
+- La caméra, si disponible, active la parallaxe. Sinon : orientation de l’appareil ou souris.
+- Certains quartiers sont vides. Ce n’est pas un bogue.
+- Les archives sont numérotées. Elles ne sont pas classées par ordre d’importance.
+
+---
+
+## Sur l’auteur
+
+L’Archiviste a commencé à tenir ce journal à une époque où lire, se rencontrer ou s’adonner à un loisir était interdit par Trudeyl Corp. Il documentait non pas pour être lu, mais pour que l’oubli ne soit pas total.
+
+> « Si le manuscrit retrouvé est un topos pour le moins éprouvé en littérature, qu’en est-il de l’ordinateur retrouvé? »
+> — LOG 02
