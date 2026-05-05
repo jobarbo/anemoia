@@ -34,5 +34,29 @@
 		"stories": [],
 		"apiSearchTerms": ["Cité universitaire, Quebec City, Quebec, Canada"],
 		"position": {"x": 80, "y": 40}
+	},
+	{
+		"id": "lairet",
+		"name": "Lairet",
+		"slug": "lairet",
+		"description": "The historic neighborhood with a rich cultural heritage.",
+		"viewEnabled": false,
+		"scenePath": "/assets/scenes/lairet/manifest.json",
+		"audioSrc": "/assets/scenes/lairet/ambient.mp3",
+		"stories": [],
+		"apiSearchTerms": ["Lairet, Quebec City, Quebec, Canada"],
+		"position": {"x": 50, "y": 50}
+	},
+	{
+		"id": "st-rodrigue",
+		"name": "District 4 6",
+		"slug": "st-rodrigue",
+		"description": "The suburban neighborhood with a rich history.",
+		"viewEnabled": false,
+		"scenePath": "/assets/scenes/st-rodrigue/manifest.json",
+		"audioSrc": "/assets/scenes/st-rodrigue/ambient.mp3",
+		"stories": [],
+		"apiSearchTerms": ["St-Rodrigue, Quebec City, Quebec, Canada"],
+		"position": {"x": 20, "y": 20}
 	}
 ]
