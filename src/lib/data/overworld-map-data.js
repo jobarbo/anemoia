@@ -268,7 +268,9 @@ function neighborhoodQueryCandidates(neighborhood) {
 }
 
 function slugToApiLabel(slug) {
-	const normalized = String(slug ?? "").trim().toLowerCase();
+	const normalized = String(slug ?? "")
+		.trim()
+		.toLowerCase();
 	if (!normalized) return "";
 	const aliases = {
 		"saint-roch": "Saint-Roch",
@@ -277,9 +279,7 @@ function slugToApiLabel(slug) {
 		"cité-universitaire": "Cite Universitaire",
 	};
 	if (aliases[normalized]) return aliases[normalized];
-	return normalized
-		.replace(/[-_]+/g, " ")
-		.replace(/\b\w/g, (char) => char.toUpperCase());
+	return normalized.replace(/[-_]+/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
 function foldNeighborhoodName(value) {
