@@ -20,6 +20,13 @@ export default function (container) {
 		let canvasCursor;
 		let interactiveRows = [];
 		let hoveredRowAction = null;
+		let openGroups = new Set();
+		let listScrollY = 0;
+		let targetListScrollY = 0;
+		let listMaxScroll = 0;
+		let listViewportRect = null;
+		let listTouchActive = false;
+		let listLastTouchY = null;
 		let locationLabel = "Localisation...";
 		let weatherLabel = "Météo : --";
 		let blinkStartMs = -1;
@@ -76,13 +83,24 @@ export default function (container) {
 			const w = artBuffer.width;
 			const h = artBuffer.height;
 			const pointer = canvasCursor.beginFrame({mouseX: sketch.mouseX, mouseY: sketch.mouseY, width: w, height: h});
+			targetListScrollY = pClamp(targetListScrollY, 0, listMaxScroll);
+			listScrollY += (targetListScrollY - listScrollY) * THEME.SCROLL_LERP;
+			listScrollY = pClamp(listScrollY, 0, listMaxScroll);
 			hoveredRowAction = interactiveRows.find((row) => hitTest(pointer.x, pointer.y, row.rect))?.action ?? null;
 
 			drawDesktopBackground(artBuffer, w, h, sketch);
 			drawTopBar(artBuffer, w, h, sketch);
 			drawBottomNav(artBuffer, w, h, locationLabel, weatherLabel, sketch);
 
-			interactiveRows = drawInteractivePanel(artBuffer, w, h, hoveredRowAction, sketch);
+			const panelState = drawInteractivePanel(artBuffer, w, h, hoveredRowAction, {
+				scrollY: listScrollY,
+				openGroups,
+			}, sketch);
+			interactiveRows = panelState.interactiveRows;
+			listViewportRect = panelState.listViewportRect;
+			listMaxScroll = panelState.maxScroll;
+			targetListScrollY = pClamp(targetListScrollY, 0, listMaxScroll);
+			listScrollY = pClamp(listScrollY, 0, listMaxScroll);
 			const nowMs = sketch.millis();
 			if (blinkStartMs < 0 && nowMs >= nextBlinkAtMs) {
 				blinkStartMs = nowMs;
@@ -132,7 +150,48 @@ export default function (container) {
 			const pointer = canvasCursor.beginFrame({mouseX: sketch.mouseX, mouseY: sketch.mouseY, width: artBuffer.width, height: artBuffer.height});
 			const clickedRow = interactiveRows.find((row) => hitTest(pointer.x, pointer.y, row.rect));
 			if (!clickedRow) return;
+			if (clickedRow.action.startsWith("toggle:")) {
+				const groupId = clickedRow.action.slice("toggle:".length);
+				if (openGroups.has(groupId)) openGroups.delete(groupId);
+				else openGroups.add(groupId);
+				targetListScrollY = 0;
+				listScrollY = 0;
+				return;
+			}
 			navigateFromDesktopAction(clickedRow.action);
+		};
+
+		sketch.mouseWheel = (e) => {
+			if (!listViewportRect) return true;
+			const pointer = canvasCursor.beginFrame({mouseX: sketch.mouseX, mouseY: sketch.mouseY, width: artBuffer.width, height: artBuffer.height});
+			if (!hitTest(pointer.x, pointer.y, listViewportRect)) return true;
+			targetListScrollY = pClamp(targetListScrollY + e.delta, 0, listMaxScroll);
+			return false;
+		};
+
+		sketch.touchStarted = (e) => {
+			if (!listViewportRect) return false;
+			if (!e.touches || e.touches.length === 0) return false;
+			const pointer = canvasCursor.beginFrame({mouseX: e.touches[0].clientX, mouseY: e.touches[0].clientY, width: artBuffer.width, height: artBuffer.height});
+			listTouchActive = hitTest(pointer.x, pointer.y, listViewportRect);
+			listLastTouchY = listTouchActive ? e.touches[0].clientY : null;
+			return listTouchActive ? false : undefined;
+		};
+
+		sketch.touchMoved = (e) => {
+			if (!listTouchActive || listLastTouchY === null) return false;
+			if (!e.touches || e.touches.length === 0) return false;
+			const nextY = e.touches[0].clientY;
+			const dy = listLastTouchY - nextY;
+			targetListScrollY = pClamp(targetListScrollY + dy * 1.5, 0, listMaxScroll);
+			listLastTouchY = nextY;
+			return false;
+		};
+
+		sketch.touchEnded = () => {
+			listTouchActive = false;
+			listLastTouchY = null;
+			return false;
 		};
 
 		sketch.windowResized = () => {
@@ -141,6 +200,8 @@ export default function (container) {
 			sketch.resizeCanvas(w, h);
 			artBuffer.resizeCanvas(w, h);
 			artBuffer.pixelDensity(1);
+			targetListScrollY = 0;
+			listScrollY = 0;
 		};
 
 		if (typeof sketch.registerMethod === "function") {
@@ -268,32 +329,83 @@ function splitWeatherLabel(label) {
 // Weather Icons font (Erik Flowers) — Private Use Area codepoints
 const WEATHER_ICON_NA = "\uF07B";
 
+const ARCHIVE_LOG_SLUGS = [
+	"archives-log-01",
+	"archives-log-02",
+	"archives-log-03",
+	"archives-log-04",
+	"archives-log-05",
+	"archives-log-06",
+	"archives-log-07",
+	"archives-log-08",
+	"archives-log-09",
+	"archives-log-10",
+	"archives-log-11",
+	"archives-log-12",
+	"archives-log-13",
+	"archives-log-14",
+	"archives-log-15",
+	"archives-log-16",
+	"archives-log-17",
+	"archives-log-18",
+];
+
 /** Labels + depths + route ids for the file-manager tree (single source: neighborhoods JSON). */
-function buildDesktopTreeRows() {
+function buildDesktopTreeRows(opts = {}) {
+	const openGroups = opts.openGroups instanceof Set ? opts.openGroups : new Set();
 	let storyRowKey = 0;
 	const nextStoryAction = (slug) => `story:${slug}#${storyRowKey++}`;
 
+	const archivesStories = ARCHIVE_LOG_SLUGS
+		.map((slug) => ({slug, story: getStory(slug)}))
+		.filter(({story}) => Boolean(story))
+		.sort((a, b) => (a.story.order ?? 0) - (b.story.order ?? 0));
+	const archivesGroupId = "archives";
+	const archivesExpanded = openGroups.has(archivesGroupId);
+
 	const rows = [
 		{label: "LISMOI", depth: 0, interactive: true, action: nextStoryAction("la-memoire")},
-		{label: "Les villes verticales", depth: 0, interactive: true, action: "overworld"},
-	];
-	for (const n of getNeighborhoods()) {
-		rows.push({
-			label: n.name,
-			depth: 1,
+		{
+			label: `${archivesExpanded ? "[-]" : "[+]"} Les archives`,
+			depth: 0,
 			interactive: true,
-			action: `neighborhood:${n.slug}`,
-		});
-		const storySlugs = Array.isArray(n.stories) ? n.stories : [];
-		for (const slug of storySlugs) {
-			const story = getStory(slug);
-			if (!story) continue;
+			action: `toggle:${archivesGroupId}`,
+		},
+	];
+	if (archivesExpanded) {
+		for (const {slug, story} of archivesStories) {
 			rows.push({
 				label: story.title ?? slug,
-				depth: 2,
+				depth: 1,
 				interactive: true,
 				action: nextStoryAction(slug),
 			});
+		}
+	}
+	rows.push({label: "Les villes verticales", depth: 0, interactive: true, action: "overworld"});
+	for (const n of getNeighborhoods()) {
+		const storySlugs = Array.isArray(n.stories) ? n.stories : [];
+		const neighborhoodStories = storySlugs
+			.map((slug) => ({slug, story: getStory(slug)}))
+			.filter(({story}) => Boolean(story));
+		const hasChildren = neighborhoodStories.length > 0;
+		const groupId = `neighborhood:${n.slug}`;
+		const isOpen = openGroups.has(groupId);
+		rows.push({
+			label: hasChildren ? `${isOpen ? "[-]" : "[+]"} ${n.name}` : n.name,
+			depth: 1,
+			interactive: true,
+			action: hasChildren ? `toggle:${groupId}` : `neighborhood:${n.slug}`,
+		});
+		if (hasChildren && isOpen) {
+			for (const {slug, story} of neighborhoodStories) {
+				rows.push({
+					label: story.title ?? slug,
+					depth: 2,
+					interactive: true,
+					action: nextStoryAction(slug),
+				});
+			}
 		}
 	}
 	return rows;
@@ -319,7 +431,7 @@ function navigateFromDesktopAction(action) {
 	}
 }
 
-function drawInteractivePanel(buf, w, h, hoveredAction, p) {
+function drawInteractivePanel(buf, w, h, hoveredAction, panelState, p) {
 	const panelX = w * 0.08;
 	const panelY = h * 0.23;
 	const panelW = w * 0.44;
@@ -349,11 +461,29 @@ function drawInteractivePanel(buf, w, h, hoveredAction, p) {
 
 	const treeStartY = panelY + panelH * 0.24;
 	const rowH = panelH * 0.1;
+	const listViewportTop = treeStartY - rowH * 0.48;
+	const listViewportBottom = panelY + panelH * 0.94;
+	const listViewportH = Math.max(1, listViewportBottom - listViewportTop);
+	const listViewportRect = {
+		x: panelX + panelW * 0.1,
+		y: listViewportTop,
+		w: panelW * 0.82,
+		h: listViewportH,
+	};
 	const trunkX = panelX + panelW * 0.12;
 	const nestedTrunkX = panelX + panelW * 0.21;
 	const branchColor = [...THEME.GREEN_MID, 120];
 
-	const rows = buildDesktopTreeRows();
+	const rows = buildDesktopTreeRows({openGroups: panelState.openGroups});
+	const contentH = Math.max(rowH, rows.length * rowH);
+	const maxScroll = Math.max(0, contentH - listViewportH);
+	const scrollY = pClamp(panelState.scrollY ?? 0, 0, maxScroll);
+
+	const drawCtx = buf.drawingContext;
+	drawCtx.save();
+	drawCtx.beginPath();
+	drawCtx.rect(listViewportRect.x, listViewportRect.y, listViewportRect.w, listViewportRect.h);
+	drawCtx.clip();
 
 	buf.stroke(...branchColor);
 	buf.strokeWeight(2);
@@ -365,8 +495,8 @@ function drawInteractivePanel(buf, w, h, hoveredAction, p) {
 	if (mainTrunkRows.length > 0) {
 		const first = mainTrunkRows[0];
 		const last = mainTrunkRows[mainTrunkRows.length - 1];
-		const y1 = treeStartY + first * rowH;
-		const y2 = treeStartY + last * rowH;
+		const y1 = treeStartY + first * rowH - scrollY;
+		const y2 = treeStartY + last * rowH - scrollY;
 		buf.line(trunkX, y1, trunkX, y2);
 	}
 
@@ -377,8 +507,8 @@ function drawInteractivePanel(buf, w, h, hoveredAction, p) {
 	if (nestedTrunkRows.length > 0) {
 		const first = nestedTrunkRows[0];
 		const last = nestedTrunkRows[nestedTrunkRows.length - 1];
-		const y1 = treeStartY + first * rowH;
-		const y2 = treeStartY + last * rowH;
+		const y1 = treeStartY + first * rowH - scrollY;
+		const y2 = treeStartY + last * rowH - scrollY;
 		buf.line(nestedTrunkX, y1, nestedTrunkX, y2);
 	}
 
@@ -389,7 +519,8 @@ function drawInteractivePanel(buf, w, h, hoveredAction, p) {
 	const interactiveRows = [];
 	for (let i = 0; i < rows.length; i++) {
 		const row = rows[i];
-		const y = treeStartY + i * rowH;
+		const y = treeStartY + i * rowH - scrollY;
+		if (y + rowH < listViewportTop - rowH * 0.2 || y - rowH > listViewportBottom + rowH * 0.2) continue;
 		const labelX = panelX + panelW * (0.2 + row.depth * 0.09);
 		const connectorX = row.depth <= 1 ? trunkX : nestedTrunkX;
 
@@ -434,7 +565,29 @@ function drawInteractivePanel(buf, w, h, hoveredAction, p) {
 		buf.text(row.label, labelX, y);
 	}
 
-	return interactiveRows;
+	drawCtx.restore();
+
+	if (maxScroll > 0) {
+		const trackX = panelX + panelW * 0.955;
+		const trackY = listViewportTop;
+		const trackH = listViewportH;
+		const thumbH = Math.max(18, trackH * (listViewportH / contentH));
+		const thumbMaxY = trackY + trackH - thumbH;
+		const progress = maxScroll <= 0 ? 0 : scrollY / maxScroll;
+		const thumbY = p.lerp(trackY, thumbMaxY, pClamp(progress, 0, 1));
+
+		buf.noStroke();
+		buf.fill(...THEME.GREEN_PRIMARY, 45);
+		buf.rect(trackX, trackY, panelW * 0.01, trackH, 4);
+		buf.fill(...THEME.GREEN_MID, 170);
+		buf.rect(trackX, thumbY, panelW * 0.01, thumbH, 4);
+	}
+
+	return {
+		interactiveRows,
+		listViewportRect,
+		maxScroll,
+	};
 }
 
 function drawSystemCard(buf, w, h, p, blink, gazeXNorm, gazeYNorm) {
@@ -628,10 +781,10 @@ function weatherCodeToUi(code) {
 	// wi-rain \uF019 · wi-snow \uF01B · wi-snowflake-cold \uF076 · wi-showers \uF01A
 	// wi-snow-wind \uF064 · wi-thunderstorm \uF01E · wi-hail \uF015 · wi-na \uF07B
 	const map = {
-		0:  {icon: "\uF00D", label: "Dégagé"},
-		1:  {icon: "\uF00C", label: "Plutôt dégagé"},
-		2:  {icon: "\uF002", label: "Partiellement nuageux"},
-		3:  {icon: "\uF013", label: "Couvert"},
+		0: {icon: "\uF00D", label: "Dégagé"},
+		1: {icon: "\uF00C", label: "Plutôt dégagé"},
+		2: {icon: "\uF002", label: "Partiellement nuageux"},
+		3: {icon: "\uF013", label: "Couvert"},
 		45: {icon: "\uF014", label: "Brouillard"},
 		48: {icon: "\uF014", label: "Brouillard givrant"},
 		51: {icon: "\uF01C", label: "Bruine"},
