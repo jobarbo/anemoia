@@ -120,21 +120,7 @@ export default function (container) {
 			// Retro terminal placeholder grid (no map image)
 			const hoveredOverlay = findNeighborhoodOverlayAtMouse();
 			hoveredOverlaySlug = hoveredOverlay?.slug ?? null;
-			drawMapPlaceholder(
-				artBuffer,
-				mapX,
-				mapY,
-				mapW,
-				mapH,
-				mapOutline,
-				mapOutlineState,
-				neighborhoodOverlays,
-				hoveredOverlaySlug,
-				selectedPin,
-				cityGeoBounds,
-				sketch,
-				neighborhoods,
-			);
+			drawMapPlaceholder(artBuffer, mapX, mapY, mapW, mapH, mapOutline, mapOutlineState, neighborhoodOverlays, hoveredOverlaySlug, selectedPin, cityGeoBounds, sketch, neighborhoods);
 
 			// ── Title ─────────────────────────────────────────────────────────────
 			const titleSz = w * 0.028;
