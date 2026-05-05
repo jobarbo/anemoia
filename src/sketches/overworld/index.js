@@ -21,6 +21,9 @@ import {getOverworldMapData} from "../../lib/data/overworld-map-data.js";
 export default function (container) {
 	const raw = container.dataset.sketchData;
 	const {neighborhoods = []} = raw ? JSON.parse(raw) : {};
+	const isNeighborhoodEnabled = (neighborhood) => neighborhood?.viewEnabled !== false;
+	const isNeighborhoodIndexEnabled = (index) => isNeighborhoodEnabled(neighborhoods[index]);
+	const findFirstEnabledPin = () => neighborhoods.findIndex((hood) => isNeighborhoodEnabled(hood));
 
 	return (sketch) => {
 		/** P2D offscreen buffer — all drawing happens here, GlobalShaderOverlay handles GLSL. */
@@ -39,6 +42,23 @@ export default function (container) {
 		let neighborhoodOverlays = [];
 		let hoveredOverlaySlug = null;
 
+		const findNextEnabledPin = (fromIndex, step) => {
+			const total = neighborhoods.length;
+			if (total === 0) return -1;
+			let next = fromIndex;
+			for (let i = 0; i < total; i++) {
+				next = (next + step + total) % total;
+				if (isNeighborhoodIndexEnabled(next)) return next;
+			}
+			return -1;
+		};
+
+		const navigateToNeighborhoodAtIndex = (index) => {
+			if (!isNeighborhoodIndexEnabled(index)) return false;
+			sceneNavigate("neighborhood", {slug: neighborhoods[index].slug});
+			return true;
+		};
+
 		sketch.setup = () => {
 			sketch.pixelDensity(1);
 			const w = window.innerWidth;
@@ -52,6 +72,10 @@ export default function (container) {
 			artBuffer.pixelDensity(1);
 			artBuffer.noStroke();
 			artBuffer.textFont(THEME.FONT);
+			if (!isNeighborhoodIndexEnabled(selectedPin)) {
+				const firstEnabled = findFirstEnabledPin();
+				selectedPin = firstEnabled >= 0 ? firstEnabled : 0;
+			}
 
 			// Fallback keyboard handling when p5 key events are swallowed by focus changes.
 			window.addEventListener("keydown", onWindowKeyDown);
@@ -96,7 +120,21 @@ export default function (container) {
 			// Retro terminal placeholder grid (no map image)
 			const hoveredOverlay = findNeighborhoodOverlayAtMouse();
 			hoveredOverlaySlug = hoveredOverlay?.slug ?? null;
-			drawMapPlaceholder(artBuffer, mapX, mapY, mapW, mapH, mapOutline, mapOutlineState, neighborhoodOverlays, hoveredOverlaySlug, selectedPin, cityGeoBounds, sketch);
+			drawMapPlaceholder(
+				artBuffer,
+				mapX,
+				mapY,
+				mapW,
+				mapH,
+				mapOutline,
+				mapOutlineState,
+				neighborhoodOverlays,
+				hoveredOverlaySlug,
+				selectedPin,
+				cityGeoBounds,
+				sketch,
+				neighborhoods,
+			);
 
 			// ── Title ─────────────────────────────────────────────────────────────
 			const titleSz = w * 0.028;
@@ -109,7 +147,9 @@ export default function (container) {
 				const hood = neighborhoods[i];
 				const px = mapX + (hood.position.x / 100) * mapW;
 				const py = mapY + (hood.position.y / 100) * mapH;
-				drawPin(artBuffer, px, py, hood.name, selectedPin === i || hoveredPin === i, sketch);
+				const enabled = isNeighborhoodEnabled(hood);
+				const pinActive = enabled && (selectedPin === i || hoveredPin === i);
+				drawPin(artBuffer, px, py, hood.name, pinActive, sketch, {disabled: !enabled});
 			}
 
 			// Key hint
@@ -138,11 +178,13 @@ export default function (container) {
 				return false;
 			}
 			if (key === sketch.UP_ARROW || key === sketch.LEFT_ARROW) {
-				selectedPin = (selectedPin - 1 + neighborhoods.length) % neighborhoods.length;
+				const nextIndex = findNextEnabledPin(selectedPin, -1);
+				if (nextIndex >= 0) selectedPin = nextIndex;
 			} else if (key === sketch.DOWN_ARROW || key === sketch.RIGHT_ARROW) {
-				selectedPin = (selectedPin + 1) % neighborhoods.length;
+				const nextIndex = findNextEnabledPin(selectedPin, 1);
+				if (nextIndex >= 0) selectedPin = nextIndex;
 			} else if (key === sketch.ENTER || key === sketch.RETURN) {
-				sceneNavigate("neighborhood", {slug: neighborhoods[selectedPin].slug});
+				navigateToNeighborhoodAtIndex(selectedPin);
 			} else if (key === sketch.ESCAPE) {
 				if (canvasCursor?.isLocked()) return false;
 				sceneNavigate("desktop");
@@ -173,14 +215,16 @@ export default function (container) {
 			}
 			const overlayHit = findNeighborhoodOverlayAtMouse();
 			if (overlayHit) {
-				selectedPin = overlayHit.pinIndex;
-				sceneNavigate("neighborhood", {slug: overlayHit.slug});
+				if (navigateToNeighborhoodAtIndex(overlayHit.pinIndex)) {
+					selectedPin = overlayHit.pinIndex;
+				}
 				return;
 			}
 			const pinIndex = findPinAtMouse();
 			if (pinIndex >= 0) {
-				selectedPin = pinIndex;
-				sceneNavigate("neighborhood", {slug: neighborhoods[pinIndex].slug});
+				if (navigateToNeighborhoodAtIndex(pinIndex)) {
+					selectedPin = pinIndex;
+				}
 			}
 		};
 
@@ -203,6 +247,7 @@ export default function (container) {
 			const hitRadius = Math.max(14, artBuffer.width * 0.02);
 			for (let i = 0; i < neighborhoods.length; i++) {
 				if (hasNeighborhoodOverlayAtIndex(i)) continue;
+				if (!isNeighborhoodIndexEnabled(i)) continue;
 				const hood = neighborhoods[i];
 				const px = mapBounds.x + (hood.position.x / 100) * mapBounds.w;
 				const py = mapBounds.y + (hood.position.y / 100) * mapBounds.h;
@@ -221,6 +266,7 @@ export default function (container) {
 			for (let i = 0; i < neighborhoodOverlays.length; i++) {
 				const overlay = neighborhoodOverlays[i];
 				if (!overlay?.anchor) continue;
+				if (!isNeighborhoodIndexEnabled(overlay.pinIndex)) continue;
 				const anchor = toScreenPoint(overlay.anchor, mapBounds, cityGeoBounds);
 				const dx = pointer.x - anchor.x;
 				const dy = pointer.y - anchor.y;
@@ -228,6 +274,7 @@ export default function (container) {
 			}
 			for (let i = 0; i < neighborhoodOverlays.length; i++) {
 				const overlay = neighborhoodOverlays[i];
+				if (!isNeighborhoodIndexEnabled(overlay.pinIndex)) continue;
 				for (let j = 0; j < overlay.rings.length; j++) {
 					const screenRing = toScreenRing(overlay.rings[j], mapBounds, cityGeoBounds);
 					if (screenRing.length < 3) continue;
@@ -245,12 +292,13 @@ export default function (container) {
 
 // ── Pin renderer ──────────────────────────────────────────────────────────────
 
-function drawPin(buf, x, y, name, hovered, p) {
+function drawPin(buf, x, y, name, hovered, p, options = {}) {
 	const w = buf.width;
 	const dotR = w * 0.008;
 	const labelSz = w * 0.013;
+	const disabled = options.disabled === true;
 
-	const dotColor = hovered ? THEME.GREEN_PRIMARY : THEME.GREEN_MID;
+	const dotColor = disabled ? [176, 116, 116] : hovered ? THEME.GREEN_PRIMARY : THEME.GREEN_MID;
 
 	// Outer glow ring
 	buf.noFill();
@@ -267,15 +315,21 @@ function drawPin(buf, x, y, name, hovered, p) {
 	buf.textAlign(p.CENTER, p.CENTER);
 	applyThemeCanvasFont(buf, labelSz, p);
 	buf.noStroke();
-	buf.fill(255, 255, 255, 255);
-	buf.text(name, x, y + dotR * 3.5);
+	if (disabled) {
+		applyThemeCanvasFont(buf, Math.max(9, labelSz * 0.72), p);
+		buf.fill(228, 146, 146, 230);
+		buf.text("ACCES BLOQUE", x, y + dotR * 3.7);
+	} else {
+		buf.fill(255, 255, 255, 255);
+		buf.text(name, x, y + dotR * 3.5);
+	}
 
 	buf.noStroke();
 }
 
 // ── Map placeholder grid ──────────────────────────────────────────────────────
 
-function drawMapPlaceholder(buf, x, y, w, h, mapOutline, mapOutlineState, neighborhoodOverlays, hoveredOverlaySlug, selectedPinIndex, geoBounds, p) {
+function drawMapPlaceholder(buf, x, y, w, h, mapOutline, mapOutlineState, neighborhoodOverlays, hoveredOverlaySlug, selectedPinIndex, geoBounds, p, neighborhoods = []) {
 	// Dark panel
 	buf.fill(...THEME.BG, 200);
 	buf.stroke(...THEME.GREEN_PRIMARY, 55);
@@ -297,7 +351,7 @@ function drawMapPlaceholder(buf, x, y, w, h, mapOutline, mapOutlineState, neighb
 	}
 
 	drawMapOutline(buf, x, y, w, h, mapOutline, geoBounds);
-	drawNeighborhoodOverlays(buf, {x, y, w, h}, neighborhoodOverlays, hoveredOverlaySlug, selectedPinIndex, geoBounds, p);
+	drawNeighborhoodOverlays(buf, {x, y, w, h}, neighborhoodOverlays, hoveredOverlaySlug, selectedPinIndex, geoBounds, p, neighborhoods);
 
 	// Border
 	buf.noFill();
@@ -343,7 +397,7 @@ function drawMapOutline(buf, x, y, w, h, mapOutline, geoBounds) {
 	buf.drawingContext.restore();
 }
 
-function drawNeighborhoodOverlays(buf, mapRect, overlays, hoveredSlug, selectedPinIndex, geoBounds, p) {
+function drawNeighborhoodOverlays(buf, mapRect, overlays, hoveredSlug, selectedPinIndex, geoBounds, p, neighborhoods = []) {
 	if (!Array.isArray(overlays) || overlays.length === 0) return;
 	buf.drawingContext.save();
 	buf.drawingContext.beginPath();
@@ -351,14 +405,16 @@ function drawNeighborhoodOverlays(buf, mapRect, overlays, hoveredSlug, selectedP
 	buf.drawingContext.clip();
 	for (let i = 0; i < overlays.length; i++) {
 		const overlay = overlays[i];
+		const neighborhood = neighborhoods[overlay.pinIndex];
+		const isEnabled = neighborhood?.viewEnabled !== false;
 		const isHovered = hoveredSlug === overlay.slug;
-		const isSelected = selectedPinIndex === overlay.pinIndex;
+		const isSelected = isEnabled && selectedPinIndex === overlay.pinIndex;
 		const isActive = isHovered || isSelected;
 		for (let j = 0; j < overlay.rings.length; j++) {
 			const ring = overlay.rings[j];
 			if (!Array.isArray(ring) || ring.length < 3) continue;
-			buf.fill(...THEME.GREEN_PRIMARY, isActive ? 120 : 65);
-			buf.stroke(...THEME.GREEN_MID, isActive ? 220 : 160);
+			buf.fill(...(isEnabled ? THEME.GREEN_PRIMARY : [96, 44, 44]), isActive ? 120 : 65);
+			buf.stroke(...(isEnabled ? THEME.GREEN_MID : [196, 120, 120]), isActive ? 220 : 160);
 			buf.strokeWeight(isActive ? 1.8 : 1.1);
 			buf.beginShape();
 			for (let k = 0; k < ring.length; k++) {
@@ -367,32 +423,40 @@ function drawNeighborhoodOverlays(buf, mapRect, overlays, hoveredSlug, selectedP
 			}
 			buf.endShape(buf.CLOSE);
 		}
-		drawOverlayAnchor(buf, mapRect, overlay, isHovered, isSelected, geoBounds, p);
+		drawOverlayAnchor(buf, mapRect, overlay, isHovered, isSelected, geoBounds, p, {disabled: !isEnabled});
 	}
 	buf.drawingContext.restore();
 	buf.noStroke();
 }
 
-function drawOverlayAnchor(buf, mapRect, overlay, isHovered, isSelected, geoBounds, p) {
+function drawOverlayAnchor(buf, mapRect, overlay, isHovered, isSelected, geoBounds, p, options = {}) {
 	if (!overlay?.anchor) return;
 	const center = toScreenPoint(overlay.anchor, mapRect, geoBounds);
 	const dotR = Math.max(4, buf.width * 0.0056);
 	const labelSz = Math.max(10, buf.width * 0.0115);
 	const isActive = isHovered || isSelected;
+	const disabled = options.disabled === true;
 
 	buf.noFill();
-	buf.stroke(...THEME.GREEN_PRIMARY, isActive ? 220 : 150);
+	buf.stroke(...(disabled ? [176, 116, 116] : THEME.GREEN_PRIMARY), isActive ? 220 : 150);
 	buf.strokeWeight(1);
 	buf.circle(center.x, center.y, dotR * 4);
 
 	buf.noStroke();
-	buf.fill(...THEME.GREEN_PRIMARY, isActive ? 255 : 230);
+	buf.fill(...(disabled ? [176, 116, 116] : THEME.GREEN_PRIMARY), isActive ? 255 : 230);
 	buf.circle(center.x, center.y, dotR * 2);
 
 	applyThemeCanvasFont(buf, labelSz, p);
 	buf.textAlign(p.CENTER, p.BOTTOM);
-	buf.fill(255, 255, 255, 255);
-	buf.text(overlay.name, center.x, center.y - dotR * 2.1);
+	if (disabled) {
+		applyThemeCanvasFont(buf, Math.max(9, labelSz * 0.72), p);
+		buf.textAlign(p.CENTER, p.BOTTOM);
+		buf.fill(228, 146, 146, 230);
+		buf.text("ACCES BLOQUE", center.x, center.y - dotR * 2.1);
+	} else {
+		buf.fill(255, 255, 255, 255);
+		buf.text(overlay.name, center.x, center.y - dotR * 2.1);
+	}
 }
 
 function toScreenPoint(point, mapRect, geoBounds) {

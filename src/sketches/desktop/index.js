@@ -446,11 +446,11 @@ function buildDesktopTreeRows(opts = {}) {
 		const groupId = `neighborhood:${n.slug}`;
 		const isOpen = openGroups.has(groupId);
 		rows.push({
-			label: hasChildren ? `${isOpen ? "[-]" : "[+]"} ${n.name}` : n.name,
+			label: viewEnabled ? (hasChildren ? `${isOpen ? "[-]" : "[+]"} ${n.name}` : n.name) : "ACCES BLOQUE",
 			depth: 1,
 			interactive: viewEnabled,
 			disabled: !viewEnabled,
-			statusLabel: viewEnabled ? "" : "ACCES BLOQUE",
+			statusLabel: "",
 			action: hasChildren ? `toggle:${groupId}` : `neighborhood:${n.slug}`,
 		});
 		if (hasChildren && isOpen) {
