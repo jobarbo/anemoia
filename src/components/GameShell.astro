@@ -41,6 +41,44 @@ function parseMarkdownBlocks(md) {
 			continue;
 		}
 
+		// Table row: | cell | cell |
+		if (/^\|/.test(line) && /\|$/.test(line)) {
+			flushPara();
+			// Separator row — skip
+			if (/^\|[-| :]+\|$/.test(line)) continue;
+			const cells = line.split("|").slice(1, -1).map((c) =>
+				c.trim()
+				 .replace(/!\[.*?\]\(.*?\)/g, "")
+				 .replace(/\[(.+?)\]\(.*?\)/g, "$1")
+				 .replace(/`([^`]+)`/g, "$1")
+				 .replace(/\*\*(.+?)\*\*/g, "$1")
+				 .replace(/\*(.+?)\*/g, "$1")
+				 .replace(/_(.+?)_/g, "$1")
+			);
+			const last = blocks[blocks.length - 1];
+			if (last?.type === "table") {
+				last.rows.push(cells);
+			} else {
+				// First row becomes headers
+				blocks.push({type: "table", headers: cells, rows: []});
+			}
+			continue;
+		}
+
+		const listItem = line.match(/^[-*+]\s+(.+)/) ?? line.match(/^\d+\.\s+(.+)/);
+		if (listItem) {
+			flushPara();
+			const cleanedLi = listItem[1]
+				.replace(/!\[.*?\]\(.*?\)/g, "")
+				.replace(/\[(.+?)\]\(.*?\)/g, "$1")
+				.replace(/`([^`]+)`/g, "$1")
+				.replace(/\*\*(.+?)\*\*/g, "$1")
+				.replace(/\*(.+?)\*/g, "$1")
+				.replace(/_(.+?)_/g, "$1");
+			if (cleanedLi.trim()) blocks.push({type: "li", text: cleanedLi.trim()});
+			continue;
+		}
+
 		const cleaned = line
 			.replace(/!\[.*?\]\(.*?\)/g, "")
 			.replace(/\[(.+?)\]\(.*?\)/g, "$1")
@@ -62,6 +100,7 @@ const storiesMap = Object.fromEntries(
 		{
 			id: story.id,
 			title: story.data.title,
+			date: story.data.date ?? null,
 			neighborhood: story.data.neighborhood,
 			returnTo: story.data.returnTo ?? "neighborhood",
 			audioSrc: story.data.audioSrc ?? null,

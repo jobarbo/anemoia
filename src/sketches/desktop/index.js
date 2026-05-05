@@ -9,7 +9,7 @@
  */
 
 import {sceneNavigate} from "../../lib/router/scene-nav.js";
-import {getNeighborhood, getNeighborhoods, getStory} from "../../lib/data/scene-data.js";
+import {getNeighborhood, getNeighborhoods, getStory, getStoriesByNeighborhood} from "../../lib/data/scene-data.js";
 import {prefetchOverworldMapData} from "../../lib/data/overworld-map-data.js";
 import {THEME, applyThemeCanvasFont, hitTest} from "../../lib/utils/retro-theme.js";
 import {createCanvasCursor, drawCanvasCursor} from "../../lib/input/canvas-cursor.js";
@@ -336,27 +336,6 @@ function splitWeatherLabel(label) {
 // Weather Icons font (Erik Flowers) — Private Use Area codepoints
 const WEATHER_ICON_NA = "\uF07B";
 
-const ARCHIVE_LOG_SLUGS = [
-	"archives-log-01",
-	"archives-log-02",
-	"archives-log-03",
-	"archives-log-04",
-	"archives-log-05",
-	"archives-log-06",
-	"archives-log-07",
-	"archives-log-08",
-	"archives-log-09",
-	"archives-log-10",
-	"archives-log-11",
-	"archives-log-12",
-	"archives-log-13",
-	"archives-log-14",
-	"archives-log-15",
-	"archives-log-16",
-	"archives-log-17",
-	"archives-log-18",
-];
-
 function isNeighborhoodViewEnabled(neighborhood) {
 	return neighborhood?.viewEnabled !== false;
 }
@@ -406,20 +385,24 @@ function drawTrudeylMark(buf, x, y, size) {
 	}
 }
 
-/** Labels + depths + route ids for the file-manager tree (single source: neighborhoods JSON). */
+/** Labels + depths + route ids for the file-manager tree (dynamic — driven by story frontmatter). */
 function buildDesktopTreeRows(opts = {}) {
 	const openGroups = opts.openGroups instanceof Set ? opts.openGroups : new Set();
 	let storyRowKey = 0;
 	const nextStoryAction = (slug) => `story:${slug}#${storyRowKey++}`;
 
-	const archivesStories = ARCHIVE_LOG_SLUGS.map((slug) => ({slug, story: getStory(slug)}))
-		.filter(({story}) => Boolean(story))
-		.sort((a, b) => (a.story.order ?? 0) - (b.story.order ?? 0));
+	const desktopStories = getStoriesByNeighborhood("desktop");
+	const archivesStories = getStoriesByNeighborhood("archives");
 	const archivesGroupId = "archives";
 	const archivesExpanded = openGroups.has(archivesGroupId);
 
 	const rows = [
-		{label: "README", depth: 0, interactive: true, action: nextStoryAction("la-memoire")},
+		...desktopStories.map((story) => ({
+			label: story.title ?? story.id,
+			depth: 0,
+			interactive: true,
+			action: nextStoryAction(story.id),
+		})),
 		{
 			label: `${archivesExpanded ? "[-]" : "[+]"} The Archives`,
 			depth: 0,
@@ -428,12 +411,12 @@ function buildDesktopTreeRows(opts = {}) {
 		},
 	];
 	if (archivesExpanded) {
-		for (const {slug, story} of archivesStories) {
+		for (const story of archivesStories) {
 			rows.push({
-				label: story.title ?? slug,
+				label: story.title ?? story.id,
 				depth: 1,
 				interactive: true,
-				action: nextStoryAction(slug),
+				action: nextStoryAction(story.id),
 			});
 		}
 	}
@@ -696,7 +679,7 @@ function drawSystemCard(buf, w, h, p, blink, gazeXNorm, gazeYNorm) {
 	const cardPadY = Math.max(14, h * 0.024);
 
 	const maxCardW = w * 0.47;
-	let statSz = Math.max(20, w * 0.012);
+	let statSz = Math.max(13, w * 0.016);
 	applyThemeCanvasFont(buf, statSz, p);
 	let statsMaxW = Math.max(...statsLines.map((line) => (line ? buf.textWidth(line) : 0)));
 	while (statsMaxW > maxCardW - cardPadX * 2 && statSz > 9) {

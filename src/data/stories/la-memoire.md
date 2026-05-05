@@ -1,7 +1,6 @@
 ---
-title: README
-neighborhood: desktop
-returnTo: desktop
+title: La Mémoire de la Rue
+neighborhood: saint-roch
 audioSrc: /assets/scenes/saint-roch/ambient.mp3
 order: 1
 ---

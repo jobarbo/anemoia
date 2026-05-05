@@ -10,6 +10,7 @@ const stories = defineCollection({
 		returnTo: z.enum(["desktop", "neighborhood"]).optional(),
 		audioSrc: z.string().optional(),
 		order: z.number(),
+		date: z.string().optional(),
 		duration: z.string().optional(),
 	}),
 });

@@ -1,3 +1,5 @@
+import {compareRemDates} from "./rem-calendar.js";
+
 /**
  * Scene data access for the SPA router.
  *
@@ -27,6 +29,7 @@ let _cache = null;
  * @typedef {{
  *   id: string,
  *   title: string,
+ *   date?: string,
  *   neighborhood: string,
  *   returnTo?: 'desktop' | 'neighborhood',
  *   audioSrc?: string,
@@ -65,6 +68,22 @@ export function getStory(slug) {
 }
 
 /**
+ * @param {string} neighborhood
+ * @returns {StoryData[]}
+ */
+export function getStoriesByNeighborhood(neighborhood) {
+	const stories = loadCache().stories;
+	return Object.values(stories)
+		.filter((s) => s.neighborhood === neighborhood)
+		.sort((a, b) => {
+			// If both have a REM date, sort chronologically
+			if (a.date && b.date) return compareRemDates(a.date, b.date);
+			// Otherwise fall back to numeric order
+			return (a.order ?? 0) - (b.order ?? 0);
+		});
+}
+
+/**
  * Fetch and parse the scene manifest for a neighborhood.
  * Manifests live in public/assets/scenes/<slug>/manifest.json
  * and are available at /assets/scenes/<slug>/manifest.json.
@@ -77,10 +96,7 @@ export function getStory(slug) {
  * @returns {Promise<object>}
  */
 export async function fetchNeighborhoodManifest(scenePath, slug) {
-	const [manifestRes, sceneConfigRes] = await Promise.all([
-		fetch(scenePath),
-		fetch(scenePath.replace("manifest.json", "scene-config.json")),
-	]);
+	const [manifestRes, sceneConfigRes] = await Promise.all([fetch(scenePath), fetch(scenePath.replace("manifest.json", "scene-config.json"))]);
 
 	if (!manifestRes.ok) throw new Error(`[scene-data] Failed to fetch manifest: ${scenePath}`);
 
