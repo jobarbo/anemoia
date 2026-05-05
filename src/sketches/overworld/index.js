@@ -596,7 +596,7 @@ function drawNeighborhoodSidebar(buf, sidebarRect, neighborhoods, selectedIndex,
 	buf.noStroke();
 	buf.fill(255, 255, 255, 255);
 	buf.textAlign(p.LEFT, p.TOP);
-	buf.text("Quartiers", x + padX, y + padY * 0.55);
+	buf.text("Cities", x + padX, y + padY * 0.55);
 
 	const contentTop = y + padY + titleSize * 1.25;
 	const contentBottom = y + h - padY;
