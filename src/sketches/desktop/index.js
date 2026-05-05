@@ -29,6 +29,7 @@ export default function (container) {
 		let listLastTouchY = null;
 		let locationLabel = "Location...";
 		let weatherLabel = "Weather: --";
+		let systemStats = buildSystemStats();
 		let blinkStartMs = -1;
 		let blinkDurationMs = 150;
 		let nextBlinkAtMs = 0;
@@ -146,7 +147,7 @@ export default function (container) {
 					scheduleNextGazeHold(nowMs);
 				}
 			}
-			drawSystemCard(artBuffer, w, h, sketch, blink, gazeX, gazeY);
+			drawSystemCard(artBuffer, w, h, sketch, blink, gazeX, gazeY, systemStats);
 			drawCanvasCursor(artBuffer, pointer, {hovered: Boolean(hoveredRowAction)});
 
 			sketch.clear();
@@ -669,8 +670,22 @@ function drawInteractivePanel(buf, w, h, hoveredAction, panelState, p) {
 	};
 }
 
-function drawSystemCard(buf, w, h, p, blink, gazeXNorm, gazeYNorm) {
-	const statsText = "CPU CLOCK\n64 MHZ\n\nTOTAL RAM\n10 MB\n\nFREE RAM\n5 MB\n\nI/O MODE\nMIDI";
+function buildSystemStats() {
+	const cores = navigator.hardwareConcurrency ?? null;
+	const ramGb = navigator.deviceMemory ?? null;
+	const res = `${screen.width}×${screen.height}`;
+	const lang = (navigator.language ?? "--").toUpperCase();
+
+	const lines = [];
+	if (cores !== null) lines.push(`CPU CORES`, `${cores} THREADS`);
+	if (ramGb !== null) lines.push(``, `TOTAL RAM`, `${ramGb} GB`);
+	lines.push(``, `DISPLAY`, res);
+	lines.push(``, `LOCALE`, lang);
+	return lines.join("\n").replace(/^\n/, "");
+}
+
+function drawSystemCard(buf, w, h, p, blink, gazeXNorm, gazeYNorm, systemStats) {
+	const statsText = systemStats ?? "CPU CLOCK\n64 MHZ\n\nTOTAL RAM\n10 MB\n\nFREE RAM\n5 MB\n\nI/O MODE\nMIDI";
 	const statsLines = statsText.split("\n");
 	const cardY = h * 0.23;
 	const cardRight = w * 0.95;
