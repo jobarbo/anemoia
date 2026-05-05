@@ -27,9 +27,15 @@ let inFlightRequest = null;
 const MAP_DEBUG_SLUGS = new Set(["st-romuald", "saint-romuald", "st romuald", "saint romuald"]);
 
 function shouldDebugNeighborhood(neighborhood) {
-	const slug = String(neighborhood?.slug ?? "").trim().toLowerCase();
-	const id = String(neighborhood?.id ?? "").trim().toLowerCase();
-	const name = String(neighborhood?.name ?? "").trim().toLowerCase();
+	const slug = String(neighborhood?.slug ?? "")
+		.trim()
+		.toLowerCase();
+	const id = String(neighborhood?.id ?? "")
+		.trim()
+		.toLowerCase();
+	const name = String(neighborhood?.name ?? "")
+		.trim()
+		.toLowerCase();
 	return MAP_DEBUG_SLUGS.has(slug) || MAP_DEBUG_SLUGS.has(id) || name.includes("romuald");
 }
 
@@ -61,7 +67,13 @@ export async function getOverworldMapData(neighborhoods) {
 			logMapDebug("Using in-memory cache", {
 				signature,
 				stRomualdOverlayFound:
-					memoryCache.data?.overlays?.some((overlay) => MAP_DEBUG_SLUGS.has(String(overlay?.slug ?? "").trim().toLowerCase())) ?? false,
+					memoryCache.data?.overlays?.some((overlay) =>
+						MAP_DEBUG_SLUGS.has(
+							String(overlay?.slug ?? "")
+								.trim()
+								.toLowerCase(),
+						),
+					) ?? false,
 				overlaySlugs: (memoryCache.data?.overlays ?? []).map((overlay) => overlay?.slug),
 			});
 		}
@@ -74,7 +86,13 @@ export async function getOverworldMapData(neighborhoods) {
 			logMapDebug("Using persisted cache", {
 				signature,
 				stRomualdOverlayFound:
-					persisted.data?.overlays?.some((overlay) => MAP_DEBUG_SLUGS.has(String(overlay?.slug ?? "").trim().toLowerCase())) ?? false,
+					persisted.data?.overlays?.some((overlay) =>
+						MAP_DEBUG_SLUGS.has(
+							String(overlay?.slug ?? "")
+								.trim()
+								.toLowerCase(),
+						),
+					) ?? false,
 				overlaySlugs: (persisted.data?.overlays ?? []).map((overlay) => overlay?.slug),
 			});
 		}
@@ -330,11 +348,11 @@ async function fetchNeighborhoodPolygonGeoJson(neighborhoodName, neighborhood) {
 				firstResult:
 					Array.isArray(results) && results.length > 0
 						? {
-							display_name: results[0]?.display_name,
-							class: results[0]?.class,
-							type: results[0]?.type,
-							geojsonType: results[0]?.geojson?.type ?? null,
-						}
+								display_name: results[0]?.display_name,
+								class: results[0]?.class,
+								type: results[0]?.type,
+								geojsonType: results[0]?.geojson?.type ?? null,
+							}
 						: null,
 			});
 		}
@@ -365,13 +383,7 @@ function buildNeighborhoodSearchQuery(candidate) {
 	const value = String(candidate ?? "").trim();
 	if (!value) return "Quebec City, Quebec, Canada";
 	const lower = value.toLowerCase();
-	const looksQualified =
-		value.includes(",") ||
-		lower.includes("quebec") ||
-		lower.includes("québec") ||
-		lower.includes("canada") ||
-		lower.includes("levis") ||
-		lower.includes("lévis");
+	const looksQualified = value.includes(",") || lower.includes("quebec") || lower.includes("québec") || lower.includes("canada") || lower.includes("levis") || lower.includes("lévis");
 	if (looksQualified) return value;
 	return `${value}, Quebec City, Quebec, Canada`;
 }
