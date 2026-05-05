@@ -256,7 +256,7 @@ function getNeighborhoodKey(neighborhood) {
 
 async function loadQuebecOutlineRaw() {
 	try {
-		const endpoint = "https://nominatim.openstreetmap.org/search?format=jsonv2&polygon_geojson=1&limit=1&q=";
+		const endpoint = "/api/nominatim.json?mode=search&format=jsonv2&polygon_geojson=1&limit=1&q=";
 		const query = "La Cité-Limoilou, Quebec, Canada";
 		const url = `${endpoint}${encodeURIComponent(query)}`;
 		const res = await fetch(url, {
@@ -306,7 +306,7 @@ async function fetchFirstNeighborhoodPolygonGeoJson(neighborhood) {
 }
 
 async function fetchNeighborhoodPolygonGeoJson(neighborhoodName, neighborhood) {
-	const baseUrl = "https://nominatim.openstreetmap.org/search";
+	const baseUrl = "/api/nominatim.json";
 	const q = buildNeighborhoodSearchQuery(neighborhoodName);
 	const attempts = [
 		{label: "suburb-filter", featuretype: "suburb"},
@@ -316,6 +316,7 @@ async function fetchNeighborhoodPolygonGeoJson(neighborhoodName, neighborhood) {
 	for (let attemptIndex = 0; attemptIndex < attempts.length; attemptIndex++) {
 		const attempt = attempts[attemptIndex];
 		const params = new URLSearchParams({
+			mode: "search",
 			format: "jsonv2",
 			polygon_geojson: "1",
 			limit: "8",

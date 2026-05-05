@@ -47,7 +47,7 @@ export default function (container) {
 		let mapOutlineState = "loading";
 		let cityGeoBounds = null;
 		let neighborhoodOverlays = [];
-		let hoveredOverlaySlug = null;
+		let hoveredNeighborhoodKey = null;
 
 		// ── Zoom and Pan state ─────────────────────────────────────────────────────
 		let zoomLevel = 1.0; // 1.0 = 100%, 2.0 = 200%, etc.
@@ -56,6 +56,7 @@ export default function (container) {
 		const MIN_ZOOM = 1.0;
 		const MAX_ZOOM = 4.0;
 		let _panCanvasEl = null;
+		let sidebarBounds = {x: 0, y: 0, w: 0, h: 0};
 
 		const findNextEnabledPin = (fromIndex, step) => {
 			const total = neighborhoods.length;
@@ -80,6 +81,11 @@ export default function (container) {
 			if (!navigateToNeighborhoodAtIndex(index)) return false;
 			selectedPin = index;
 			return true;
+		};
+
+		const getHoveredSidebarIndex = () => {
+			if (!sidebarBounds.w || !sidebarBounds.h) return -1;
+			return findSidebarItemAtPointer(pointer, sidebarBounds, neighborhoods, sketch);
 		};
 
 		sketch.setup = () => {
@@ -140,9 +146,14 @@ export default function (container) {
 			const footerH = bottomBarH + h * 0.03;
 			const mapX = mapPad;
 			const mapY = topBarH + titleH;
-			const mapW = w - mapPad * 2;
+			const totalW = w - mapPad * 2;
 			const mapH = h - mapY - footerH;
+			const sidebarGap = Math.max(10, w * 0.012);
+			const sidebarW = Math.max(190, totalW * 0.24);
+			const mapW = Math.max(220, totalW - sidebarW - sidebarGap);
+			const sidebarX = mapX + mapW + sidebarGap;
 			mapBounds = {x: mapX, y: mapY, w: mapW, h: mapH};
+			sidebarBounds = {x: sidebarX, y: mapY, w: sidebarW, h: mapH};
 
 			// ── Compute zoomed map rect for geo content ────────────────────────────
 			const mapCenterX = mapX + mapW * 0.5;
@@ -154,11 +165,14 @@ export default function (container) {
 			zoomedMapBounds = {x: zMapX, y: zMapY, w: zMapW, h: zMapH};
 
 			const selectedNeighborhoodKey = getNeighborhoodKey(neighborhoods[selectedPin]);
+			const hoveredSidebarIndex = getHoveredSidebarIndex();
 
 			// Hover detection uses zoomed positions (zoomedMapBounds via closures)
 			const hoveredOverlay = findNeighborhoodOverlayAtMouse();
-			hoveredOverlaySlug = hoveredOverlay?.slug ?? null;
 			const hoveredPin = findPinAtMouse();
+			const hoveredMapIndex = hoveredOverlay ? getNeighborhoodIndexByKey(hoveredOverlay.neighborhoodKey) : hoveredPin;
+			const effectiveHoveredIndex = hoveredSidebarIndex >= 0 ? hoveredSidebarIndex : hoveredMapIndex;
+			hoveredNeighborhoodKey = effectiveHoveredIndex >= 0 ? getNeighborhoodKey(neighborhoods[effectiveHoveredIndex]) : null;
 
 			// ── Map background & grid (no zoom) ────────────────────────────────────
 			drawMapBackground(artBuffer, mapX, mapY, mapW, mapH);
@@ -170,7 +184,7 @@ export default function (container) {
 			artBuffer.drawingContext.clip();
 
 			drawMapOutline(artBuffer, zMapX, zMapY, zMapW, zMapH, mapOutline, cityGeoBounds);
-			drawNeighborhoodOverlays(artBuffer, {x: zMapX, y: zMapY, w: zMapW, h: zMapH}, neighborhoodOverlays, hoveredOverlaySlug, selectedNeighborhoodKey, cityGeoBounds, sketch, neighborhoods);
+			drawNeighborhoodOverlays(artBuffer, {x: zMapX, y: zMapY, w: zMapW, h: zMapH}, neighborhoodOverlays, hoveredNeighborhoodKey, selectedNeighborhoodKey, cityGeoBounds, sketch, neighborhoods);
 
 			// ── Neighborhood pins (only when no polygon overlay) ──────────────────
 			for (let i = 0; i < neighborhoods.length; i++) {
@@ -179,14 +193,15 @@ export default function (container) {
 				const px = zMapX + (hood.position.x / 100) * zMapW;
 				const py = zMapY + (hood.position.y / 100) * zMapH;
 				const enabled = isNeighborhoodEnabled(hood);
-				const pinActive = enabled && (selectedPin === i || hoveredPin === i);
-				drawPin(artBuffer, px, py, hood.name, pinActive, sketch, {disabled: !enabled});
+				const pinActive = enabled && (selectedPin === i || effectiveHoveredIndex === i);
+				drawPin(artBuffer, px, py, hood.name, pinActive, sketch, {disabled: !enabled, showLabel: effectiveHoveredIndex === i});
 			}
 
 			artBuffer.drawingContext.restore();
 
 			// ── Map frame & status (no zoom) ────────────────────────────────────────
 			drawMapFrame(artBuffer, mapX, mapY, mapW, mapH, mapOutlineState, zoomLevel, sketch);
+			drawNeighborhoodSidebar(artBuffer, sidebarBounds, neighborhoods, selectedPin, effectiveHoveredIndex, sketch);
 
 			// ── Title ─────────────────────────────────────────────────────────────
 			const titleSz = w * 0.028;
@@ -205,7 +220,7 @@ export default function (container) {
 			}
 
 			// Blit artBuffer onto output canvas
-			drawCanvasCursor(artBuffer, pointer, {hovered: closeHovered || hoveredPin >= 0 || hoveredOverlaySlug != null});
+			drawCanvasCursor(artBuffer, pointer, {hovered: closeHovered || hoveredPin >= 0 || hoveredNeighborhoodKey != null || hoveredSidebarIndex >= 0});
 			sketch.clear();
 			sketch.image(artBuffer, 0, 0);
 		};
@@ -247,6 +262,13 @@ export default function (container) {
 			pointer = canvasCursor.beginFrame({mouseX: sketch.mouseX, mouseY: sketch.mouseY, width: artBuffer.width, height: artBuffer.height});
 			if (closeRect && hitTest(pointer.x, pointer.y, closeRect)) {
 				sceneNavigate("desktop");
+				return;
+			}
+			const sidebarHit = findSidebarItemAtPointer(pointer, sidebarBounds, neighborhoods, sketch);
+			if (sidebarHit >= 0) {
+				if (navigateToNeighborhoodAtIndex(sidebarHit)) {
+					selectedPin = sidebarHit;
+				}
 				return;
 			}
 			const overlayHit = findNeighborhoodOverlayAtMouse();
@@ -396,6 +418,7 @@ function drawPin(buf, x, y, name, hovered, p, options = {}) {
 	const dotR = w * 0.008;
 	const labelSz = w * 0.013;
 	const disabled = options.disabled === true;
+	const showLabel = options.showLabel === true;
 
 	const dotColor = disabled ? [176, 116, 116] : hovered ? THEME.GREEN_PRIMARY : THEME.GREEN_MID;
 
@@ -417,8 +440,8 @@ function drawPin(buf, x, y, name, hovered, p, options = {}) {
 	if (disabled) {
 		applyThemeCanvasFont(buf, Math.max(9, labelSz * 0.72), p);
 		buf.fill(228, 146, 146, 230);
-		buf.text("ACCESS BLOCKED", x, y + dotR * 3.7);
-	} else {
+		if (showLabel) buf.text("ACCESS BLOCKED", x, y + dotR * 3.7);
+	} else if (showLabel) {
 		buf.fill(255, 255, 255, 255);
 		buf.text(name, x, y + dotR * 3.5);
 	}
@@ -501,14 +524,14 @@ function drawMapOutline(buf, x, y, w, h, mapOutline, geoBounds) {
 	}
 }
 
-function drawNeighborhoodOverlays(buf, mapRect, overlays, hoveredSlug, selectedNeighborhoodKey, geoBounds, p, neighborhoods = []) {
+function drawNeighborhoodOverlays(buf, mapRect, overlays, hoveredNeighborhoodKey, selectedNeighborhoodKey, geoBounds, p, neighborhoods = []) {
 	if (!Array.isArray(overlays) || overlays.length === 0) return;
 	const getNeighborhoodKey = (hood) => String(hood?.slug ?? hood?.id ?? hood?.name ?? "").trim();
 	for (let i = 0; i < overlays.length; i++) {
 		const overlay = overlays[i];
 		const neighborhood = neighborhoods.find((hood) => getNeighborhoodKey(hood) === overlay.neighborhoodKey);
 		const isEnabled = neighborhood?.viewEnabled !== false;
-		const isHovered = hoveredSlug === overlay.slug;
+		const isHovered = hoveredNeighborhoodKey != null && hoveredNeighborhoodKey === overlay.neighborhoodKey;
 		const isSelected = isEnabled && overlay.neighborhoodKey === selectedNeighborhoodKey;
 		const isActive = isHovered || isSelected;
 		for (let j = 0; j < overlay.rings.length; j++) {
@@ -552,11 +575,77 @@ function drawOverlayAnchor(buf, mapRect, overlay, isHovered, isSelected, geoBoun
 		applyThemeCanvasFont(buf, Math.max(9, labelSz * 0.72), p);
 		buf.textAlign(p.CENTER, p.BOTTOM);
 		buf.fill(228, 146, 146, 230);
-		buf.text("ACCESS BLOCKED", center.x, center.y - dotR * 2.1);
-	} else {
+		if (isHovered) buf.text("ACCESS BLOCKED", center.x, center.y - dotR * 2.1);
+	} else if (isHovered) {
 		buf.fill(255, 255, 255, 255);
 		buf.text(overlay.name, center.x, center.y - dotR * 2.1);
 	}
+}
+
+function drawNeighborhoodSidebar(buf, sidebarRect, neighborhoods, selectedIndex, hoveredIndex, p) {
+	const {x, y, w, h} = sidebarRect;
+	buf.fill(...THEME.BG, 210);
+	buf.stroke(...THEME.GREEN_PRIMARY, 50);
+	buf.strokeWeight(2);
+	buf.rect(x, y, w, h, 16);
+
+	const padX = w * 0.08;
+	const padY = h * 0.045;
+	const titleSize = Math.max(11, buf.width * 0.0105);
+	applyThemeCanvasFont(buf, titleSize, p);
+	buf.noStroke();
+	buf.fill(...THEME.GREEN_SUBTLE, 240);
+	buf.textAlign(p.LEFT, p.TOP);
+	buf.text("Quartiers", x + padX, y + padY * 0.55);
+
+	const contentTop = y + padY + titleSize * 1.25;
+	const contentBottom = y + h - padY;
+	const visibleRows = Math.max(1, neighborhoods.length);
+	const rowGap = Math.max(4, h * 0.008);
+	const rowH = Math.max(26, (contentBottom - contentTop - rowGap * (visibleRows - 1)) / visibleRows);
+
+	for (let i = 0; i < neighborhoods.length; i++) {
+		const itemY = contentTop + i * (rowH + rowGap);
+		const itemW = w - padX * 2;
+		const enabled = neighborhoods[i]?.viewEnabled !== false;
+		const isHovered = i === hoveredIndex;
+		const isSelected = i === selectedIndex;
+
+		buf.stroke(...(enabled ? THEME.GREEN_PRIMARY : [120, 68, 68]), isHovered ? 190 : 95);
+		buf.strokeWeight(isSelected ? 2 : 1);
+		buf.fill(...(enabled ? THEME.BG : [40, 18, 18]), isHovered || isSelected ? 185 : 130);
+		buf.rect(x + padX, itemY, itemW, rowH, 7);
+
+		const labelSize = Math.max(10, buf.width * 0.0088);
+		applyThemeCanvasFont(buf, labelSize, p);
+		buf.noStroke();
+		buf.fill(...(enabled ? THEME.GREEN_MID : [190, 120, 120]), enabled ? 240 : 210);
+		buf.textAlign(p.LEFT, p.CENTER);
+		buf.text(neighborhoods[i]?.name ?? `Quartier ${i + 1}`, x + padX + itemW * 0.06, itemY + rowH * 0.52);
+	}
+}
+
+function findSidebarItemAtPointer(pointer, sidebarRect, neighborhoods, p) {
+	if (!pointer || !sidebarRect || neighborhoods.length === 0) return -1;
+	if (pointer.x < sidebarRect.x || pointer.x > sidebarRect.x + sidebarRect.w) return -1;
+	if (pointer.y < sidebarRect.y || pointer.y > sidebarRect.y + sidebarRect.h) return -1;
+
+	const {x, y, w, h} = sidebarRect;
+	const padX = w * 0.08;
+	const padY = h * 0.045;
+	const titleSize = Math.max(11, p.width * 0.0105);
+	const contentTop = y + padY + titleSize * 1.25;
+	const contentBottom = y + h - padY;
+	const visibleRows = Math.max(1, neighborhoods.length);
+	const rowGap = Math.max(4, h * 0.008);
+	const rowH = Math.max(26, (contentBottom - contentTop - rowGap * (visibleRows - 1)) / visibleRows);
+
+	for (let i = 0; i < neighborhoods.length; i++) {
+		const itemY = contentTop + i * (rowH + rowGap);
+		const itemW = w - padX * 2;
+		if (hitTest(pointer.x, pointer.y, {x: x + padX, y: itemY, w: itemW, h: rowH})) return i;
+	}
+	return -1;
 }
 
 function toScreenPoint(point, mapRect, geoBounds) {

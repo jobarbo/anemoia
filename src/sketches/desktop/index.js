@@ -892,7 +892,7 @@ async function startLiveContext(onUpdate) {
 
 async function fetchPlaceLabel(lat, lon) {
 	try {
-		const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
+		const url = `/api/nominatim.json?mode=reverse&format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
 		const res = await fetch(url, {headers: {"Accept-Language": "en-CA,en"}});
 		if (!res.ok) return null;
 		const data = await res.json();
