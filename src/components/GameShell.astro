@@ -100,6 +100,7 @@ const storiesMap = Object.fromEntries(
 		{
 			id: story.id,
 			title: story.data.title,
+			date: story.data.date ?? null,
 			neighborhood: story.data.neighborhood,
 			returnTo: story.data.returnTo ?? "neighborhood",
 			audioSrc: story.data.audioSrc ?? null,

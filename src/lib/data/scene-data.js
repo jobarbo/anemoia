@@ -65,6 +65,17 @@ export function getStory(slug) {
 }
 
 /**
+ * @param {string} neighborhood
+ * @returns {StoryData[]}
+ */
+export function getStoriesByNeighborhood(neighborhood) {
+	const stories = loadCache().stories;
+	return Object.values(stories)
+		.filter((s) => s.neighborhood === neighborhood)
+		.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+}
+
+/**
  * Fetch and parse the scene manifest for a neighborhood.
  * Manifests live in public/assets/scenes/<slug>/manifest.json
  * and are available at /assets/scenes/<slug>/manifest.json.

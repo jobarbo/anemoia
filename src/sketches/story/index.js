@@ -28,7 +28,9 @@ import {createCanvasCursor, drawCanvasCursor} from "../../lib/input/canvas-curso
 
 export default function (container) {
 	const raw = container.dataset.sketchData;
-	const {title = "", neighborhood = "", returnTo = "neighborhood", blocks = []} = raw ? JSON.parse(raw) : {};
+	const {title = "", date = null, neighborhood = "", returnTo = "neighborhood", blocks = []} = raw ? JSON.parse(raw) : {};
+	const titleBlocks = title ? [{type: "h1", text: title}, ...(date ? [{type: "h2", text: date}] : [])] : [];
+	const allBlocks = [...titleBlocks, ...blocks];
 
 	return (sketch) => {
 		/** P2D artBuffer — all drawing; GlobalShaderOverlay handles GLSL post. */
@@ -67,7 +69,7 @@ export default function (container) {
 			artBuffer.noStroke();
 			artBuffer.textFont(THEME.FONT);
 
-			blockState = blocks.map(() => ({opacity: 0, offsetY: 40, triggered: false}));
+			blockState = allBlocks.map(() => ({opacity: 0, offsetY: 40, triggered: false}));
 			computeLayout();
 		};
 
@@ -84,7 +86,7 @@ export default function (container) {
 
 			// ── Background ────────────────────────────────────────────────────────
 			drawDesktopBackground(artBuffer, w, h);
-			const topBar = drawWindowTopBar(artBuffer, w, h, closeHovered, sketch);
+			const topBar = drawWindowTopBar(artBuffer, w, h, closeHovered, title, sketch);
 			closeRect = topBar.closeRect;
 			closeHovered = closeRect ? hitTest(pointer.x, pointer.y, closeRect) : false;
 
@@ -92,8 +94,8 @@ export default function (container) {
 			const contentX = w * 0.12;
 			const contentW = w * 0.76;
 
-			for (let i = 0; i < blocks.length; i++) {
-				const block = blocks[i];
+			for (let i = 0; i < allBlocks.length; i++) {
+				const block = allBlocks[i];
 				const layout = blockLayout[i];
 				if (!layout) continue;
 
@@ -189,7 +191,7 @@ export default function (container) {
 			blockLayout = [];
 			let cursorY = topPad;
 
-			for (const block of blocks) {
+			for (const block of allBlocks) {
 				const sz = fontSizeForType(block.type, w);
 				applyThemeCanvasFont(artBuffer, sz, sketch);
 
@@ -242,7 +244,7 @@ export default function (container) {
 
 		function triggerVisibleBlocks(viewportH) {
 			const threshold = viewportH * 0.88;
-			for (let i = 0; i < blocks.length; i++) {
+			for (let i = 0; i < allBlocks.length; i++) {
 				const state = blockState[i];
 				if (state.triggered) continue;
 				const layout = blockLayout[i];
@@ -260,7 +262,7 @@ export default function (container) {
 		function drawBlock(buf, block, x, y, maxW, opacity, p) {
 			if (opacity <= 0.01) return;
 
-			const layout = blockLayout[blocks.indexOf(block)];
+			const layout = blockLayout[allBlocks.indexOf(block)];
 			if (!layout) return;
 
 			const alpha = Math.round(opacity * 255);
@@ -342,7 +344,11 @@ export default function (container) {
 			buf.noStroke();
 
 			if (block.type === "h1") {
-				drawTitleAberration(buf, block.text, x + maxW / 2, y + layout.sz / 2, layout.sz, alpha, p);
+				buf.textAlign(p.LEFT, p.TOP);
+				applyThemeCanvasFont(buf, layout.sz, p, {weight: "700"});
+				buf.fill(...THEME.GREEN_PRIMARY, alpha);
+				buf.text(block.text, x, y);
+				buf.textStyle(p.NORMAL);
 				return;
 			}
 
@@ -430,7 +436,7 @@ function drawDesktopBackground(buf, w, h) {
 	}
 }
 
-function drawWindowTopBar(buf, w, h, closeHovered, p) {
+function drawWindowTopBar(buf, w, h, closeHovered, title, p) {
 	const barH = h * 0.07;
 	const ctx = buf.drawingContext;
 	const grad = ctx.createLinearGradient(0, 0, 0, barH);
@@ -465,8 +471,8 @@ function drawWindowTopBar(buf, w, h, closeHovered, p) {
 
 	applyThemeCanvasFont(buf, Math.max(12, w * 0.014), p);
 	buf.fill(...THEME.GREEN_SUBTLE, 240);
-	buf.textAlign(p.LEFT, p.CENTER);
-	buf.text("Lecteur d'histoire", btnX + btnSize + w * 0.02, barH * 0.5);
+	buf.textAlign(p.CENTER, p.CENTER);
+	buf.text(title || "Lecteur d'histoire", w * 0.5, barH * 0.5);
 
 	return {
 		closeRect: {x: btnX, y: btnY, w: btnSize, h: btnSize},
