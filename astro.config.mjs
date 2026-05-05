@@ -1,4 +1,5 @@
 import {defineConfig} from "astro/config";
+import node from "@astrojs/node";
 
 const watchParallaxConfig = {
 	name: "watch-parallax-config",
@@ -13,6 +14,7 @@ const watchParallaxConfig = {
 };
 
 export default defineConfig({
+	adapter: node({mode: "standalone"}),
 	vite: {
 		plugins: [watchParallaxConfig],
 		optimizeDeps: {
