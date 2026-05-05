@@ -21,6 +21,7 @@ const neighborhoods = defineCollection({
 		name: z.string(),
 		slug: z.string(),
 		description: z.string().optional(),
+		viewEnabled: z.boolean().optional(),
 		scenePath: z.string(),
 		audioSrc: z.string().optional(),
 		stories: z.array(z.string()),

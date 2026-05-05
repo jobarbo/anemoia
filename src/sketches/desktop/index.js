@@ -9,7 +9,7 @@
  */
 
 import {sceneNavigate} from "../../lib/router/scene-nav.js";
-import {getNeighborhoods, getStory} from "../../lib/data/scene-data.js";
+import {getNeighborhood, getNeighborhoods, getStory} from "../../lib/data/scene-data.js";
 import {prefetchOverworldMapData} from "../../lib/data/overworld-map-data.js";
 import {THEME, applyThemeCanvasFont, hitTest} from "../../lib/utils/retro-theme.js";
 import {createCanvasCursor, drawCanvasCursor} from "../../lib/input/canvas-cursor.js";
@@ -357,6 +357,55 @@ const ARCHIVE_LOG_SLUGS = [
 	"archives-log-18",
 ];
 
+function isNeighborhoodViewEnabled(neighborhood) {
+	return neighborhood?.viewEnabled !== false;
+}
+
+function drawTrudeylMark(buf, x, y, size) {
+	const px = Math.max(1, size / 11);
+	const markTotalW = 9 * px;
+	const markH = 11 * px;
+	const markStartX = x - markTotalW / 2;
+	const markStartY = y - markH / 2;
+	const MARK_PIXELS = [
+		[1, 0],
+		[2, 0],
+		[3, 0],
+		[4, 0],
+		[5, 0],
+		[6, 0],
+		[7, 0],
+		[1, 2],
+		[2, 2],
+		[3, 2],
+		[6, 2],
+		[7, 2],
+		[3, 4],
+		[3, 5],
+		[3, 6],
+		[3, 7],
+		[3, 8],
+		[3, 9],
+		[5, 2],
+		[5, 3],
+		[5, 4],
+		[5, 5],
+		[5, 6],
+		[5, 7],
+		[5, 8],
+		[5, 9],
+		[3, 10],
+		[4, 10],
+		[5, 10],
+	];
+
+	buf.noStroke();
+	buf.fill(225, 240, 255, 242);
+	for (const [col, row] of MARK_PIXELS) {
+		buf.rect(markStartX + col * px, markStartY + row * px, Math.max(1, px - 0.6), Math.max(1, px - 0.6));
+	}
+}
+
 /** Labels + depths + route ids for the file-manager tree (single source: neighborhoods JSON). */
 function buildDesktopTreeRows(opts = {}) {
 	const openGroups = opts.openGroups instanceof Set ? opts.openGroups : new Set();
@@ -390,15 +439,18 @@ function buildDesktopTreeRows(opts = {}) {
 	}
 	rows.push({label: "Les villes verticales", depth: 0, interactive: true, action: "overworld"});
 	for (const n of getNeighborhoods()) {
+		const viewEnabled = isNeighborhoodViewEnabled(n);
 		const storySlugs = Array.isArray(n.stories) ? n.stories : [];
 		const neighborhoodStories = storySlugs.map((slug) => ({slug, story: getStory(slug)})).filter(({story}) => Boolean(story));
-		const hasChildren = neighborhoodStories.length > 0;
+		const hasChildren = viewEnabled && neighborhoodStories.length > 0;
 		const groupId = `neighborhood:${n.slug}`;
 		const isOpen = openGroups.has(groupId);
 		rows.push({
 			label: hasChildren ? `${isOpen ? "[-]" : "[+]"} ${n.name}` : n.name,
 			depth: 1,
-			interactive: true,
+			interactive: viewEnabled,
+			disabled: !viewEnabled,
+			statusLabel: viewEnabled ? "" : "ACCES BLOQUE",
 			action: hasChildren ? `toggle:${groupId}` : `neighborhood:${n.slug}`,
 		});
 		if (hasChildren && isOpen) {
@@ -431,6 +483,8 @@ function navigateFromDesktopAction(action) {
 		if (hash >= 0) payload = payload.slice(0, hash);
 		sceneNavigate("story", {slug: payload});
 	} else if (kind === "neighborhood") {
+		const neighborhood = getNeighborhood(payload);
+		if (!isNeighborhoodViewEnabled(neighborhood)) return;
 		sceneNavigate("neighborhood", {slug: payload});
 	}
 }
@@ -469,7 +523,7 @@ function drawInteractivePanel(buf, w, h, hoveredAction, panelState, p) {
 	const listViewportBottom = panelY + panelH * 0.94;
 	const listViewportH = Math.max(1, listViewportBottom - listViewportTop);
 	const listViewportLeft = panelX + panelW * 0.06;
-	const listViewportRight = panelX + panelW * 0.92;
+	const listViewportRight = panelX + panelW * 0.96;
 	const listViewportRect = {
 		x: listViewportLeft,
 		y: listViewportTop,
@@ -540,6 +594,8 @@ function drawInteractivePanel(buf, w, h, hoveredAction, panelState, p) {
 		connectorSegments.push({x1: connectorX, y1: y, x2: connectorEndX, y2: y});
 
 		const isInteractive = Boolean(row.interactive);
+		const isDisabled = Boolean(row.disabled);
+		const statusLabel = row.statusLabel ?? "";
 		if (isInteractive) {
 			const rowBoxY = y - rowH * 0.42;
 			const rowBoxW = Math.max(panelW * 0.34, panelX + panelW - rowRightPad - rowBoxX);
@@ -552,7 +608,7 @@ function drawInteractivePanel(buf, w, h, hoveredAction, panelState, p) {
 				const ctx = buf.drawingContext;
 				const rg = ctx.createLinearGradient(rowBoxX, 0, rowBoxX + rowBoxW, 0);
 				rg.addColorStop(0, `rgba(${THEME.GREEN_MID.join(",")}, 0.06)`);
-				rg.addColorStop(0.45, `rgba(${THEME.GREEN_MID.join(",")}, 0.20)`);
+				rg.addColorStop(0.145, `rgba(${THEME.GREEN_MID.join(",")}, 0.20)`);
 				rg.addColorStop(1, `rgba(${THEME.GREEN_MID.join(",")}, 0.06)`);
 				ctx.fillStyle = rg;
 				const r = 4;
@@ -560,7 +616,7 @@ function drawInteractivePanel(buf, w, h, hoveredAction, panelState, p) {
 				ctx.roundRect(rowBoxX, rowBoxY, rowBoxW, rowBoxH, r);
 				ctx.fill();
 				buf.noFill();
-				buf.stroke(...THEME.GREEN_MID, 80);
+				buf.stroke(...THEME.GREEN_MID, 255);
 				buf.strokeWeight(1);
 				buf.rect(rowBoxX, rowBoxY, rowBoxW, rowBoxH, r);
 				buf.noStroke();
@@ -568,12 +624,34 @@ function drawInteractivePanel(buf, w, h, hoveredAction, panelState, p) {
 				buf.fill(...THEME.GREEN_PRIMARY, 28);
 				buf.rect(rowBoxX, rowBoxY, rowBoxW, rowBoxH, 4);
 			}
+		} else if (isDisabled) {
+			const rowBoxY = y - rowH * 0.42;
+			const rowBoxW = Math.max(panelW * 0.34, panelX + panelW - rowRightPad - rowBoxX);
+			const rowBoxH = rowH * 0.84;
+			buf.noStroke();
+			buf.fill(48, 18, 18, 120);
+			buf.rect(rowBoxX, rowBoxY, rowBoxW, rowBoxH, 4);
+			buf.stroke(196, 120, 120, 115);
+			buf.strokeWeight(1);
+			buf.rect(rowBoxX, rowBoxY, rowBoxW, rowBoxH, 4);
+			buf.noStroke();
+			drawTrudeylMark(buf, rowBoxX + panelW * 0.045, y, rowH * 0.48);
+			if (statusLabel) {
+				const statusSz = Math.max(9, optionSz * 0.68);
+				applyThemeCanvasFont(buf, statusSz, p);
+				buf.textAlign(p.RIGHT, p.CENTER);
+				buf.fill(228, 146, 146, 230);
+				buf.text(statusLabel, rowBoxX + rowBoxW - panelW * 0.02, y);
+				applyThemeCanvasFont(buf, optionSz, p);
+				buf.textAlign(p.LEFT, p.CENTER);
+			}
 		}
 
 		buf.noStroke();
 		const rowActive = isInteractive && hoveredAction === row.action;
-		buf.fill(...THEME.GREEN_SUBTLE, 255);
-		buf.text(row.label, labelX, y);
+		const rowTextColor = isDisabled ? [214, 154, 154] : rowActive ? THEME.GREEN_MID : THEME.GREEN_SUBTLE;
+		buf.fill(...rowTextColor, 255);
+		buf.text(row.label, labelX + (isDisabled ? panelW * 0.055 : 0), y);
 	}
 
 	buf.stroke(...branchColor);

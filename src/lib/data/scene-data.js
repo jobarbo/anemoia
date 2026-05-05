@@ -17,6 +17,7 @@ let _cache = null;
  *   name: string,
  *   slug: string,
  *   description?: string,
+ *   viewEnabled?: boolean,
  *   scenePath: string,
  *   audioSrc?: string,
  *   stories: string[],
@@ -124,8 +125,7 @@ function normalizeManifestPositions(manifest) {
  * @param {Record<string, any>} config
  */
 function applySceneConfig(manifest, config) {
-	const parallaxConfig =
-		config.parallaxConfig && typeof config.parallaxConfig === "object" ? config.parallaxConfig : config;
+	const parallaxConfig = config.parallaxConfig && typeof config.parallaxConfig === "object" ? config.parallaxConfig : config;
 
 	if (Array.isArray(parallaxConfig.depthCurve) && parallaxConfig.depthCurve.length === 4) {
 		manifest.depthCurve = parallaxConfig.depthCurve;
@@ -143,9 +143,7 @@ function applySceneConfig(manifest, config) {
 		manifest.layerEffects = {};
 		for (const [layerName, entries] of Object.entries(config.layerEffects)) {
 			if (!Array.isArray(entries)) continue;
-			manifest.layerEffects[layerName] = entries
-				.filter((entry) => entry && typeof entry === "object" && typeof entry.sketch === "string")
-				.map((entry) => ({...entry}));
+			manifest.layerEffects[layerName] = entries.filter((entry) => entry && typeof entry === "object" && typeof entry.sketch === "string").map((entry) => ({...entry}));
 		}
 	}
 	if (config.sceneEffects && typeof config.sceneEffects === "object") {
@@ -156,8 +154,6 @@ function applySceneConfig(manifest, config) {
 		}
 	}
 	if (Array.isArray(config.sceneSketches)) {
-		manifest.sceneSketches = config.sceneSketches
-			.filter((entry) => entry && typeof entry === "object" && typeof entry.sketch === "string")
-			.map((entry) => ({...entry}));
+		manifest.sceneSketches = config.sceneSketches.filter((entry) => entry && typeof entry === "object" && typeof entry.sketch === "string").map((entry) => ({...entry}));
 	}
 }
