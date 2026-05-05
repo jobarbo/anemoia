@@ -77,11 +77,13 @@ async function initMl5Source(onMove) {
 		throw new Error("ml5 face mesh API is unavailable.");
 	}
 
-	const modelOptions = {
+	const faceMeshOptions = {
 		maxFaces: 1,
 		refineLandmarks: true,
 		flipHorizontal: false,
+		debug: false,
 	};
+	const {debug: enableDebugCanvas, ...modelOptions} = faceMeshOptions;
 
 	let model = createFaceMesh(video, modelOptions);
 
@@ -96,6 +98,7 @@ async function initMl5Source(onMove) {
 	let rafId = null;
 	let lastPose = null;
 	let stopped = false;
+	let unsubscribePredictions = () => {};
 
 	const handleResults = (results) => {
 		if (stopped) return;
@@ -121,19 +124,35 @@ async function initMl5Source(onMove) {
 				}
 				const results = await model.detect(video);
 				handleResults(results);
-			} catch {
+			} catch (error) {
 				// Ignore intermittent detection errors and continue.
+				if (!isTransientVideoNotReadyError(error)) {
+					// Keep silent for other transient ml5/tfjs runtime errors too.
+				}
 			}
 			rafId = requestAnimationFrame(detectOnce);
 		};
 
 		rafId = requestAnimationFrame(detectOnce);
+	} else if (typeof model.on === "function") {
+		const eventName = "predict";
+		const handlePredict = (results) => handleResults(results);
+		model.on(eventName, handlePredict);
+		unsubscribePredictions = () => {
+			if (typeof model.removeListener === "function") {
+				model.removeListener(eventName, handlePredict);
+			}
+			if (typeof model.off === "function") {
+				model.off(eventName, handlePredict);
+			}
+		};
 	} else {
 		throw new Error("Unsupported ml5 face mesh API shape.");
 	}
 
 	return () => {
 		stopped = true;
+		unsubscribePredictions();
 		if (rafId !== null) {
 			cancelAnimationFrame(rafId);
 		}

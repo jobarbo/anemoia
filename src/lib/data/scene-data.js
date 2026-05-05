@@ -1,5 +1,3 @@
-import {compareRemDates} from "./rem-calendar.js";
-
 /**
  * Scene data access for the SPA router.
  *
@@ -96,15 +94,20 @@ export function getStoriesByNeighborhood(neighborhood) {
  * @returns {Promise<object>}
  */
 export async function fetchNeighborhoodManifest(scenePath, slug) {
-	const [manifestRes, sceneConfigRes] = await Promise.all([fetch(scenePath), fetch(scenePath.replace("manifest.json", "scene-config.json"))]);
+	const [manifestRes, sceneConfigRes, legacyConfigRes] = await Promise.all([
+		fetch(scenePath),
+		fetch(scenePath.replace("manifest.json", "scene-config.json")),
+		fetch(scenePath.replace("manifest.json", "parallax-config.json")),
+	]);
 
 	if (!manifestRes.ok) throw new Error(`[scene-data] Failed to fetch manifest: ${scenePath}`);
 
 	const manifest = await manifestRes.json();
 	normalizeManifestPositions(manifest);
 
-	if (sceneConfigRes.ok) {
-		applySceneConfig(manifest, await sceneConfigRes.json());
+	const config = sceneConfigRes.ok ? await sceneConfigRes.json() : legacyConfigRes.ok ? await legacyConfigRes.json() : null;
+	if (config) {
+		applySceneConfig(manifest, config);
 	}
 
 	return manifest;
@@ -125,11 +128,21 @@ function normalizeManifestPositions(manifest) {
 }
 
 /**
+ * Apply scene-level authored config (new format preferred):
+ * {
+ *   parallaxConfig: { depthCurve, scrollDepthCurve },
+ *   sceneSketches: [ ...scene-level sketch attachments... ],
+ *   layers: { ...patchesByName },
+ *   layerEffects: { ...effectsByName },
+ *   sceneEffects: { ...globalShaderOverrides }
+ * }
+ * Also supports legacy top-level depthCurve/scrollDepthCurve.
+ *
  * @param {Record<string, any>} manifest
  * @param {Record<string, any>} config
  */
 function applySceneConfig(manifest, config) {
-	const parallaxConfig = config.parallaxConfig ?? {};
+	const parallaxConfig = config.parallaxConfig && typeof config.parallaxConfig === "object" ? config.parallaxConfig : config;
 
 	if (Array.isArray(parallaxConfig.depthCurve) && parallaxConfig.depthCurve.length === 4) {
 		manifest.depthCurve = parallaxConfig.depthCurve;
