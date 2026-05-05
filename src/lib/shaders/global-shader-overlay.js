@@ -106,11 +106,11 @@ function domCompositeFilter(domNode) {
 const DEFAULT_EFFECTS = {
 	pixelGrid: {
 		enabled: false,
-		gridCols: 1800.0,
-		gridRows: 1800.0,
+		gridCols: 1122.0,
+		gridRows: 1123.0,
 		cellRatio: 1.0,
 		mode: 1.0,
-		diffuse: 0.0,
+		diffuse: 1.0,
 		gapSize: 0.0,
 		gapBrightness: 1.0,
 	},
@@ -122,16 +122,16 @@ const DEFAULT_EFFECTS = {
 
 	colorQuantize: {
 		enabled: false,
-		levelsPerChannel: 12.0,
+		levelsPerChannel: 32.0,
 		blend: 1,
 	},
 	dither: {
 		enabled: false,
-		ditherMode: 0, // Bayer 8x8
-		levels: 8,
+		ditherMode: 4, // Bayer 8x8
+		levels: 20,
 		blend: 1,
 		strength: 1.0,
-		scale: 0.1,
+		scale: 0.001,
 		colorMode: 0,
 	},
 	zoom: {

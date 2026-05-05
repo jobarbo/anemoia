@@ -35,6 +35,7 @@ const THEME_FONT_STACK = `"${THEME_FONT.family}", "${THEME_FONT.fallbackFamily}"
 export const THEME = {
 	/** Near-black with warm brown undertone */
 	BG: [8, 12, 28],
+	PANEL_BG: [5, 10, 20],
 	/** Bright amber — titles, active elements, primary UI */
 	GREEN_PRIMARY: [255, 155, 82],
 	/** Soft peach-white — CTAs, prompts, borders, pin markers */

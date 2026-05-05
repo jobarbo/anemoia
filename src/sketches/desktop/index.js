@@ -92,10 +92,17 @@ export default function (container) {
 			drawTopBar(artBuffer, w, h, sketch);
 			drawBottomNav(artBuffer, w, h, locationLabel, weatherLabel, sketch);
 
-			const panelState = drawInteractivePanel(artBuffer, w, h, hoveredRowAction, {
-				scrollY: listScrollY,
-				openGroups,
-			}, sketch);
+			const panelState = drawInteractivePanel(
+				artBuffer,
+				w,
+				h,
+				hoveredRowAction,
+				{
+					scrollY: listScrollY,
+					openGroups,
+				},
+				sketch,
+			);
 			interactiveRows = panelState.interactiveRows;
 			listViewportRect = panelState.listViewportRect;
 			listMaxScroll = panelState.maxScroll;
@@ -253,7 +260,7 @@ function drawTopBar(buf, w, h, p) {
 
 	const textSize = Math.max(12, w * 0.014);
 	applyThemeCanvasFont(buf, textSize, p);
-	buf.fill(...THEME.GREEN_SUBTLE, 210);
+	buf.fill(...THEME.GREEN_SUBTLE, 255);
 	buf.textAlign(p.LEFT, p.CENTER);
 	buf.text("Boot-Boy OS 3.0.1", w * 0.025, barH * 0.5);
 	buf.textAlign(p.RIGHT, p.CENTER);
@@ -292,7 +299,7 @@ function drawBottomNav(buf, w, h, locationLabel, weatherLabel, p) {
 
 	const navSz = Math.max(11, w * 0.012);
 	applyThemeCanvasFont(buf, navSz, p);
-	buf.fill(...THEME.GREEN_MID, 230);
+	buf.fill(...THEME.GREEN_MID, 255);
 	buf.textAlign(p.LEFT, p.CENTER);
 	buf.text(locationLabel, w * 0.03, barY + barH * 0.5);
 	const {icon, text} = splitWeatherLabel(weatherLabel);
@@ -356,8 +363,7 @@ function buildDesktopTreeRows(opts = {}) {
 	let storyRowKey = 0;
 	const nextStoryAction = (slug) => `story:${slug}#${storyRowKey++}`;
 
-	const archivesStories = ARCHIVE_LOG_SLUGS
-		.map((slug) => ({slug, story: getStory(slug)}))
+	const archivesStories = ARCHIVE_LOG_SLUGS.map((slug) => ({slug, story: getStory(slug)}))
 		.filter(({story}) => Boolean(story))
 		.sort((a, b) => (a.story.order ?? 0) - (b.story.order ?? 0));
 	const archivesGroupId = "archives";
@@ -385,9 +391,7 @@ function buildDesktopTreeRows(opts = {}) {
 	rows.push({label: "Les villes verticales", depth: 0, interactive: true, action: "overworld"});
 	for (const n of getNeighborhoods()) {
 		const storySlugs = Array.isArray(n.stories) ? n.stories : [];
-		const neighborhoodStories = storySlugs
-			.map((slug) => ({slug, story: getStory(slug)}))
-			.filter(({story}) => Boolean(story));
+		const neighborhoodStories = storySlugs.map((slug) => ({slug, story: getStory(slug)})).filter(({story}) => Boolean(story));
 		const hasChildren = neighborhoodStories.length > 0;
 		const groupId = `neighborhood:${n.slug}`;
 		const isOpen = openGroups.has(groupId);
@@ -455,23 +459,25 @@ function drawInteractivePanel(buf, w, h, hoveredAction, panelState, p) {
 
 	applyThemeCanvasFont(buf, panelTitleSz, p);
 	buf.textAlign(p.LEFT, p.TOP);
-	buf.fill(...THEME.GREEN_SUBTLE, 210);
+	buf.fill(...THEME.GREEN_SUBTLE, 255);
 	buf.noStroke();
-	buf.text("/main_menu", pathTextX, pathBoxY + panelH * 0.018);
+	buf.text("menu_principal", pathTextX, pathBoxY + panelH * 0.018);
 
 	const treeStartY = panelY + panelH * 0.24;
 	const rowH = panelH * 0.1;
 	const listViewportTop = treeStartY - rowH * 0.48;
 	const listViewportBottom = panelY + panelH * 0.94;
 	const listViewportH = Math.max(1, listViewportBottom - listViewportTop);
+	const listViewportLeft = panelX + panelW * 0.06;
+	const listViewportRight = panelX + panelW * 0.92;
 	const listViewportRect = {
-		x: panelX + panelW * 0.1,
+		x: listViewportLeft,
 		y: listViewportTop,
-		w: panelW * 0.82,
+		w: listViewportRight - listViewportLeft,
 		h: listViewportH,
 	};
-	const trunkX = panelX + panelW * 0.12;
-	const nestedTrunkX = panelX + panelW * 0.21;
+	const trunkX = pathTextX;
+	const nestedTrunkX = trunkX + panelW * 0.06;
 	const branchColor = [...THEME.GREEN_MID, 120];
 
 	const rows = buildDesktopTreeRows({openGroups: panelState.openGroups});
@@ -485,31 +491,17 @@ function drawInteractivePanel(buf, w, h, hoveredAction, panelState, p) {
 	drawCtx.rect(listViewportRect.x, listViewportRect.y, listViewportRect.w, listViewportRect.h);
 	drawCtx.clip();
 
-	buf.stroke(...branchColor);
-	buf.strokeWeight(2);
-	buf.noFill();
+	const connectorSegments = [];
 	const mainTrunkRows = rows
 		.map((row, index) => ({row, index}))
-		.filter(({row}) => row.depth <= 1)
+		.filter(({row}) => row.depth === 0)
 		.map(({index}) => index);
 	if (mainTrunkRows.length > 0) {
 		const first = mainTrunkRows[0];
 		const last = mainTrunkRows[mainTrunkRows.length - 1];
 		const y1 = treeStartY + first * rowH - scrollY;
 		const y2 = treeStartY + last * rowH - scrollY;
-		buf.line(trunkX, y1, trunkX, y2);
-	}
-
-	const nestedTrunkRows = rows
-		.map((row, index) => ({row, index}))
-		.filter(({row}) => row.depth > 1)
-		.map(({index}) => index);
-	if (nestedTrunkRows.length > 0) {
-		const first = nestedTrunkRows[0];
-		const last = nestedTrunkRows[nestedTrunkRows.length - 1];
-		const y1 = treeStartY + first * rowH - scrollY;
-		const y2 = treeStartY + last * rowH - scrollY;
-		buf.line(nestedTrunkX, y1, nestedTrunkX, y2);
+		connectorSegments.push({x1: trunkX, y1, x2: trunkX, y2});
 	}
 
 	const optionSz = Math.max(13, w * 0.016);
@@ -517,21 +509,40 @@ function drawInteractivePanel(buf, w, h, hoveredAction, panelState, p) {
 	buf.textAlign(p.LEFT, p.CENTER);
 
 	const interactiveRows = [];
+	const depthOneTrunkX = trunkX + panelW * 0.03;
+	const labelBaseX = panelX + panelW * 0.18;
+	const labelDepthStep = panelW * 0.0385;
+	const rowRightPad = panelW * 0.07;
+	const connectorGap = panelW * 0.012;
 	for (let i = 0; i < rows.length; i++) {
 		const row = rows[i];
 		const y = treeStartY + i * rowH - scrollY;
 		if (y + rowH < listViewportTop - rowH * 0.2 || y - rowH > listViewportBottom + rowH * 0.2) continue;
-		const labelX = panelX + panelW * (0.2 + row.depth * 0.09);
-		const connectorX = row.depth <= 1 ? trunkX : nestedTrunkX;
+		const labelX = labelBaseX + row.depth * labelDepthStep;
+		const connectorX = row.depth <= 0 ? trunkX : row.depth === 1 ? depthOneTrunkX : nestedTrunkX;
+		const rowBoxX = labelX - panelW * 0.03;
+		const connectorEndX = rowBoxX - connectorGap;
 
-		buf.stroke(...branchColor);
-		buf.line(connectorX, y, labelX - panelW * 0.03, y);
+		if (row.depth > 0) {
+			let previousLinkedIndex = -1;
+			for (let j = i - 1; j >= 0; j--) {
+				if (rows[j].depth <= row.depth) {
+					previousLinkedIndex = j;
+					break;
+				}
+			}
+			if (previousLinkedIndex >= 0) {
+				const previousY = treeStartY + previousLinkedIndex * rowH - scrollY;
+				connectorSegments.push({x1: connectorX, y1: previousY, x2: connectorX, y2: y});
+			}
+		}
+
+		connectorSegments.push({x1: connectorX, y1: y, x2: connectorEndX, y2: y});
 
 		const isInteractive = Boolean(row.interactive);
 		if (isInteractive) {
-			const rowBoxX = labelX - panelW * 0.03;
 			const rowBoxY = y - rowH * 0.42;
-			const rowBoxW = panelW * 0.56;
+			const rowBoxW = Math.max(panelW * 0.34, panelX + panelW - rowRightPad - rowBoxX);
 			const rowBoxH = rowH * 0.84;
 			const rowRect = {x: rowBoxX, y: rowBoxY, w: rowBoxW, h: rowBoxH};
 			interactiveRows.push({action: row.action, rect: rowRect});
@@ -561,8 +572,15 @@ function drawInteractivePanel(buf, w, h, hoveredAction, panelState, p) {
 
 		buf.noStroke();
 		const rowActive = isInteractive && hoveredAction === row.action;
-		buf.fill(...THEME.GREEN_SUBTLE, rowActive ? 255 : 210);
+		buf.fill(...THEME.GREEN_SUBTLE, 255);
 		buf.text(row.label, labelX, y);
+	}
+
+	buf.stroke(...branchColor);
+	buf.strokeWeight(2);
+	buf.noFill();
+	for (const segment of connectorSegments) {
+		buf.line(segment.x1, segment.y1, segment.x2, segment.y2);
 	}
 
 	drawCtx.restore();
@@ -662,7 +680,7 @@ function drawAngledPanel(buf, x, y, w, h, opts) {
 
 	// Main fill
 	buf.noStroke();
-	buf.fill(...THEME.BG, opts.bgAlpha);
+	buf.fill(...THEME.PANEL_BG, opts.bgAlpha);
 	buf.beginShape();
 	buf.vertex(x, y);
 	buf.vertex(x + w, y);
