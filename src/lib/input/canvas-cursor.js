@@ -255,8 +255,8 @@ export function drawCanvasCursor(buf, pointer, options = {}) {
 			buf.drawingContext.drawImage(sprite, pointer.x - 15, pointer.y - 4, size, size);
 		}
 		//! DEBUG
-		buf.fill(0, 255, 82, 255);
-		buf.circle(pointer.x, pointer.y, size / 12);
+		/* buf.fill(0, 255, 82, 255);
+		buf.circle(pointer.x, pointer.y, size / 12); */
 		buf.pop();
 		return;
 	}

@@ -1,5 +1,13 @@
 @use "variables" as *;
 
+@font-face {
+	font-family: "Weather Icons";
+	src: url("/assets/fonts/weather-icons.woff2") format("woff2");
+	font-weight: normal;
+	font-style: normal;
+	font-display: block;
+}
+
 body {
 	font-family: $font-primary;
 	line-height: 1.6;
