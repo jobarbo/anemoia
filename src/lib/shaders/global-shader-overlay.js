@@ -143,13 +143,13 @@ const DEFAULT_EFFECTS = {
 	},
 	scanline: {
 		enabled: true,
-		amount: 0.1,
+		amount: 0.15,
 		lineSpacing: 5.0,
 		lineThickness: 0.9,
 		spacingOpacity: 0.9,
 		flicker: 1.2,
-		flickerSpacing: 30.0,
-		timeMultiplier: 10.0,
+		flickerSpacing: 10.0,
+		timeMultiplier: 3.0,
 	},
 
 	blur: {
@@ -167,7 +167,7 @@ const DEFAULT_EFFECTS = {
 		enabled: true,
 		brightness: 0.99,
 		cellSize: 2,
-		gapOpacity: 0.6,
+		gapOpacity: 0.46,
 		rgbOpacity: 0.0,
 		rgbGain: [1.0, 1.0, 1.0],
 		dotRadius: 0.41,

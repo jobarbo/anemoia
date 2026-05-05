@@ -1,5 +1,5 @@
 ---
-title: LISMOI
+title: README
 neighborhood: desktop
 returnTo: desktop
 order: 0
@@ -17,12 +17,12 @@ Navigation is simple. It was designed to be used alone, in urgency or in darknes
 
 ## Navigation
 
-| Screen           | What you see                       | How to proceed                                      |
-| ---------------- | ---------------------------------- | --------------------------------------------------- |
-| Desktop          | Main menu of the registrarium      | Click on a file                                     |
-| Neighborhood map | Aerial view of the vertical city   | Click on a neighborhood — or use arrow keys + Enter |
-| Neighborhood     | Interactive scene                  | Click on active zones                               |
-| Story            | Scrolling text                     | Scroll wheel or drag — back button in the top-left  |
+| Screen           | What you see                     | How to proceed                                      |
+| ---------------- | -------------------------------- | --------------------------------------------------- |
+| Desktop          | Main menu of the registrarium    | Click on a file                                     |
+| Neighborhood map | Aerial view of the vertical city | Click on a neighborhood — or use arrow keys + Enter |
+| Neighborhood     | Interactive scene                | Click on active zones                               |
+| Story            | Scrolling text                   | Scroll wheel or drag — back button in the top-left  |
 
 ---
 
