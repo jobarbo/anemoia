@@ -1,7 +1,6 @@
 ---
 title: La Mémoire de la Rue
 neighborhood: saint-roch
-returnTo: desktop
 audioSrc: /assets/scenes/saint-roch/ambient.mp3
 order: 1
 ---

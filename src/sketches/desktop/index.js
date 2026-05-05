@@ -419,7 +419,7 @@ function buildDesktopTreeRows(opts = {}) {
 	const archivesExpanded = openGroups.has(archivesGroupId);
 
 	const rows = [
-		{label: "LISMOI", depth: 0, interactive: true, action: nextStoryAction("la-memoire")},
+		{label: "LISMOI", depth: 0, interactive: true, action: nextStoryAction("lismoi")},
 		{
 			label: `${archivesExpanded ? "[-]" : "[+]"} Les archives`,
 			depth: 0,
@@ -696,7 +696,7 @@ function drawSystemCard(buf, w, h, p, blink, gazeXNorm, gazeYNorm) {
 	const cardPadY = Math.max(14, h * 0.024);
 
 	const maxCardW = w * 0.47;
-	let statSz = Math.max(20, w * 0.012);
+	let statSz = Math.max(13, w * 0.016);
 	applyThemeCanvasFont(buf, statSz, p);
 	let statsMaxW = Math.max(...statsLines.map((line) => (line ? buf.textWidth(line) : 0)));
 	while (statsMaxW > maxCardW - cardPadX * 2 && statSz > 9) {
