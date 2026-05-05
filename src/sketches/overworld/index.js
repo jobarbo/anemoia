@@ -20,7 +20,8 @@ import {getOverworldMapData} from "../../lib/data/overworld-map-data.js";
 
 export default function (container) {
 	const raw = container.dataset.sketchData;
-	const {neighborhoods = []} = raw ? JSON.parse(raw) : {};
+	const {neighborhoods: rawNeighborhoods = []} = raw ? JSON.parse(raw) : {};
+	const neighborhoods = [...rawNeighborhoods].sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
 	const getNeighborhoodKey = (neighborhood) => String(neighborhood?.slug ?? neighborhood?.id ?? neighborhood?.name ?? "").trim();
 	const isNeighborhoodEnabled = (neighborhood) => neighborhood?.viewEnabled !== false;
 	const isNeighborhoodIndexEnabled = (index) => isNeighborhoodEnabled(neighborhoods[index]);
