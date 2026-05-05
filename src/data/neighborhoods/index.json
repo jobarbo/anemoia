@@ -156,23 +156,10 @@
 		"position": {"x": 10, "y": 10}
 	},
 	{
-		"id": "cap-rouge",
-		"name": "Cap-Rouge",
-		"slug": "cap-rouge",
-		"order": 13,
-		"description": "The suburban neighborhood with a rich history.",
-		"viewEnabled": false,
-		"scenePath": "/assets/scenes/cap-rouge/manifest.json",
-		"audioSrc": "/assets/scenes/cap-rouge/ambient.mp3",
-		"stories": [],
-		"apiSearchTerms": ["Cap-Rouge, Quebec City, Quebec, Canada"],
-		"position": {"x": 10, "y": 10}
-	},
-	{
 		"id": "Vieux-Québec–Cap-Blanc–Colline-Parlementaire ",
 		"name": "Old Quebec",
 		"slug": "vieux-quebec",
-		"order": 14,
+		"order": 13,
 		"description": "The historic neighborhood with a rich cultural heritage.",
 		"viewEnabled": false,
 		"scenePath": "/assets/scenes/vieux-quebec/manifest.json",
