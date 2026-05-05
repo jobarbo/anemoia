@@ -5,4 +5,4 @@ returnTo: desktop
 order: 9
 ---
 
-Si les ruelles se font toujours l’écho des rires de la jeunesse, nous ne pouvons pas en dire autant des ruines autoroutières, où la mort pue les temps anciens.
+While the alleyways still echo with the laughter of youth, the same cannot be said of the highway ruins, where death reeks of ancient times.

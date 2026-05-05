@@ -5,4 +5,4 @@ returnTo: desktop
 order: 11
 ---
 
-TÉMÉRACLE_02x inaccessible depuis bientôt 36 heures.
+TÉMÉRACLE_02x inaccessible for nearly 36 hours now.

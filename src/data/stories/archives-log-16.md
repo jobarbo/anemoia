@@ -5,4 +5,4 @@ returnTo: desktop
 order: 16
 ---
 
-Pluie acide. À en faire fondre les carcasses de vélos rouillés.
+Acid rain. Enough to melt the carcasses of rusted bicycles.

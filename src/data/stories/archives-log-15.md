@@ -5,4 +5,4 @@ returnTo: desktop
 order: 15
 ---
 
-Une rumeur loufoque, mais persistante, parvient à mes oreilles : Trudeyl Corp. aurait lancé un programme biomédical destiné à modifier le code génétique de leurs clients. Dans quel but?
+A strange but persistent rumor reaches my ears: Trudeyl Corp. has allegedly launched a biomedical program to modify the genetic code of their clients. To what end?

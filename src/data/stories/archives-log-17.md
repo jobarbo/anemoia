@@ -5,4 +5,4 @@ returnTo: desktop
 order: 17
 ---
 
-Nulle ne sait ce qui se trame au nord de ce que d’aucuns appelaient jadis « Charlesbourg ». En revanche, tard dans la nuit, lorsque vous regardez l’horizon dans cette direction, il est possible d’apercevoir des traits lumineux sillonner les montagnes.
+No one knows what is happening north of what some once called "Charlesbourg." But late at night, when you look toward the horizon in that direction, you can make out streaks of light cutting across the mountains.

@@ -5,4 +5,4 @@ returnTo: desktop
 order: 5
 ---
 
-L’ascenseur nord est en panne depuis trois jours. Impossible d’atteindre les quartiers 06A et B18.
+The north elevator has been out of service for three days. Impossible to reach sectors 06A and B18.

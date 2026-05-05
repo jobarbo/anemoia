@@ -5,4 +5,4 @@ returnTo: desktop
 order: 13
 ---
 
-Nouvelle découverte culinaire : sauce en poudre d’un certain « Saint-Hubert ». Probablement un moine bénédictin dont l’abbaye se spécialisait en épices.
+New culinary discovery: powdered sauce from a certain "Saint-Hubert." Probably a Benedictine monk whose abbey specialized in spices.

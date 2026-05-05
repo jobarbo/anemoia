@@ -5,4 +5,4 @@ returnTo: desktop
 order: 7
 ---
 
-Les vents de l’ouest m’apportent une étrange nouvelle. Une lumière mauve dans le ciel. L’Ancien-Sainte-Foy menacé.
+The west winds bring strange news. A purple light in the sky. Old-Sainte-Foy threatened.

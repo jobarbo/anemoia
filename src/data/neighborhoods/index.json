@@ -3,7 +3,7 @@
 		"id": "saint-roch",
 		"name": "Saint-Roch",
 		"slug": "saint-roch",
-		"description": "Le quartier dynamique au cœur de la ville.",
+		"description": "The vibrant neighborhood at the heart of the city.",
 		"viewEnabled": true,
 		"scenePath": "/assets/scenes/saint-roch/manifest.json",
 		"audioSrc": "/assets/scenes/saint-roch/ambient.mp3",
@@ -11,10 +11,10 @@
 		"position": {"x": 45, "y": 60}
 	},
 	{
-		"id": "vieux-limoilou",
-		"name": "Vieux-Limoilou",
-		"slug": "vieux-limoilou",
-		"description": "Le charme des balcons et escaliers en colimaçon.",
+		"id": "old-limoilou",
+		"name": "Old-Limoilou",
+		"slug": "old-limoilou",
+		"description": "The charm of balconies and spiral staircases.",
 		"viewEnabled": false,
 		"scenePath": "/assets/scenes/vieux-limoilou/manifest.json",
 		"audioSrc": "/assets/scenes/vieux-limoilou/ambient.mp3",
@@ -23,10 +23,10 @@
 	},
 
 	{
-		"id": "Cité-Universitaire",
-		"name": "Cité-Universitaire",
-		"slug": "Cité-Universitaire",
-		"description": "Le quartier étudiant de la ville.",
+		"id": "university-district",
+		"name": "University District",
+		"slug": "university-district",
+		"description": "The student neighborhood of the city.",
 		"viewEnabled": false,
 		"scenePath": "/assets/scenes/sainte-foy/manifest.json",
 		"audioSrc": "/assets/scenes/sainte-foy/ambient.mp3",

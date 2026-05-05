@@ -5,4 +5,4 @@ returnTo: desktop
 order: 10
 ---
 
-L’Escouade vient tout juste d’arrêter cette mère de famille, tout près de chez moi. À vrai dire, ça s’est passé devant ma porte. J’aurais pu intervenir.
+The Squad just arrested that mother, right near my home. In fact, it happened at my doorstep. I could have intervened.

@@ -5,4 +5,4 @@ returnTo: desktop
 order: 2
 ---
 
-Si le manuscrit retrouvé est un topos pour le moins éprouvé en littérature, qu’en est-il de l’ordinateur retrouvé?
+If the found manuscript is a well-worn trope in literature, what then of the found computer?

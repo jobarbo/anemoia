@@ -5,4 +5,4 @@ returnTo: desktop
 order: 3
 ---
 
-Appel à témoignages diffusé sur le réseau TÉMÉRACLE_02x.
+Call for testimonies broadcast on the TÉMÉRACLE_02x network.

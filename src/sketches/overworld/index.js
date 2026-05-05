@@ -124,7 +124,7 @@ export default function (container) {
 
 			// ── Title ─────────────────────────────────────────────────────────────
 			const titleSz = w * 0.028;
-			drawTitleAberration(artBuffer, "Les villes verticales", w / 2, topBarH + titleH * 0.45, titleSz, 255, sketch);
+			drawTitleAberration(artBuffer, "The Vertical Cities", w / 2, topBarH + titleH * 0.45, titleSz, 255, sketch);
 
 			// ── Neighborhood pins (only when no polygon overlay — avoids duplicate dot + label) ──
 			const hoveredPin = findPinAtMouse();
@@ -143,7 +143,7 @@ export default function (container) {
 			artBuffer.textAlign(sketch.RIGHT, sketch.CENTER);
 			applyThemeCanvasFont(artBuffer, hintSz, sketch);
 			artBuffer.fill(...THEME.GREEN_SUBTLE, 210);
-			artBuffer.text("↑↓ CHOISIR   ENTRÉE CONFIRMER   ESC FERMER", w - w * 0.04, h - bottomBarH * 0.5);
+			artBuffer.text("↑↓ CHOOSE   ENTER CONFIRM   ESC CLOSE", w - w * 0.04, h - bottomBarH * 0.5);
 
 			// Blit artBuffer onto output canvas
 			drawCanvasCursor(artBuffer, pointer, {hovered: closeHovered || hoveredPin >= 0 || hoveredOverlaySlug != null});
@@ -304,7 +304,7 @@ function drawPin(buf, x, y, name, hovered, p, options = {}) {
 	if (disabled) {
 		applyThemeCanvasFont(buf, Math.max(9, labelSz * 0.72), p);
 		buf.fill(228, 146, 146, 230);
-		buf.text("ACCES BLOQUE", x, y + dotR * 3.7);
+		buf.text("ACCESS BLOCKED", x, y + dotR * 3.7);
 	} else {
 		buf.fill(255, 255, 255, 255);
 		buf.text(name, x, y + dotR * 3.5);
@@ -345,7 +345,7 @@ function drawMapPlaceholder(buf, x, y, w, h, mapOutline, mapOutlineState, neighb
 	buf.strokeWeight(2);
 	buf.rect(x, y, w, h, 22);
 
-	const status = mapOutlineState === "loading" ? "Contour QC: chargement..." : "Contour QC: actif";
+	const status = mapOutlineState === "loading" ? "QC Outline: loading..." : "QC Outline: active";
 	applyThemeCanvasFont(buf, Math.max(10, buf.width * 0.01), p);
 	buf.noStroke();
 	buf.fill(...THEME.GREEN_SUBTLE, 220);
@@ -438,7 +438,7 @@ function drawOverlayAnchor(buf, mapRect, overlay, isHovered, isSelected, geoBoun
 		applyThemeCanvasFont(buf, Math.max(9, labelSz * 0.72), p);
 		buf.textAlign(p.CENTER, p.BOTTOM);
 		buf.fill(228, 146, 146, 230);
-		buf.text("ACCES BLOQUE", center.x, center.y - dotR * 2.1);
+		buf.text("ACCESS BLOCKED", center.x, center.y - dotR * 2.1);
 	} else {
 		buf.fill(255, 255, 255, 255);
 		buf.text(overlay.name, center.x, center.y - dotR * 2.1);
@@ -578,7 +578,7 @@ function drawWindowTopBar(buf, w, h, closeHovered, p) {
 	applyThemeCanvasFont(buf, Math.max(12, w * 0.014), p);
 	buf.fill(...THEME.GREEN_SUBTLE, 240);
 	buf.textAlign(p.LEFT, p.CENTER);
-	buf.text("Retour au menu principal", btnX + btnSize + w * 0.02, barH * 0.5);
+	buf.text("Back to main menu", btnX + btnSize + w * 0.02, barH * 0.5);
 
 	return {
 		height: barH,
@@ -608,7 +608,7 @@ function drawBottomStatusBar(buf, w, h, p) {
 	applyThemeCanvasFont(buf, navSz, p);
 	buf.fill(...THEME.GREEN_MID, 245);
 	buf.textAlign(p.LEFT, p.CENTER);
-	buf.text("Cartographie active", w * 0.03, barY + barH * 0.5);
+	buf.text("Active Mapping", w * 0.03, barY + barH * 0.5);
 	buf.textAlign(p.CENTER, p.CENTER);
 	buf.text("2D View", w * 0.5, barY + barH * 0.5);
 	return barH;

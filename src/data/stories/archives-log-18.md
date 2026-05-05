@@ -5,4 +5,4 @@ returnTo: desktop
 order: 18
 ---
 
-Nouvelle entrée à ma collection (nouvellement baptisée « lus ») : une concoction rouge, faites, à en juger par la bouteille, de 57 ingrédients.
+New addition to my collection (newly christened "read"): a red concoction made, judging by the bottle, from 57 ingredients.

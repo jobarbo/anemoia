@@ -27,8 +27,8 @@ export default function (container) {
 		let listViewportRect = null;
 		let listTouchActive = false;
 		let listLastTouchY = null;
-		let locationLabel = "Localisation...";
-		let weatherLabel = "Météo : --";
+		let locationLabel = "Location...";
+		let weatherLabel = "Weather: --";
 		let blinkStartMs = -1;
 		let blinkDurationMs = 150;
 		let nextBlinkAtMs = 0;
@@ -317,19 +317,19 @@ function drawBottomNav(buf, w, h, locationLabel, weatherLabel, p) {
 	buf.textAlign(p.LEFT, p.CENTER);
 	buf.text(text, w * 0.485, barY + barH * 0.5);
 	buf.textAlign(p.RIGHT, p.CENTER);
-	buf.text("Gestionnaire de fichiers", w * 0.97, barY + barH * 0.5);
+	buf.text("File Manager", w * 0.97, barY + barH * 0.5);
 }
 
 function splitWeatherLabel(label) {
 	const raw = String(label ?? "").trim();
-	if (!raw) return {icon: WEATHER_ICON_NA, text: "Météo : --"};
+	if (!raw) return {icon: WEATHER_ICON_NA, text: "Weather: --"};
 	const firstSpace = raw.indexOf(" ");
 	if (firstSpace <= 0) return {icon: WEATHER_ICON_NA, text: raw};
 	const maybeIcon = raw.slice(0, firstSpace);
 	const rest = raw.slice(firstSpace + 1).trim();
 	return {
 		icon: maybeIcon,
-		text: rest || "Météo : --",
+		text: rest || "Weather: --",
 	};
 }
 
@@ -419,9 +419,9 @@ function buildDesktopTreeRows(opts = {}) {
 	const archivesExpanded = openGroups.has(archivesGroupId);
 
 	const rows = [
-		{label: "LISMOI", depth: 0, interactive: true, action: nextStoryAction("la-memoire")},
+		{label: "README", depth: 0, interactive: true, action: nextStoryAction("la-memoire")},
 		{
-			label: `${archivesExpanded ? "[-]" : "[+]"} Les archives`,
+			label: `${archivesExpanded ? "[-]" : "[+]"} The Archives`,
 			depth: 0,
 			interactive: true,
 			action: `toggle:${archivesGroupId}`,
@@ -437,7 +437,7 @@ function buildDesktopTreeRows(opts = {}) {
 			});
 		}
 	}
-	rows.push({label: "Les villes verticales", depth: 0, interactive: true, action: "overworld"});
+	rows.push({label: "The Vertical Cities", depth: 0, interactive: true, action: "overworld"});
 	for (const n of getNeighborhoods()) {
 		const viewEnabled = isNeighborhoodViewEnabled(n);
 		const storySlugs = Array.isArray(n.stories) ? n.stories : [];
@@ -446,7 +446,7 @@ function buildDesktopTreeRows(opts = {}) {
 		const groupId = `neighborhood:${n.slug}`;
 		const isOpen = openGroups.has(groupId);
 		rows.push({
-			label: viewEnabled ? (hasChildren ? `${isOpen ? "[-]" : "[+]"} ${n.name}` : n.name) : "ACCES BLOQUE",
+			label: viewEnabled ? (hasChildren ? `${isOpen ? "[-]" : "[+]"} ${n.name}` : n.name) : "ACCESS BLOCKED",
 			depth: 1,
 			interactive: viewEnabled,
 			disabled: !viewEnabled,
@@ -515,7 +515,7 @@ function drawInteractivePanel(buf, w, h, hoveredAction, panelState, p) {
 	buf.textAlign(p.LEFT, p.TOP);
 	buf.fill(...THEME.GREEN_SUBTLE, 255);
 	buf.noStroke();
-	buf.text("menu_principal", pathTextX, pathBoxY + panelH * 0.018);
+	buf.text("main_menu", pathTextX, pathBoxY + panelH * 0.018);
 
 	const treeStartY = panelY + panelH * 0.24;
 	const rowH = panelH * 0.1;
@@ -687,7 +687,7 @@ function drawInteractivePanel(buf, w, h, hoveredAction, panelState, p) {
 }
 
 function drawSystemCard(buf, w, h, p, blink, gazeXNorm, gazeYNorm) {
-	const statsText = "HORLOGE CPU\n64 MHZ\n\nRAM TOTALE\n10 MO\n\nRAM LIBRE\n5 MO\n\nMODE E/S\nMIDI";
+	const statsText = "CPU CLOCK\n64 MHZ\n\nTOTAL RAM\n10 MB\n\nFREE RAM\n5 MB\n\nI/O MODE\nMIDI";
 	const statsLines = statsText.split("\n");
 	const cardY = h * 0.23;
 	const cardRight = w * 0.95;
@@ -806,7 +806,7 @@ function drawAngledPanel(buf, x, y, w, h, opts) {
 
 async function startLiveContext(onUpdate) {
 	if (!navigator.geolocation) {
-		onUpdate("Localisation indisponible", "Météo indisponible");
+		onUpdate("Location unavailable", "Weather unavailable");
 		return;
 	}
 
@@ -819,25 +819,25 @@ async function startLiveContext(onUpdate) {
 	}).catch(() => null);
 
 	if (!position) {
-		onUpdate("Localisation indisponible", "Météo indisponible");
+		onUpdate("Location unavailable", "Weather unavailable");
 		return;
 	}
 
 	const lat = position.coords.latitude;
 	const lon = position.coords.longitude;
-	const roundedLocation = `Position ${lat.toFixed(2)}, ${lon.toFixed(2)}`;
+	const roundedLocation = `Location ${lat.toFixed(2)}, ${lon.toFixed(2)}`;
 
 	const place = await fetchPlaceLabel(lat, lon);
-	onUpdate(place ?? roundedLocation, "Chargement de la météo...");
+	onUpdate(place ?? roundedLocation, "Loading weather...");
 
 	const weather = await fetchWeatherLabel(lat, lon);
-	onUpdate(place ?? roundedLocation, weather ?? "Météo indisponible");
+	onUpdate(place ?? roundedLocation, weather ?? "Weather unavailable");
 }
 
 async function fetchPlaceLabel(lat, lon) {
 	try {
 		const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
-		const res = await fetch(url, {headers: {"Accept-Language": "fr-CA,fr"}});
+		const res = await fetch(url, {headers: {"Accept-Language": "en-CA,en"}});
 		if (!res.ok) return null;
 		const data = await res.json();
 		const addr = data?.address ?? {};
@@ -877,34 +877,34 @@ function weatherCodeToUi(code) {
 	// wi-rain \uF019 · wi-snow \uF01B · wi-snowflake-cold \uF076 · wi-showers \uF01A
 	// wi-snow-wind \uF064 · wi-thunderstorm \uF01E · wi-hail \uF015 · wi-na \uF07B
 	const map = {
-		0: {icon: "\uF00D", label: "Dégagé"},
-		1: {icon: "\uF00C", label: "Plutôt dégagé"},
-		2: {icon: "\uF002", label: "Partiellement nuageux"},
-		3: {icon: "\uF013", label: "Couvert"},
-		45: {icon: "\uF014", label: "Brouillard"},
-		48: {icon: "\uF014", label: "Brouillard givrant"},
-		51: {icon: "\uF01C", label: "Bruine"},
-		53: {icon: "\uF01C", label: "Bruine"},
-		55: {icon: "\uF019", label: "Forte bruine"},
-		56: {icon: "\uF017", label: "Bruine verglaçante"},
-		57: {icon: "\uF017", label: "Bruine verglaçante"},
-		61: {icon: "\uF019", label: "Pluie"},
-		63: {icon: "\uF019", label: "Pluie"},
-		65: {icon: "\uF019", label: "Forte pluie"},
-		66: {icon: "\uF017", label: "Pluie verglaçante"},
-		67: {icon: "\uF017", label: "Pluie verglaçante"},
-		71: {icon: "\uF01B", label: "Neige"},
-		73: {icon: "\uF01B", label: "Neige"},
-		75: {icon: "\uF01B", label: "Forte neige"},
-		77: {icon: "\uF076", label: "Neige en grains"},
-		80: {icon: "\uF01A", label: "Averses de pluie"},
-		81: {icon: "\uF01A", label: "Averses de pluie"},
-		82: {icon: "\uF019", label: "Fortes averses"},
-		85: {icon: "\uF064", label: "Averses de neige"},
-		86: {icon: "\uF064", label: "Fortes averses de neige"},
-		95: {icon: "\uF01E", label: "Orage"},
-		96: {icon: "\uF015", label: "Orage de grêle"},
-		99: {icon: "\uF015", label: "Orage de grêle"},
+		0: {icon: "\uF00D", label: "Clear"},
+		1: {icon: "\uF00C", label: "Mostly clear"},
+		2: {icon: "\uF002", label: "Partly cloudy"},
+		3: {icon: "\uF013", label: "Overcast"},
+		45: {icon: "\uF014", label: "Fog"},
+		48: {icon: "\uF014", label: "Rime fog"},
+		51: {icon: "\uF01C", label: "Drizzle"},
+		53: {icon: "\uF01C", label: "Drizzle"},
+		55: {icon: "\uF019", label: "Heavy drizzle"},
+		56: {icon: "\uF017", label: "Freezing drizzle"},
+		57: {icon: "\uF017", label: "Freezing drizzle"},
+		61: {icon: "\uF019", label: "Rain"},
+		63: {icon: "\uF019", label: "Rain"},
+		65: {icon: "\uF019", label: "Heavy rain"},
+		66: {icon: "\uF017", label: "Freezing rain"},
+		67: {icon: "\uF017", label: "Freezing rain"},
+		71: {icon: "\uF01B", label: "Snow"},
+		73: {icon: "\uF01B", label: "Snow"},
+		75: {icon: "\uF01B", label: "Heavy snow"},
+		77: {icon: "\uF076", label: "Snow grains"},
+		80: {icon: "\uF01A", label: "Rain showers"},
+		81: {icon: "\uF01A", label: "Rain showers"},
+		82: {icon: "\uF019", label: "Heavy showers"},
+		85: {icon: "\uF064", label: "Snow showers"},
+		86: {icon: "\uF064", label: "Heavy snow showers"},
+		95: {icon: "\uF01E", label: "Thunderstorm"},
+		96: {icon: "\uF015", label: "Hailstorm"},
+		99: {icon: "\uF015", label: "Hailstorm"},
 	};
-	return map[code] ?? {icon: WEATHER_ICON_NA, label: "Météo"};
+	return map[code] ?? {icon: WEATHER_ICON_NA, label: "Weather"};
 }

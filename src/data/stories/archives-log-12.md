@@ -5,4 +5,4 @@ returnTo: desktop
 order: 12
 ---
 
-Accès à TÉMÉRACLE_02x rétabli.
+Access to TÉMÉRACLE_02x restored.

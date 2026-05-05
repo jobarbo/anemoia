@@ -143,7 +143,7 @@ const DEFAULT_EFFECTS = {
 	},
 	scanline: {
 		enabled: true,
-		amount: 0.2,
+		amount: 0.1,
 		lineSpacing: 5.0,
 		lineThickness: 0.9,
 		spacingOpacity: 0.9,
@@ -151,16 +151,7 @@ const DEFAULT_EFFECTS = {
 		flickerSpacing: 30.0,
 		timeMultiplier: 10.0,
 	},
-	crtWarp: {
-		enabled: true,
-		warpAmount: 0.25,
-		aspectCorrect: 0.0,
-		borderColor: 2.0,
-		vignette: 0.0,
-		cornerSmooth: 0.015,
-		cornerRadius: 0.08,
-		boundsInset: 0.08,
-	},
+
 	blur: {
 		enabled: false,
 		blurAmount: 2.0,
@@ -182,6 +173,16 @@ const DEFAULT_EFFECTS = {
 		dotRadius: 0.41,
 		dotFalloff: 0.4,
 		filterMode: 1.0,
+	},
+	crtWarp: {
+		enabled: true,
+		warpAmount: 0.25,
+		aspectCorrect: 0.0,
+		borderColor: 2.0,
+		vignette: 0.0,
+		cornerSmooth: 0.015,
+		cornerRadius: 0.08,
+		boundsInset: 0.08,
 	},
 };
 
