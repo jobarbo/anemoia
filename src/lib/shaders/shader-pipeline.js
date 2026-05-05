@@ -1,11 +1,3 @@
-function isSafariMobile() {
-	const ua = window.navigator.userAgent;
-	const iOS = !!ua.match(/iPad/i) || !!ua.match(/iPhone/i);
-	const webkit = !!ua.match(/WebKit/i);
-	const iOSSafari = iOS && webkit && !ua.match(/CriOS/i);
-	return iOSSafari;
-}
-
 /**
  * Chain multiple fullscreen shader passes (ping-pong when 2+ passes).
  */
@@ -25,10 +17,7 @@ export class ShaderPipeline {
 		this.height = height;
 
 		if (enabledEffects.length > 1) {
-			const bufferDivisor = isSafariMobile() ? 1 : 1;
-			const targetW = Math.max(1, Math.round(width / bufferDivisor));
-			const targetH = Math.max(1, Math.round(height / bufferDivisor));
-			this._ensurePingPongBuffers(2, targetW, targetH);
+			this._ensurePingPongBuffers(2, width, height);
 		}
 
 		for (const buf of this.buffers) {

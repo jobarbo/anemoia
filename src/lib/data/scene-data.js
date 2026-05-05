@@ -77,10 +77,9 @@ export function getStory(slug) {
  * @returns {Promise<object>}
  */
 export async function fetchNeighborhoodManifest(scenePath, slug) {
-	const [manifestRes, sceneConfigRes, legacyConfigRes] = await Promise.all([
+	const [manifestRes, sceneConfigRes] = await Promise.all([
 		fetch(scenePath),
 		fetch(scenePath.replace("manifest.json", "scene-config.json")),
-		fetch(scenePath.replace("manifest.json", "parallax-config.json")),
 	]);
 
 	if (!manifestRes.ok) throw new Error(`[scene-data] Failed to fetch manifest: ${scenePath}`);
@@ -88,9 +87,8 @@ export async function fetchNeighborhoodManifest(scenePath, slug) {
 	const manifest = await manifestRes.json();
 	normalizeManifestPositions(manifest);
 
-	const config = sceneConfigRes.ok ? await sceneConfigRes.json() : legacyConfigRes.ok ? await legacyConfigRes.json() : null;
-	if (config) {
-		applySceneConfig(manifest, config);
+	if (sceneConfigRes.ok) {
+		applySceneConfig(manifest, await sceneConfigRes.json());
 	}
 
 	return manifest;
@@ -111,21 +109,11 @@ function normalizeManifestPositions(manifest) {
 }
 
 /**
- * Apply scene-level authored config (new format preferred):
- * {
- *   parallaxConfig: { depthCurve, scrollDepthCurve },
- *   sceneSketches: [ ...scene-level sketch attachments... ],
- *   layers: { ...patchesByName },
- *   layerEffects: { ...effectsByName },
- *   sceneEffects: { ...globalShaderOverrides }
- * }
- * Also supports legacy top-level depthCurve/scrollDepthCurve.
- *
  * @param {Record<string, any>} manifest
  * @param {Record<string, any>} config
  */
 function applySceneConfig(manifest, config) {
-	const parallaxConfig = config.parallaxConfig && typeof config.parallaxConfig === "object" ? config.parallaxConfig : config;
+	const parallaxConfig = config.parallaxConfig ?? {};
 
 	if (Array.isArray(parallaxConfig.depthCurve) && parallaxConfig.depthCurve.length === 4) {
 		manifest.depthCurve = parallaxConfig.depthCurve;
