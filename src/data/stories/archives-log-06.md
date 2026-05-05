@@ -1,9 +1,9 @@
 ---
-title: LOG - 19 Sucriene, an 4 REM
+title: LOG - Suc. 19, Year 4 After REM
 neighborhood: archives
 returnTo: desktop
 order: 6
-date: Piétonnedi, 19 Sucriene, an 4 REM
+date: Piétonnedi, Sucriene 19, Year 4 After REM
 ---
 
 The west elevator exploded earlier this morning. According to the TÉMÉRACLE_02x network, it was the work of the Ecomobilists of sector 02C.

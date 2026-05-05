@@ -1,8 +1,9 @@
 /**
  * Calendrier de l'ère REM (Révolution Écolomobiliste)
  *
- * Format de date : "Busedi, 12 Reveillase, an 4 REM"
- *                   [jour], [jour_num] [mois], an [année] REM
+ * Formats supportes :
+ * - "Busedi, 12 Reveillase, an 4 REM"
+ * - "Reveillase 12, Year 4 After REM"
  */
 
 /** Mois dans l'ordre chronologique (index 0 = premier mois de l'an). */
@@ -20,13 +21,16 @@ export const DAYS = ["Tramedi", "Vélocredi", "Métreudi", "Piétonnedi", "Bused
 export function parseRemDate(dateStr) {
 	if (!dateStr) return null;
 
-	// "Busedi, 12 Reveillase, an 4 REM"
-	const match = dateStr.match(/^(\S+),\s*(\d+)\s+(\S+),\s*an\s+(\d+)\s+REM$/i);
-	if (!match) return null;
+	const legacyMatch = dateStr.match(/^(\S+),\s*(\d+)\s+(\S+),\s*an\s+(\d+)\s+REM$/i);
+	const englishMatch = dateStr.match(/^(?:(\S+),\s*)?(\S+)\s+(\d+),\s*Year\s+(\d+)\s+After\s+REM$/i);
+	if (!legacyMatch && !englishMatch) return null;
 
-	const [, dayName, dayNumStr, monthName, yearStr] = match;
+	const dayName = legacyMatch?.[1] ?? englishMatch?.[1] ?? null;
+	const dayNumStr = legacyMatch?.[2] ?? englishMatch?.[3];
+	const monthName = legacyMatch?.[3] ?? englishMatch?.[2];
+	const yearStr = legacyMatch?.[4] ?? englishMatch?.[4];
 
-	const dayIndex = DAYS.findIndex((d) => d.toLowerCase() === dayName.toLowerCase());
+	const dayIndex = dayName ? DAYS.findIndex((d) => d.toLowerCase() === dayName.toLowerCase()) : 0;
 	const monthIndex = MONTHS.findIndex((m) => m.toLowerCase() === monthName.toLowerCase());
 
 	if (monthIndex === -1) return null;

@@ -1,9 +1,9 @@
 ---
-title: LOG - 23 Feuillandre, an 4 REM
+title: LOG - Feu. 23, Year 4 After REM
 neighborhood: archives
 returnTo: desktop
 order: 14
-date: Covoituredi, 23 Feuillandre, an 4 REM
+date: Covoituredi, Feuillandre 23, Year 4 After REM
 ---
 
 First testimony received. Creating a new directory. Hoping it will be the first of many.
