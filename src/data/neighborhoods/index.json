@@ -90,10 +90,9 @@
 		"apiSearchTerms": ["St-Rodrigue, Quebec City, Quebec, Canada"],
 		"position": {"x": 20, "y": 20}
 	},
-
 	{
 		"id": "vanier",
-		"name": "Québec-Centre ",
+		"name": "Québec-Centre",
 		"slug": "vanier",
 		"order": 8,
 		"description": "The suburban neighborhood with a rich history.",
@@ -102,6 +101,32 @@
 		"audioSrc": "/assets/scenes/vanier/ambient.mp3",
 		"stories": [],
 		"apiSearchTerms": ["Vanier, Quebec City, Quebec, Canada"],
+		"position": {"x": 10, "y": 10}
+	},
+	{
+		"id": "saint-romuald",
+		"name": "Saint-Romuald",
+		"slug": "saint-romuald",
+		"order": 9,
+		"description": "The future tramway project in Quebec City.",
+		"viewEnabled": false,
+		"scenePath": "/assets/scenes/saint-romuald/manifest.json",
+		"audioSrc": "/assets/scenes/saint-romuald/ambient.mp3",
+		"stories": [],
+		"apiSearchTerms": ["Saint-Romuald, Les Chutes-de-la-Chaudière-Est, Lévis, Chaudière-Appalaches, Québec, Canada"],
+		"position": {"x": 10, "y": 10}
+	},
+	{
+		"id": "levis",
+		"name": "Lévis",
+		"slug": "levis",
+		"order": 10,
+		"description": "The city across the river from Quebec City.",
+		"viewEnabled": false,
+		"scenePath": "/assets/scenes/levis/manifest.json",
+		"audioSrc": "/assets/scenes/levis/ambient.mp3",
+		"stories": [],
+		"apiSearchTerms": ["Lévis (quartier),Desjardins,Lévis Chaudière-Appalaches, Québec, Canada"],
 		"position": {"x": 10, "y": 10}
 	}
 ]

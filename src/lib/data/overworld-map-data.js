@@ -1,4 +1,4 @@
-const OVERWORLD_MAP_CACHE_KEY = "anemoia.overworldMapData.v1";
+const OVERWORLD_MAP_CACHE_KEY = "anemoia.overworldMapData.v2";
 const OVERWORLD_MAP_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 const FALLBACK_QUEBEC_OUTLINE = [
@@ -24,6 +24,19 @@ const FALLBACK_QUEBEC_OUTLINE = [
 let memoryCache = null;
 let inFlightRequest = null;
 
+const MAP_DEBUG_SLUGS = new Set(["st-romuald", "saint-romuald", "st romuald", "saint romuald"]);
+
+function shouldDebugNeighborhood(neighborhood) {
+	const slug = String(neighborhood?.slug ?? "").trim().toLowerCase();
+	const id = String(neighborhood?.id ?? "").trim().toLowerCase();
+	const name = String(neighborhood?.name ?? "").trim().toLowerCase();
+	return MAP_DEBUG_SLUGS.has(slug) || MAP_DEBUG_SLUGS.has(id) || name.includes("romuald");
+}
+
+function logMapDebug(message, payload) {
+	console.log(`[overworld-map-debug] ${message}`, payload);
+}
+
 export function getFallbackOverworldMapOutline() {
 	return FALLBACK_QUEBEC_OUTLINE;
 }
@@ -34,13 +47,37 @@ export function prefetchOverworldMapData(neighborhoods) {
 
 export async function getOverworldMapData(neighborhoods) {
 	const signature = createNeighborhoodSignature(neighborhoods);
+	const debugHood = Array.isArray(neighborhoods) ? neighborhoods.find((hood) => shouldDebugNeighborhood(hood)) : null;
+	if (Array.isArray(neighborhoods) && neighborhoods.length > 0 && !debugHood) {
+		console.warn("[overworld-map-debug] st-romuald was not found in neighborhoods list", {
+			slugs: neighborhoods.map((hood) => String(hood?.slug ?? "").trim()).filter(Boolean),
+			ids: neighborhoods.map((hood) => String(hood?.id ?? "").trim()).filter(Boolean),
+			names: neighborhoods.map((hood) => String(hood?.name ?? "").trim()).filter(Boolean),
+		});
+	}
 
 	if (memoryCache?.signature === signature && memoryCache.expiresAt > Date.now()) {
+		if (debugHood) {
+			logMapDebug("Using in-memory cache", {
+				signature,
+				stRomualdOverlayFound:
+					memoryCache.data?.overlays?.some((overlay) => MAP_DEBUG_SLUGS.has(String(overlay?.slug ?? "").trim().toLowerCase())) ?? false,
+				overlaySlugs: (memoryCache.data?.overlays ?? []).map((overlay) => overlay?.slug),
+			});
+		}
 		return memoryCache.data;
 	}
 
 	const persisted = readPersistedCache(signature);
 	if (persisted) {
+		if (debugHood) {
+			logMapDebug("Using persisted cache", {
+				signature,
+				stRomualdOverlayFound:
+					persisted.data?.overlays?.some((overlay) => MAP_DEBUG_SLUGS.has(String(overlay?.slug ?? "").trim().toLowerCase())) ?? false,
+				overlaySlugs: (persisted.data?.overlays ?? []).map((overlay) => overlay?.slug),
+			});
+		}
 		memoryCache = persisted;
 		return persisted.data;
 	}
@@ -84,6 +121,13 @@ async function fetchAndCacheOverworldMapData(neighborhoods, signature) {
 	for (let i = 0; i < neighborhoods.length; i++) {
 		const hood = neighborhoods[i];
 		const geojson = await fetchFirstNeighborhoodPolygonGeoJson(hood);
+		if (shouldDebugNeighborhood(hood)) {
+			logMapDebug("Neighborhood lookup result", {
+				hood,
+				geojsonType: geojson?.type ?? null,
+				hasGeojson: Boolean(geojson),
+			});
+		}
 		hoodRaw.push({hood, geojson});
 	}
 
@@ -101,6 +145,13 @@ async function fetchAndCacheOverworldMapData(neighborhoods, signature) {
 		const {hood, geojson} = hoodRaw[i];
 		if (!geojson) continue;
 		const rings = normalizeGeoJsonRings(geojson, unionBounds);
+		if (shouldDebugNeighborhood(hood)) {
+			logMapDebug("Normalized overlay rings", {
+				hood,
+				ringCount: rings.length,
+				firstRingPointCount: rings[0]?.length ?? 0,
+			});
+		}
 		if (rings.length === 0) continue;
 		overlays.push({
 			name: hood.name,
@@ -211,37 +262,89 @@ async function loadQuebecOutlineRaw() {
 async function fetchFirstNeighborhoodPolygonGeoJson(neighborhood) {
 	try {
 		const candidates = neighborhoodQueryCandidates(neighborhood);
+		if (shouldDebugNeighborhood(neighborhood)) {
+			logMapDebug("Trying neighborhood API candidates", {
+				neighborhood,
+				candidates,
+			});
+		}
 		for (let i = 0; i < candidates.length; i++) {
-			const geojson = await fetchNeighborhoodPolygonGeoJson(candidates[i]);
+			const geojson = await fetchNeighborhoodPolygonGeoJson(candidates[i], neighborhood);
 			if (geojson) return geojson;
 		}
+		if (shouldDebugNeighborhood(neighborhood)) {
+			logMapDebug("No API candidate returned polygon", {neighborhood, candidates});
+		}
 		return null;
-	} catch {
+	} catch (error) {
+		if (shouldDebugNeighborhood(neighborhood)) {
+			logMapDebug("Neighborhood lookup failed with exception", {
+				neighborhood,
+				error: error instanceof Error ? error.message : String(error),
+			});
+		}
 		return null;
 	}
 }
 
-async function fetchNeighborhoodPolygonGeoJson(neighborhoodName) {
+async function fetchNeighborhoodPolygonGeoJson(neighborhoodName, neighborhood) {
 	const baseUrl = "https://nominatim.openstreetmap.org/search";
-	const params = new URLSearchParams({
-		format: "jsonv2",
-		polygon_geojson: "1",
-		limit: "5",
-		featuretype: "suburb",
-		q: `${neighborhoodName}, Quebec City, Quebec, Canada`,
-	});
-	const res = await fetch(`${baseUrl}?${params.toString()}`, {
-		headers: {
-			"Accept-Language": "fr-CA,fr,en",
-		},
-	});
-	if (!res.ok) return null;
-	const results = await res.json();
-	if (!Array.isArray(results) || results.length === 0) return null;
-	for (let i = 0; i < results.length; i++) {
-		const geojson = results[i]?.geojson;
-		if (!geojson) continue;
-		if (geojson.type === "Polygon" || geojson.type === "MultiPolygon") return geojson;
+	const q = buildNeighborhoodSearchQuery(neighborhoodName);
+	const attempts = [
+		{label: "suburb-filter", featuretype: "suburb"},
+		{label: "unfiltered", featuretype: null},
+	];
+
+	for (let attemptIndex = 0; attemptIndex < attempts.length; attemptIndex++) {
+		const attempt = attempts[attemptIndex];
+		const params = new URLSearchParams({
+			format: "jsonv2",
+			polygon_geojson: "1",
+			limit: "8",
+			q,
+		});
+		if (attempt.featuretype) params.set("featuretype", attempt.featuretype);
+
+		const res = await fetch(`${baseUrl}?${params.toString()}`, {
+			headers: {
+				"Accept-Language": "fr-CA,fr,en",
+			},
+		});
+		if (shouldDebugNeighborhood(neighborhood)) {
+			logMapDebug("API response received", {
+				candidate: neighborhoodName,
+				query: q,
+				attempt: attempt.label,
+				status: res.status,
+				ok: res.ok,
+			});
+		}
+		if (!res.ok) continue;
+
+		const results = await res.json();
+		if (shouldDebugNeighborhood(neighborhood)) {
+			logMapDebug("API JSON payload", {
+				candidate: neighborhoodName,
+				attempt: attempt.label,
+				resultCount: Array.isArray(results) ? results.length : 0,
+				firstResult:
+					Array.isArray(results) && results.length > 0
+						? {
+							display_name: results[0]?.display_name,
+							class: results[0]?.class,
+							type: results[0]?.type,
+							geojsonType: results[0]?.geojson?.type ?? null,
+						}
+						: null,
+			});
+		}
+		if (!Array.isArray(results) || results.length === 0) continue;
+
+		for (let i = 0; i < results.length; i++) {
+			const geojson = results[i]?.geojson;
+			if (!geojson) continue;
+			if (geojson.type === "Polygon" || geojson.type === "MultiPolygon") return geojson;
+		}
 	}
 	return null;
 }
@@ -256,6 +359,21 @@ function neighborhoodQueryCandidates(neighborhood) {
 	}
 	if (baseSlug) candidates.push(baseSlug.replace(/[-_]+/g, " "));
 	return [...new Set(candidates)];
+}
+
+function buildNeighborhoodSearchQuery(candidate) {
+	const value = String(candidate ?? "").trim();
+	if (!value) return "Quebec City, Quebec, Canada";
+	const lower = value.toLowerCase();
+	const looksQualified =
+		value.includes(",") ||
+		lower.includes("quebec") ||
+		lower.includes("québec") ||
+		lower.includes("canada") ||
+		lower.includes("levis") ||
+		lower.includes("lévis");
+	if (looksQualified) return value;
+	return `${value}, Quebec City, Quebec, Canada`;
 }
 
 function extractRawRings(geojson) {

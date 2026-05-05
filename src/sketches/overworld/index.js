@@ -42,11 +42,20 @@ export default function (container) {
 		let closeRect = null;
 		let closeHovered = false;
 		let mapBounds = {x: 0, y: 0, w: 0, h: 0};
+		let zoomedMapBounds = {x: 0, y: 0, w: 0, h: 0};
 		let mapOutline = null;
 		let mapOutlineState = "loading";
 		let cityGeoBounds = null;
 		let neighborhoodOverlays = [];
 		let hoveredOverlaySlug = null;
+
+		// ── Zoom and Pan state ─────────────────────────────────────────────────────
+		let zoomLevel = 1.0; // 1.0 = 100%, 2.0 = 200%, etc.
+		let panX = 0; // Offset from center
+		let panY = 0;
+		const MIN_ZOOM = 1.0;
+		const MAX_ZOOM = 4.0;
+		let _panCanvasEl = null;
 
 		const findNextEnabledPin = (fromIndex, step) => {
 			const total = neighborhoods.length;
@@ -105,6 +114,10 @@ export default function (container) {
 				neighborhoodOverlays = data.overlays;
 				mapOutlineState = data.mapOutline.length > 0 ? "ready" : "fallback";
 			});
+
+			// Attach pan listener now that the canvas element exists
+			_panCanvasEl = canvas.elt;
+			_panCanvasEl.addEventListener("pointermove", onPointerMove);
 		};
 
 		sketch.draw = () => {
@@ -119,7 +132,7 @@ export default function (container) {
 			closeRect = topBar.closeRect;
 			closeHovered = Boolean(closeRect && hitTest(pointer.x, pointer.y, closeRect));
 			const topBarH = topBar.height;
-			const bottomBarH = drawBottomStatusBar(artBuffer, w, h, sketch);
+			const bottomBarH = drawBottomStatusBar(artBuffer, w, h, sketch, zoomLevel, panX, panY);
 
 			// ── Map area ──────────────────────────────────────────────────────────
 			const mapPad = w * 0.05;
@@ -131,34 +144,65 @@ export default function (container) {
 			const mapH = h - mapY - footerH;
 			mapBounds = {x: mapX, y: mapY, w: mapW, h: mapH};
 
-			// Retro terminal placeholder grid (no map image)
+			// ── Compute zoomed map rect for geo content ────────────────────────────
+			const mapCenterX = mapX + mapW * 0.5;
+			const mapCenterY = mapY + mapH * 0.5;
+			const zMapW = mapW * zoomLevel;
+			const zMapH = mapH * zoomLevel;
+			const zMapX = mapCenterX + (panX - 0.5) * mapW * zoomLevel;
+			const zMapY = mapCenterY + (panY - 0.5) * mapH * zoomLevel;
+			zoomedMapBounds = {x: zMapX, y: zMapY, w: zMapW, h: zMapH};
+
+			const selectedNeighborhoodKey = getNeighborhoodKey(neighborhoods[selectedPin]);
+
+			// Hover detection uses zoomed positions (zoomedMapBounds via closures)
 			const hoveredOverlay = findNeighborhoodOverlayAtMouse();
 			hoveredOverlaySlug = hoveredOverlay?.slug ?? null;
-			const selectedNeighborhoodKey = getNeighborhoodKey(neighborhoods[selectedPin]);
-			drawMapPlaceholder(artBuffer, mapX, mapY, mapW, mapH, mapOutline, mapOutlineState, neighborhoodOverlays, hoveredOverlaySlug, selectedNeighborhoodKey, cityGeoBounds, sketch, neighborhoods);
-
-			// ── Title ─────────────────────────────────────────────────────────────
-			const titleSz = w * 0.028;
-			drawTitleAberration(artBuffer, "The Vertical Cities", w / 2, topBarH + titleH * 0.45, titleSz, 255, sketch);
-
-			// ── Neighborhood pins (only when no polygon overlay — avoids duplicate dot + label) ──
 			const hoveredPin = findPinAtMouse();
+
+			// ── Map background & grid (no zoom) ────────────────────────────────────
+			drawMapBackground(artBuffer, mapX, mapY, mapW, mapH);
+
+			// ── Clip to map rect, draw geo content with zoom applied via coords ────
+			artBuffer.drawingContext.save();
+			artBuffer.drawingContext.beginPath();
+			artBuffer.drawingContext.rect(mapX, mapY, mapW, mapH);
+			artBuffer.drawingContext.clip();
+
+			drawMapOutline(artBuffer, zMapX, zMapY, zMapW, zMapH, mapOutline, cityGeoBounds);
+			drawNeighborhoodOverlays(artBuffer, {x: zMapX, y: zMapY, w: zMapW, h: zMapH}, neighborhoodOverlays, hoveredOverlaySlug, selectedNeighborhoodKey, cityGeoBounds, sketch, neighborhoods);
+
+			// ── Neighborhood pins (only when no polygon overlay) ──────────────────
 			for (let i = 0; i < neighborhoods.length; i++) {
 				if (hasNeighborhoodOverlayAtIndex(i)) continue;
 				const hood = neighborhoods[i];
-				const px = mapX + (hood.position.x / 100) * mapW;
-				const py = mapY + (hood.position.y / 100) * mapH;
+				const px = zMapX + (hood.position.x / 100) * zMapW;
+				const py = zMapY + (hood.position.y / 100) * zMapH;
 				const enabled = isNeighborhoodEnabled(hood);
 				const pinActive = enabled && (selectedPin === i || hoveredPin === i);
 				drawPin(artBuffer, px, py, hood.name, pinActive, sketch, {disabled: !enabled});
 			}
+
+			artBuffer.drawingContext.restore();
+
+			// ── Map frame & status (no zoom) ────────────────────────────────────────
+			drawMapFrame(artBuffer, mapX, mapY, mapW, mapH, mapOutlineState, zoomLevel, sketch);
+
+			// ── Title ─────────────────────────────────────────────────────────────
+			const titleSz = w * 0.028;
+			drawTitleAberration(artBuffer, "The Vertical Cities", w / 2, topBarH + titleH * 0.45, titleSz, 255, sketch);
 
 			// Key hint
 			const hintSz = w * 0.011;
 			artBuffer.textAlign(sketch.RIGHT, sketch.CENTER);
 			applyThemeCanvasFont(artBuffer, hintSz, sketch);
 			artBuffer.fill(...THEME.GREEN_SUBTLE, 210);
-			artBuffer.text("↑↓ CHOOSE   ENTER CONFIRM   ESC CLOSE", w - w * 0.04, h - bottomBarH * 0.5);
+			artBuffer.text("↑↓ CHOOSE   ENTER CONFIRM   ESC CLOSE   🖱↑↓ ZOOM/PAN", w - w * 0.04, h - bottomBarH * 0.5);
+
+			// Draw pan limit indicators
+			if (zoomLevel > 1.01) {
+				drawPanLimitIndicators(artBuffer, mapX, mapY, mapW, mapH, panX, panY, zoomLevel, sketch);
+			}
 
 			// Blit artBuffer onto output canvas
 			drawCanvasCursor(artBuffer, pointer, {hovered: closeHovered || hoveredPin >= 0 || hoveredOverlaySlug != null});
@@ -169,6 +213,77 @@ export default function (container) {
 		sketch.keyPressed = () => {
 			return handleKeyInput(sketch.keyCode);
 		};
+
+		sketch.mouseWheel = (event) => {
+			if (!mapBounds.w || !mapBounds.h) return false;
+
+			// Check if mouse is over map area
+			if (pointer.x < mapBounds.x || pointer.x > mapBounds.x + mapBounds.w || pointer.y < mapBounds.y || pointer.y > mapBounds.y + mapBounds.h) {
+				return false;
+			}
+
+			const zoomSpeed = 0.1;
+			const oldZoom = zoomLevel;
+			zoomLevel = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoomLevel + (event.deltaY > 0 ? -zoomSpeed : zoomSpeed)));
+
+			// Adjust pan to zoom towards mouse cursor
+			if (zoomLevel !== oldZoom) {
+				const mapCenterX = mapBounds.x + mapBounds.w * 0.5;
+				const mapCenterY = mapBounds.y + mapBounds.h * 0.5;
+				const mouseRelX = pointer.x - mapCenterX;
+				const mouseRelY = pointer.y - mapCenterY;
+
+				const zoomDelta = zoomLevel - oldZoom;
+				panX -= (mouseRelX * zoomDelta) / (oldZoom * mapBounds.w);
+				panY -= (mouseRelY * zoomDelta) / (oldZoom * mapBounds.h);
+
+				clampPan();
+			}
+
+			return false;
+		};
+
+		sketch.mousePressed = () => {
+			pointer = canvasCursor.beginFrame({mouseX: sketch.mouseX, mouseY: sketch.mouseY, width: artBuffer.width, height: artBuffer.height});
+			if (closeRect && hitTest(pointer.x, pointer.y, closeRect)) {
+				sceneNavigate("desktop");
+				return;
+			}
+			const overlayHit = findNeighborhoodOverlayAtMouse();
+			if (overlayHit) {
+				navigateToNeighborhoodByKey(overlayHit.neighborhoodKey);
+				return;
+			}
+			const pinIndex = findPinAtMouse();
+			if (pinIndex >= 0) {
+				if (navigateToNeighborhoodAtIndex(pinIndex)) {
+					selectedPin = pinIndex;
+				}
+			}
+		};
+
+		sketch.mouseReleased = () => {};
+
+		// Use native pointermove with movementX/Y — works in both normal and pointer-lock mode.
+		function onPointerMove(e) {
+			if (e.buttons === 0 || zoomLevel <= 1.01) return;
+			const dx = e.movementX / (mapBounds.w * zoomLevel);
+			const dy = e.movementY / (mapBounds.h * zoomLevel);
+			panX += dx;
+			panY += dy;
+			clampPan();
+		}
+
+		function clampPan() {
+			if (zoomLevel <= MIN_ZOOM) {
+				panX = 0;
+				panY = 0;
+				return;
+			}
+			const maxPan = (zoomLevel - 1) * 0.5;
+			panX = Math.max(-maxPan, Math.min(maxPan, panX));
+			panY = Math.max(-maxPan, Math.min(maxPan, panY));
+		}
 
 		function handleKeyInput(key) {
 			if (neighborhoods.length === 0) {
@@ -208,25 +323,6 @@ export default function (container) {
 			handleKeyInput(mapped);
 		}
 
-		sketch.mousePressed = () => {
-			pointer = canvasCursor.beginFrame({mouseX: sketch.mouseX, mouseY: sketch.mouseY, width: artBuffer.width, height: artBuffer.height});
-			if (closeRect && hitTest(pointer.x, pointer.y, closeRect)) {
-				sceneNavigate("desktop");
-				return;
-			}
-			const overlayHit = findNeighborhoodOverlayAtMouse();
-			if (overlayHit) {
-				navigateToNeighborhoodByKey(overlayHit.neighborhoodKey);
-				return;
-			}
-			const pinIndex = findPinAtMouse();
-			if (pinIndex >= 0) {
-				if (navigateToNeighborhoodAtIndex(pinIndex)) {
-					selectedPin = pinIndex;
-				}
-			}
-		};
-
 		sketch.windowResized = () => {
 			const w = window.innerWidth;
 			const h = window.innerHeight;
@@ -238,6 +334,7 @@ export default function (container) {
 		if (typeof sketch.registerMethod === "function") {
 			sketch.registerMethod("remove", () => {
 				canvasCursor?.destroy();
+				_panCanvasEl?.removeEventListener("pointermove", onPointerMove);
 			});
 		}
 
@@ -248,8 +345,8 @@ export default function (container) {
 				if (hasNeighborhoodOverlayAtIndex(i)) continue;
 				if (!isNeighborhoodIndexEnabled(i)) continue;
 				const hood = neighborhoods[i];
-				const px = mapBounds.x + (hood.position.x / 100) * mapBounds.w;
-				const py = mapBounds.y + (hood.position.y / 100) * mapBounds.h;
+				const px = zoomedMapBounds.x + (hood.position.x / 100) * zoomedMapBounds.w;
+				const py = zoomedMapBounds.y + (hood.position.y / 100) * zoomedMapBounds.h;
 				const dx = pointer.x - px;
 				const dy = pointer.y - py;
 				if (dx * dx + dy * dy <= hitRadius * hitRadius) return i;
@@ -266,7 +363,7 @@ export default function (container) {
 				const overlay = neighborhoodOverlays[i];
 				if (!overlay?.anchor) continue;
 				if (!isNeighborhoodKeyEnabled(overlay.neighborhoodKey)) continue;
-				const anchor = toScreenPoint(overlay.anchor, mapBounds, cityGeoBounds);
+				const anchor = toScreenPoint(overlay.anchor, zoomedMapBounds, cityGeoBounds);
 				const dx = pointer.x - anchor.x;
 				const dy = pointer.y - anchor.y;
 				if (dx * dx + dy * dy <= pointHitRadius * pointHitRadius) return overlay;
@@ -275,7 +372,7 @@ export default function (container) {
 				const overlay = neighborhoodOverlays[i];
 				if (!isNeighborhoodKeyEnabled(overlay.neighborhoodKey)) continue;
 				for (let j = 0; j < overlay.rings.length; j++) {
-					const screenRing = toScreenRing(overlay.rings[j], mapBounds, cityGeoBounds);
+					const screenRing = toScreenRing(overlay.rings[j], zoomedMapBounds, cityGeoBounds);
 					if (screenRing.length < 3) continue;
 					if (pointInPolygon(pointer.x, pointer.y, screenRing)) return overlay;
 				}
@@ -331,14 +428,14 @@ function drawPin(buf, x, y, name, hovered, p, options = {}) {
 
 // ── Map placeholder grid ──────────────────────────────────────────────────────
 
-function drawMapPlaceholder(buf, x, y, w, h, mapOutline, mapOutlineState, neighborhoodOverlays, hoveredOverlaySlug, selectedNeighborhoodKey, geoBounds, p, neighborhoods = []) {
-	// Dark panel
+// ── Map background (panel + grid) — drawn outside zoom transform ─────────────
+
+function drawMapBackground(buf, x, y, w, h) {
 	buf.fill(...THEME.BG, 200);
 	buf.stroke(...THEME.GREEN_PRIMARY, 55);
 	buf.strokeWeight(12);
 	const radius = Math.max(10, Math.min(30, Math.min(w, h) * 0.22));
 	buf.rect(x, y, w, h, radius);
-	// Grid lines
 	buf.stroke(...THEME.GREEN_PRIMARY, 45);
 	buf.strokeWeight(1);
 	const cols = 24;
@@ -351,22 +448,34 @@ function drawMapPlaceholder(buf, x, y, w, h, mapOutline, mapOutlineState, neighb
 		const gy = y + (r / rows) * h;
 		buf.line(x, gy, x + w, gy);
 	}
+	buf.noStroke();
+}
 
-	drawMapOutline(buf, x, y, w, h, mapOutline, geoBounds);
-	drawNeighborhoodOverlays(buf, {x, y, w, h}, neighborhoodOverlays, hoveredOverlaySlug, selectedNeighborhoodKey, geoBounds, p, neighborhoods);
+// ── Map frame (border + status text) — drawn outside zoom transform ───────────
 
-	// Border
+function drawMapFrame(buf, x, y, w, h, mapOutlineState, zoomLevel, p) {
 	buf.noFill();
 	buf.stroke(...THEME.GREEN_MID, 180);
 	buf.strokeWeight(2);
 	buf.rect(x, y, w, h, 22);
 
-	const status = mapOutlineState === "loading" ? "QC Outline: loading..." : "QC Outline: active";
-	applyThemeCanvasFont(buf, Math.max(10, buf.width * 0.01), p);
+	const labelSz = Math.max(10, buf.width * 0.01);
+	applyThemeCanvasFont(buf, labelSz, p);
 	buf.noStroke();
 	buf.fill(...THEME.GREEN_SUBTLE, 220);
+
+	// Top-right: outline status
 	buf.textAlign(p.RIGHT, p.TOP);
+	const status = mapOutlineState === "loading" ? "QC Outline: loading..." : "QC Outline: active";
 	buf.text(status, x + w - w * 0.02, y + h * 0.02);
+
+	// Bottom-right: zoom indicator
+	const zoomPercent = Math.round(zoomLevel * 100);
+	const padX = w * 0.025;
+	const padY = h * 0.03;
+	buf.textAlign(p.RIGHT, p.BOTTOM);
+	buf.fill(...THEME.GREEN_MID, zoomLevel > 1.01 ? 255 : 160);
+	buf.text(`ZOOM  ${zoomPercent}%`, x + w - padX, y + h - padY);
 
 	buf.noStroke();
 }
@@ -374,11 +483,6 @@ function drawMapPlaceholder(buf, x, y, w, h, mapOutline, mapOutlineState, neighb
 function drawMapOutline(buf, x, y, w, h, mapOutline, geoBounds) {
 	const rings = Array.isArray(mapOutline) && mapOutline.length > 0 ? mapOutline : FALLBACK_QUEBEC_OUTLINE;
 	const inner = getInnerMapRect({x, y, w, h}, geoBounds);
-
-	buf.drawingContext.save();
-	buf.drawingContext.beginPath();
-	buf.drawingContext.rect(x, y, w, h);
-	buf.drawingContext.clip();
 
 	for (let i = 0; i < rings.length; i++) {
 		const ring = rings[i];
@@ -395,17 +499,11 @@ function drawMapOutline(buf, x, y, w, h, mapOutline, geoBounds) {
 		}
 		buf.endShape(buf.CLOSE);
 	}
-
-	buf.drawingContext.restore();
 }
 
 function drawNeighborhoodOverlays(buf, mapRect, overlays, hoveredSlug, selectedNeighborhoodKey, geoBounds, p, neighborhoods = []) {
 	if (!Array.isArray(overlays) || overlays.length === 0) return;
 	const getNeighborhoodKey = (hood) => String(hood?.slug ?? hood?.id ?? hood?.name ?? "").trim();
-	buf.drawingContext.save();
-	buf.drawingContext.beginPath();
-	buf.drawingContext.rect(mapRect.x, mapRect.y, mapRect.w, mapRect.h);
-	buf.drawingContext.clip();
 	for (let i = 0; i < overlays.length; i++) {
 		const overlay = overlays[i];
 		const neighborhood = neighborhoods.find((hood) => getNeighborhoodKey(hood) === overlay.neighborhoodKey);
@@ -428,14 +526,13 @@ function drawNeighborhoodOverlays(buf, mapRect, overlays, hoveredSlug, selectedN
 		}
 		drawOverlayAnchor(buf, mapRect, overlay, isHovered, isSelected, geoBounds, p, {disabled: !isEnabled});
 	}
-	buf.drawingContext.restore();
 	buf.noStroke();
 }
 
 function drawOverlayAnchor(buf, mapRect, overlay, isHovered, isSelected, geoBounds, p, options = {}) {
 	if (!overlay?.anchor) return;
 	const center = toScreenPoint(overlay.anchor, mapRect, geoBounds);
-	const dotR = Math.max(4, buf.width * 0.0056);
+	const dotR = Math.max(4, buf.width * 0.00256);
 	const labelSz = Math.max(10, buf.width * 0.0115);
 	const isActive = isHovered || isSelected;
 	const disabled = options.disabled === true;
@@ -603,7 +700,7 @@ function drawWindowTopBar(buf, w, h, closeHovered, p) {
 	};
 }
 
-function drawBottomStatusBar(buf, w, h, p) {
+function drawBottomStatusBar(buf, w, h, p, zoomLevel = 1, panX = 0, panY = 0) {
 	const barH = h * 0.072;
 	const barY = h - barH;
 	const ctx = buf.drawingContext;
@@ -626,7 +723,75 @@ function drawBottomStatusBar(buf, w, h, p) {
 	buf.fill(...THEME.GREEN_MID, 245);
 	buf.textAlign(p.LEFT, p.CENTER);
 	buf.text("Active Mapping", w * 0.03, barY + barH * 0.5);
+
+	// Center: 2D View
 	buf.textAlign(p.CENTER, p.CENTER);
 	buf.text("2D View", w * 0.5, barY + barH * 0.5);
+
 	return barH;
+}
+
+// ── Pan limit indicators ──────────────────────────────────────────────────────
+
+function drawPanLimitIndicators(buf, mapX, mapY, mapW, mapH, panX, panY, zoomLevel, p) {
+	const indicatorSize = Math.max(12, Math.min(mapW, mapH) * 0.03);
+	const indicatorColor = THEME.GREEN_MID;
+	const maxPan = (zoomLevel - 1) * 0.5;
+
+	// Determine which edges we're near
+	const atLeft = Math.abs(panX + maxPan) < 0.05;
+	const atRight = Math.abs(panX - maxPan) < 0.05;
+	const atTop = Math.abs(panY + maxPan) < 0.05;
+	const atBottom = Math.abs(panY - maxPan) < 0.05;
+
+	// Draw edge indicators (only for edges we're at or near)
+	const padding = indicatorSize * 0.8;
+	const arrowAlpha = 200;
+
+	// Left edge indicator
+	if (atLeft) {
+		buf.fill(...indicatorColor, arrowAlpha);
+		buf.noStroke();
+		drawArrow(buf, mapX + padding, mapY + mapH * 0.5, -indicatorSize * 0.5, 0);
+	}
+
+	// Right edge indicator
+	if (atRight) {
+		buf.fill(...indicatorColor, arrowAlpha);
+		buf.noStroke();
+		drawArrow(buf, mapX + mapW - padding, mapY + mapH * 0.5, indicatorSize * 0.5, 0);
+	}
+
+	// Top edge indicator
+	if (atTop) {
+		buf.fill(...indicatorColor, arrowAlpha);
+		buf.noStroke();
+		drawArrow(buf, mapX + mapW * 0.5, mapY + padding, 0, -indicatorSize * 0.5);
+	}
+
+	// Bottom edge indicator
+	if (atBottom) {
+		buf.fill(...indicatorColor, arrowAlpha);
+		buf.noStroke();
+		drawArrow(buf, mapX + mapW * 0.5, mapY + mapH - padding, 0, indicatorSize * 0.5);
+	}
+}
+
+function drawArrow(buf, x, y, dx, dy) {
+	const len = Math.sqrt(dx * dx + dy * dy);
+	if (len === 0) return;
+
+	const nx = dx / len;
+	const ny = dy / len;
+	const px = -ny;
+	const py = nx;
+
+	const tipLen = len * 0.6;
+	const tipWidth = len * 0.4;
+
+	buf.beginShape();
+	buf.vertex(x + dx, y + dy);
+	buf.vertex(x + dx - tipLen * nx - tipWidth * px, y + dy - tipLen * ny - tipWidth * py);
+	buf.vertex(x + dx - tipLen * nx + tipWidth * px, y + dy - tipLen * ny + tipWidth * py);
+	buf.endShape(buf.CLOSE);
 }
