@@ -1,5 +1,5 @@
 ---
-title: LOG - Slo. 7, Year 4 After REM
+title: LOG - Slo. 7, 4 A.REM
 neighborhood: archives
 returnTo: desktop
 order: 7

@@ -1,5 +1,5 @@
 ---
-title: LOG - Mac. 6, Year 4 After REM
+title: LOG - Mac. 6, 4 A.REM
 neighborhood: archives
 returnTo: desktop
 order: 15

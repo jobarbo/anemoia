@@ -1,5 +1,5 @@
 ---
-title: LOG - Nev. 17, Year 4 After REM
+title: LOG - Nev. 17, 4 A.REM
 neighborhood: archives
 returnTo: desktop
 order: 4

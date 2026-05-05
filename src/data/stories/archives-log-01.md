@@ -1,5 +1,5 @@
 ---
-title: LOG - Rev. 12, Year 4 After REM
+title: LOG - Rev. 12, 4 A.REM
 neighborhood: archives
 returnTo: desktop
 order: 1
