@@ -76,5 +76,19 @@
 		"stories": [],
 		"apiSearchTerms": ["St-Rodrigue, Quebec City, Quebec, Canada"],
 		"position": {"x": 20, "y": 20}
+	},
+
+	{
+		"id": "vanier",
+		"name": "Vanier",
+		"slug": "vanier",
+		"order": 7,
+		"description": "The suburban neighborhood with a rich history.",
+		"viewEnabled": false,
+		"scenePath": "/assets/scenes/vanier/manifest.json",
+		"audioSrc": "/assets/scenes/vanier/ambient.mp3",
+		"stories": [],
+		"apiSearchTerms": ["Vanier, Quebec City, Quebec, Canada"],
+		"position": {"x": 10, "y": 10}
 	}
 ]
