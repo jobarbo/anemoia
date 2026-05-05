@@ -1,11 +1,31 @@
 const OVERWORLD_MAP_CACHE_KEY = "anemoia.overworldMapData.v1";
 const OVERWORLD_MAP_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
+const FALLBACK_QUEBEC_OUTLINE = [
+	[
+		{x: 0.05, y: 0.34},
+		{x: 0.13, y: 0.52},
+		{x: 0.22, y: 0.58},
+		{x: 0.33, y: 0.64},
+		{x: 0.47, y: 0.71},
+		{x: 0.58, y: 0.66},
+		{x: 0.67, y: 0.58},
+		{x: 0.82, y: 0.55},
+		{x: 0.93, y: 0.43},
+		{x: 0.89, y: 0.32},
+		{x: 0.78, y: 0.26},
+		{x: 0.63, y: 0.2},
+		{x: 0.49, y: 0.16},
+		{x: 0.31, y: 0.19},
+		{x: 0.18, y: 0.24},
+	],
+];
+
 let memoryCache = null;
 let inFlightRequest = null;
 
 export function getFallbackOverworldMapOutline() {
-	return [];
+	return FALLBACK_QUEBEC_OUTLINE;
 }
 
 export function prefetchOverworldMapData(neighborhoods) {
@@ -40,10 +60,20 @@ export async function getOverworldMapData(neighborhoods) {
 }
 
 async function fetchAndCacheOverworldMapData(neighborhoods, signature) {
-	if (!Array.isArray(neighborhoods) || neighborhoods.length === 0) {
-		const data = {
-			mapOutline: [],
+	const city = await loadQuebecOutlineRaw();
+	if (!city.geojson || !city.bounds) {
+		return {
+			mapOutline: FALLBACK_QUEBEC_OUTLINE,
 			unionBounds: null,
+			overlays: [],
+		};
+	}
+
+	if (!Array.isArray(neighborhoods) || neighborhoods.length === 0) {
+		const outline = normalizeGeoJsonRings(city.geojson, city.bounds);
+		const data = {
+			mapOutline: outline.length > 0 ? outline : FALLBACK_QUEBEC_OUTLINE,
+			unionBounds: city.bounds,
 			overlays: [],
 		};
 		writeCaches(signature, data);
@@ -57,35 +87,21 @@ async function fetchAndCacheOverworldMapData(neighborhoods, signature) {
 		hoodRaw.push({hood, geojson});
 	}
 
-	let unionBounds = null;
+	let unionBounds = {...city.bounds};
 	for (let i = 0; i < hoodRaw.length; i++) {
 		const geojson = hoodRaw[i].geojson;
 		if (!geojson) continue;
 		const bounds = computeGeoBounds(extractRawRings(geojson));
-		if (!bounds) continue;
-		unionBounds = unionBounds ? mergeGeoBounds(unionBounds, bounds) : bounds;
+		if (bounds) unionBounds = mergeGeoBounds(unionBounds, bounds);
 	}
 
-	if (!unionBounds) {
-		const data = {
-			mapOutline: [],
-			unionBounds: null,
-			overlays: [],
-		};
-		writeCaches(signature, data);
-		return data;
-	}
-
-	const mapOutline = [];
+	const mapOutline = normalizeGeoJsonRings(city.geojson, unionBounds);
 	const overlays = [];
 	for (let i = 0; i < hoodRaw.length; i++) {
 		const {hood, geojson} = hoodRaw[i];
 		if (!geojson) continue;
 		const rings = normalizeGeoJsonRings(geojson, unionBounds);
 		if (rings.length === 0) continue;
-		for (let j = 0; j < rings.length; j++) {
-			mapOutline.push(rings[j]);
-		}
 		overlays.push({
 			name: hood.name,
 			slug: hood.slug,
@@ -96,7 +112,7 @@ async function fetchAndCacheOverworldMapData(neighborhoods, signature) {
 	}
 
 	const data = {
-		mapOutline,
+		mapOutline: mapOutline.length > 0 ? mapOutline : FALLBACK_QUEBEC_OUTLINE,
 		unionBounds,
 		overlays,
 	};
@@ -166,7 +182,30 @@ function getNeighborhoodKey(neighborhood) {
 	if (slug) return slug;
 	const id = String(neighborhood?.id ?? "").trim();
 	if (id) return id;
-	return "";
+	return String(neighborhood?.name ?? "").trim();
+}
+
+async function loadQuebecOutlineRaw() {
+	try {
+		const endpoint = "https://nominatim.openstreetmap.org/search?format=jsonv2&polygon_geojson=1&limit=1&q=";
+		const query = "La Cité-Limoilou, Quebec, Canada";
+		const url = `${endpoint}${encodeURIComponent(query)}`;
+		const res = await fetch(url, {
+			headers: {
+				"Accept-Language": "fr-CA,fr,en",
+			},
+		});
+		if (!res.ok) return {geojson: null, bounds: null};
+		const results = await res.json();
+		if (!Array.isArray(results) || results.length === 0) return {geojson: null, bounds: null};
+		const geojson = results[0]?.geojson;
+		if (!geojson) return {geojson: null, bounds: null};
+		const bounds = computeGeoBounds(extractRawRings(geojson));
+		if (!bounds) return {geojson: null, bounds: null};
+		return {geojson, bounds};
+	} catch {
+		return {geojson: null, bounds: null};
+	}
 }
 
 async function fetchFirstNeighborhoodPolygonGeoJson(neighborhood) {
@@ -189,7 +228,7 @@ async function fetchNeighborhoodPolygonGeoJson(neighborhoodName) {
 		polygon_geojson: "1",
 		limit: "5",
 		featuretype: "suburb",
-		q: neighborhoodName,
+		q: `${neighborhoodName}, Quebec City, Quebec, Canada`,
 	});
 	const res = await fetch(`${baseUrl}?${params.toString()}`, {
 		headers: {
@@ -208,17 +247,14 @@ async function fetchNeighborhoodPolygonGeoJson(neighborhoodName) {
 }
 
 function neighborhoodQueryCandidates(neighborhood) {
-	const baseName = String(neighborhood?.name ?? "").trim();
-	const baseSlug = String(neighborhood?.slug ?? neighborhood?.id ?? "").trim();
 	const apiSearchTerms = Array.isArray(neighborhood?.apiSearchTerms) ? neighborhood.apiSearchTerms : [];
+	const baseSlug = String(neighborhood?.slug ?? neighborhood?.id ?? "").trim();
 	const candidates = [];
 	for (let i = 0; i < apiSearchTerms.length; i++) {
 		const term = String(apiSearchTerms[i] ?? "").trim();
 		if (term) candidates.push(term);
 	}
-	if (baseName) candidates.push(baseName);
 	if (baseSlug) candidates.push(baseSlug.replace(/[-_]+/g, " "));
-
 	return [...new Set(candidates)];
 }
 

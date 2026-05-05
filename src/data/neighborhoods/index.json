@@ -8,6 +8,7 @@
 		"scenePath": "/assets/scenes/saint-roch/manifest.json",
 		"audioSrc": "/assets/scenes/saint-roch/ambient.mp3",
 		"stories": ["la-memoire"],
+		"apiSearchTerms": ["Saint-Roch, Quebec City, Quebec, Canada"],
 		"position": {"x": 45, "y": 60}
 	},
 	{
@@ -19,9 +20,9 @@
 		"scenePath": "/assets/scenes/vieux-limoilou/manifest.json",
 		"audioSrc": "/assets/scenes/vieux-limoilou/ambient.mp3",
 		"stories": [],
+		"apiSearchTerms": ["Vieux-Limoilou, Quebec City, Quebec, Canada"],
 		"position": {"x": 65, "y": 30}
 	},
-
 	{
 		"id": "cité-universitaire",
 		"name": "University District",
@@ -31,6 +32,7 @@
 		"scenePath": "/assets/scenes/sainte-foy/manifest.json",
 		"audioSrc": "/assets/scenes/sainte-foy/ambient.mp3",
 		"stories": [],
+		"apiSearchTerms": ["Cité universitaire, Quebec City, Quebec, Canada"],
 		"position": {"x": 80, "y": 40}
 	}
 ]
