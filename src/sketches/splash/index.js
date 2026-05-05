@@ -2,8 +2,8 @@
  * Splash screen orchestrator.
  *
  * State machine:
+ *   LOGO  — boot certification splash; mouse click advances
  *   BIOS  — POST-style diagnostic text streams in
- *   LOGO  — "Boot-Boy OS 3.0" splash box; mouse click advances
  *   LOGIN — automated terminal login sequence
  *   TITLE — cinematic title card; mouse click advances
  *   EXIT  — white flash → dispatch 'splash:complete'
@@ -20,7 +20,7 @@ import {createTitlePhase} from "./title.js";
 import {THEME_FONT, applyThemeCanvasFont} from "../../lib/utils/retro-theme.js";
 import {createCanvasCursor, drawCanvasCursor} from "../../lib/input/canvas-cursor.js";
 
-const PHASE = {BIOS: 0, LOGO: 1, LOGIN: 2, TITLE: 3, EXIT: 4};
+const PHASE = {LOGO: 0, BIOS: 1, LOGIN: 2, TITLE: 3, EXIT: 4};
 
 const loadedGoogleStylesheets = new Set();
 const loadedLocalFontFaces = new Set();
@@ -70,7 +70,7 @@ export default function (container) {
 	let splashFontWeight = THEME_FONT.weight ?? "400";
 	let splashFontVersion = 0;
 
-	let phase = PHASE.BIOS;
+	let phase = PHASE.LOGO;
 
 	/** Phase instances — created in setup once artBuffer is ready. */
 	let bios = null;
@@ -146,10 +146,11 @@ export default function (container) {
 		sketch.draw = () => {
 			const now = sketch.millis();
 			const pointer = canvasCursor.beginFrame({mouseX: sketch.mouseX, mouseY: sketch.mouseY, width: artBuffer.width, height: artBuffer.height});
+			let hoveredCursor = phase === PHASE.TITLE;
 
 			// Advance state machine
-			if (phase === PHASE.BIOS && bios.isDone()) phase = PHASE.LOGO;
-			if (phase === PHASE.LOGO && logo.isDone()) phase = PHASE.LOGIN;
+			if (phase === PHASE.LOGO && logo.isDone()) phase = PHASE.BIOS;
+			if (phase === PHASE.BIOS && bios.isDone()) phase = PHASE.LOGIN;
 			if (phase === PHASE.LOGIN && login.isDone()) phase = PHASE.TITLE;
 			if (phase === PHASE.TITLE && title.isDone()) phase = PHASE.EXIT;
 
@@ -160,12 +161,14 @@ export default function (container) {
 					break;
 				case PHASE.LOGO:
 					logo.draw(now);
+					hoveredCursor = logo.isPointerOver(pointer.x, pointer.y);
 					break;
 				case PHASE.LOGIN:
 					login.draw(now);
 					break;
 				case PHASE.TITLE:
 					title.draw(now);
+					hoveredCursor = title.isPointerOver(pointer.x, pointer.y);
 					break;
 				case PHASE.EXIT:
 					drawExit();
@@ -173,7 +176,7 @@ export default function (container) {
 			}
 
 			// Blit artBuffer onto visible canvas
-			drawCanvasCursor(artBuffer, pointer, {hovered: phase === PHASE.LOGO || phase === PHASE.TITLE});
+			drawCanvasCursor(artBuffer, pointer, {hovered: hoveredCursor});
 			sketch.clear();
 			sketch.image(artBuffer, 0, 0);
 		};
@@ -188,15 +191,16 @@ export default function (container) {
 		// ── Input ──────────────────────────────────────────────────────────────
 
 		sketch.mousePressed = () => {
-			if (phase === PHASE.LOGO) logo.onPointerPressed();
-			if (phase === PHASE.TITLE) title.onPointerPressed();
+			if (phase === PHASE.LOGO) logo.onPointerPressed(sketch.mouseX, sketch.mouseY);
+			if (phase === PHASE.TITLE) title.onPointerPressed(sketch.mouseX, sketch.mouseY);
 			return false;
 		};
 
 		sketch.keyPressed = () => {
-			if (phase === PHASE.LOGO) logo.onPointerPressed();
+			const isConfirmKey = sketch.keyCode === sketch.ENTER || sketch.keyCode === sketch.RETURN || sketch.keyCode === 13 || sketch.key === "Enter" || sketch.key === "Return";
+			if (phase === PHASE.LOGO && isConfirmKey) logo.onConfirm();
 			if (phase === PHASE.LOGIN) login.onKeyPressed(sketch.keyCode, sketch.key);
-			if (phase === PHASE.TITLE) title.onPointerPressed();
+			if (phase === PHASE.TITLE && isConfirmKey) title.onConfirm();
 			return false; // prevent default browser scroll
 		};
 

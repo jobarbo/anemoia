@@ -1,6 +1,6 @@
 /**
- * LOGO phase — centered OS splash box with pixel-art boot mark,
- * title text, version info, and a blinking "click to continue" prompt.
+ * LOGO phase — centered boot certification card inspired by late-90s
+ * Energy Star / OEM startup screens.
  *
  * The user can advance at any time by clicking.
  * Auto-advances after AUTO_ADVANCE_MS if no input.
@@ -23,10 +23,12 @@ const BG = [...THEME.BG];
 export function createLogoPhase(sketch, artBuffer, fontApi) {
 	let startTime = null;
 	let advanced = false;
+	let promptRect = null;
 
 	function reset() {
 		startTime = null;
 		advanced = false;
+		promptRect = null;
 	}
 
 	function isDone() {
@@ -34,7 +36,18 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 		return advanced || sketch.millis() - startTime > AUTO_ADVANCE_MS;
 	}
 
-	function onPointerPressed() {
+	function isPointerOver(x, y) {
+		if (!promptRect) return false;
+		return x >= promptRect.x && x <= promptRect.x + promptRect.w && y >= promptRect.y && y <= promptRect.y + promptRect.h;
+	}
+
+	function onPointerPressed(x, y) {
+		if (!isPointerOver(x, y)) return false;
+		advanced = true;
+		return true;
+	}
+
+	function onConfirm() {
 		advanced = true;
 	}
 
@@ -49,15 +62,14 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 		buf.background(...BG);
 		buf.noStroke();
 
-		// ── Pixel-art logo mark + typography metrics ──────────────────────────
-		// The splash box should fit its content to avoid clipping/overflow.
+		// ── Certification-card metrics ───────────────────────────────────────
 		const px = Math.max(4, Math.round(w * 0.007)); // pixel size
-		const markGridW = 7;
-		const markGridH = 9;
+		const markGridW = 9;
+		const markGridH = 11;
 		const markTotalW = markGridW * px;
 		const markH = markGridH * px;
-		const titleSz = Math.round(w * 0.055);
-		const subSz = Math.round(w * 0.022);
+		const titleSz = Math.round(w * 0.05);
+		const subSz = Math.round(w * 0.02);
 		const titleOffsetY = markH + titleSz * 0.7;
 		const subtitleOffsetY = titleOffsetY + titleSz * 0.85;
 
@@ -71,8 +83,8 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 		const contentH = subtitleOffsetY + subSz * 0.5;
 		const padX = Math.max(26, w * 0.04);
 		const padY = Math.max(20, h * 0.035);
-		const minBoxW = w * 0.35;
-		const minBoxH = h * 0.22;
+		const minBoxW = w * 0.42;
+		const minBoxH = h * 0.26;
 		const maxBoxW = w * 0.9;
 		const maxBoxH = h * 0.6;
 
@@ -81,77 +93,91 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 		const boxX = (w - boxW) / 2;
 		const boxY = (h - boxH) / 2 - h * 0.04;
 
-		// Box fill — chrome gradient (dark navy, lighter toward center)
+		// Box fill — cool blue OEM boot-card gradient
 		const ctx = buf.drawingContext;
 		const boxGrad = ctx.createLinearGradient(boxX, boxY, boxX, boxY + boxH);
-		boxGrad.addColorStop(0, "rgba(72, 38, 22, 1)");
-		boxGrad.addColorStop(0.5, "rgba(38, 20, 12, 1)");
-		boxGrad.addColorStop(1, "rgba(18, 10, 6, 1)");
+		boxGrad.addColorStop(0, "rgba(10, 34, 92, 1)");
+		boxGrad.addColorStop(0.5, "rgba(7, 20, 58, 1)");
+		boxGrad.addColorStop(1, "rgba(4, 10, 26, 1)");
 		ctx.fillStyle = boxGrad;
 		ctx.fillRect(boxX, boxY, boxW, boxH);
 
-		// Left accent stripe (Winamp title-bar chrome stripe)
-		const stripeW = boxW * 0.055;
+		// Left accent stripe — OEM certification panel cue
+		const stripeW = boxW * 0.07;
 		const sGrad = ctx.createLinearGradient(boxX, boxY, boxX + stripeW, boxY);
-		sGrad.addColorStop(0, "rgba(255, 165, 100, 0.5)");
-		sGrad.addColorStop(1, "rgba(100, 50, 28, 0)");
+		sGrad.addColorStop(0, "rgba(120, 190, 255, 0.55)");
+		sGrad.addColorStop(1, "rgba(40, 90, 180, 0)");
 		ctx.fillStyle = sGrad;
 		ctx.fillRect(boxX, boxY, stripeW, boxH);
 
+		const topGlow = ctx.createLinearGradient(boxX, boxY, boxX, boxY + boxH * 0.22);
+		topGlow.addColorStop(0, "rgba(220, 240, 255, 0.18)");
+		topGlow.addColorStop(1, "rgba(220, 240, 255, 0)");
+		ctx.fillStyle = topGlow;
+		ctx.fillRect(boxX, boxY, boxW, boxH * 0.22);
+
 		// Box border (double-line effect: outer thick, inner thin)
 		buf.noFill();
-		buf.stroke(160, 180, 225, 220);
+		buf.stroke(186, 220, 255, 235);
 		buf.strokeWeight(3);
 		buf.rect(boxX, boxY, boxW, boxH);
 		buf.strokeWeight(1);
-		buf.stroke(100, 130, 185, 120);
+		buf.stroke(110, 168, 240, 140);
 		buf.rect(boxX + 6, boxY + 6, boxW - 12, boxH - 12);
 		buf.noStroke();
 
 		// ── Pixel-art logo mark ────────────────────────────────────────────────
-		// A simple stylized "B" made of pixel blocks (Boot-Boy mascot silhouette)
+		// Geometric segmented "T" inspired by the provided reference.
 		const logoBlockH = contentH;
 		const cx = boxX + boxW / 2;
 		const markY = boxY + boxH / 2 - logoBlockH / 2;
 
-		// Pixel map: rows of [col, row] offsets (0-indexed) relative to top-left of mark
-		// Draws a chunky capital B in a 7-wide × 9-tall pixel grid
+		// Pixel map: rows of [col, row] offsets (0-indexed) relative to top-left of mark.
+		// Layout:
+		// - wide top bar
+		// - split shoulder bars
+		// - two long vertical pillars
+		// - short base bar
 		const MARK_PIXELS = [
-			// col 0 (left vertical bar)
-			[0, 0],
-			[0, 1],
-			[0, 2],
-			[0, 3],
-			[0, 4],
-			[0, 5],
-			[0, 6],
-			[0, 7],
-			[0, 8],
-			// top bump
+			// top cap
 			[1, 0],
 			[2, 0],
 			[3, 0],
-			[4, 1],
-			[4, 2],
-			[1, 3],
-			[2, 3],
-			[3, 3],
-			// bottom bump
-			[4, 4],
-			[4, 5],
-			[4, 6],
-			[1, 7],
-			[2, 7],
+			[4, 0],
+			[5, 0],
+			[6, 0],
+			[7, 0],
+			// split shoulder bars
+			[1, 2],
+			[2, 2],
+			[3, 2],
+			[6, 2],
+			[7, 2],
+			// left pillar
+			[3, 4],
+			[3, 5],
+			[3, 6],
 			[3, 7],
-			// col 1 horizontal connectors
-			[1, 4],
-			[1, 5],
-			[1, 6],
+			[3, 8],
+			[3, 9],
+			// right pillar
+			[5, 2],
+			[5, 3],
+			[5, 4],
+			[5, 5],
+			[5, 6],
+			[5, 7],
+			[5, 8],
+			[5, 9],
+			// base
+			[3, 10],
+			[4, 10],
+			[5, 10],
 		];
 
 		const markStartX = cx - markTotalW / 2;
 
-		buf.fill(215, 230, 255, 240);
+		buf.fill(225, 240, 255, 242);
 		buf.noStroke();
 		for (const [col, row] of MARK_PIXELS) {
 			buf.rect(markStartX + col * px, markY + row * px, px - 1, px - 1);
@@ -164,26 +190,45 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 		// ── Subtitle ──────────────────────────────────────────────────────────
 		buf.textAlign(sketch.CENTER, sketch.CENTER);
 		fontApi?.applyCanvasFont?.(buf, subSz) ?? (buf.textFont(canvasFont), buf.textSize(subSz));
-		buf.fill(160, 180, 225, 200);
-		buf.text("VERSION  3.0", cx, markY + subtitleOffsetY);
+		buf.fill(188, 216, 255, 220);
+		buf.text("CERT. PAR TRUDEYL CORP", cx, markY + subtitleOffsetY);
 
 		// ── Version info (below box) ───────────────────────────────────────────
 		const infoSz = Math.max(10, Math.round(w * 0.013));
 		const infoY = boxY + boxH + infoSz * 1.6;
 		buf.textAlign(sketch.CENTER, sketch.CENTER);
 		fontApi?.applyCanvasFont?.(buf, infoSz) ?? (buf.textFont(canvasFont), buf.textSize(infoSz));
-		buf.fill(...THEME.GREEN_SUBTLE, 180);
-		buf.text("Version 3.0.1   Build 9804", cx, infoY);
-		buf.fill(...THEME.GREEN_SUBTLE, 120);
-		buf.text("Copyright (C) 1998  BootSoft Inc.  Tous droits réservés.", cx, infoY + infoSz * 1.8);
+		buf.fill(176, 208, 255, 220);
+		buf.text("Boot-Boy Firmware 3.0.1   Build 9804", cx, infoY);
+		buf.fill(150, 186, 230, 175);
+		buf.text("1998 BootSoft Inc.  OEM startup environment", cx, infoY + infoSz * 1.8);
 
 		// ── Prompt ─────────────────────────────────────────────────────────────
 		const promptSz = Math.max(10, Math.round(w * 0.016));
 		buf.textAlign(sketch.CENTER, sketch.CENTER);
 		fontApi?.applyCanvasFont?.(buf, promptSz) ?? buf.textSize(promptSz);
-		buf.fill(...THEME.GREEN_MID, 210);
-		buf.text("[ CLIQUEZ POUR CONTINUER ]", cx, h - h * 0.07);
+		const promptText = "[ CLIQUEZ POUR DEMARRER ]";
+		const promptY = h - h * 0.12;
+		const promptW = buf.textWidth(promptText);
+		const promptPadX = Math.max(10, promptSz * 0.65);
+		const promptPadY = Math.max(6, promptSz * 0.4);
+		promptRect = {
+			x: cx - promptW / 2 - promptPadX,
+			y: promptY - promptSz * 0.5 - promptPadY,
+			w: promptW + promptPadX * 2,
+			h: promptSz + promptPadY * 2,
+		};
+		const promptHovered = isPointerOver(sketch.mouseX, sketch.mouseY);
+		if (promptHovered) {
+			buf.noFill();
+			buf.stroke(210, 232, 255, 180);
+			buf.strokeWeight(1);
+			buf.rect(promptRect.x, promptRect.y, promptRect.w, promptRect.h, 4);
+			buf.noStroke();
+		}
+		buf.fill(210, 232, 255, promptHovered ? 255 : 230);
+		buf.text(promptText, cx, promptY);
 	}
 
-	return {draw, isDone, onPointerPressed, reset};
+	return {draw, isDone, isPointerOver, onPointerPressed, onConfirm, reset};
 }

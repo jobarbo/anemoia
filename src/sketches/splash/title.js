@@ -22,7 +22,7 @@ const PROMPT_TEXT = "[ CLIQUEZ POUR CONTINUER ]";
 const SKY_PAN_MS = 4400;
 const TITLE_REVEAL_MS = 1600;
 const AUTHOR_FADE_MS = 900;
-const DONE_HOLD_MS = 950;
+const DONE_HOLD_MS = 0;
 const PARTICLE_DENSITY = 0.55;
 const PARTICLE_MIN = 1240;
 const PARTICLE_MAX = 2980;
@@ -66,6 +66,7 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 	let phaseStart = 0;
 	let revealComplete = false;
 	let doneAt = null;
+	let promptRect = null;
 	let particles = [];
 	let particleFieldW = 0;
 	let particleFieldH = 0;
@@ -322,6 +323,7 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 		phaseStart = 0;
 		revealComplete = false;
 		doneAt = null;
+		promptRect = null;
 		particles = [];
 		particleFieldW = 0;
 		particleFieldH = 0;
@@ -334,7 +336,18 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 		return doneAt !== null && sketch.millis() - doneAt > DONE_HOLD_MS;
 	}
 
-	function onPointerPressed() {
+	function isPointerOver(x, y) {
+		if (!promptRect || !revealComplete) return false;
+		return x >= promptRect.x && x <= promptRect.x + promptRect.w && y >= promptRect.y && y <= promptRect.y + promptRect.h;
+	}
+
+	function onPointerPressed(x, y) {
+		if (!isPointerOver(x, y) || doneAt !== null) return false;
+		doneAt = sketch.millis();
+		return true;
+	}
+
+	function onConfirm() {
 		if (!revealComplete || doneAt !== null) return;
 		doneAt = sketch.millis();
 	}
@@ -387,13 +400,33 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 		if (revealComplete) {
 			const promptSize = Math.max(11, Math.round(w * 0.016));
 			fontApi?.applyCanvasFont?.(buf, promptSize, {weight: fontApi?.getCanvasFontWeight?.() ?? "400"}) ?? buf.textSize(promptSize);
-			buf.fill(...THEME.GREEN_MID, 255);
-			buf.text(PROMPT_TEXT, titleX, titleY + titleSize * 2.0);
+			const promptY = titleY + titleSize * 2.0;
+			const promptW = buf.textWidth(PROMPT_TEXT);
+			const promptPadX = Math.max(10, promptSize * 0.65);
+			const promptPadY = Math.max(6, promptSize * 0.4);
+			promptRect = {
+				x: titleX - promptW / 2 - promptPadX,
+				y: promptY - promptSize * 0.5 - promptPadY,
+				w: promptW + promptPadX * 2,
+				h: promptSize + promptPadY * 2,
+			};
+			const promptHovered = isPointerOver(sketch.mouseX, sketch.mouseY);
+			if (promptHovered) {
+				buf.noFill();
+				buf.stroke(...THEME.GREEN_MID, 180);
+				buf.strokeWeight(1);
+				buf.rect(promptRect.x, promptRect.y, promptRect.w, promptRect.h, 4);
+				buf.noStroke();
+			}
+			buf.fill(...THEME.GREEN_MID, promptHovered ? 255 : 230);
+			buf.text(PROMPT_TEXT, titleX, promptY);
+		} else {
+			promptRect = null;
 		}
 
 		drawScanLines(buf, now, sketch);
 		drawVignette(buf);
 	}
 
-	return {draw, isDone, onPointerPressed, reset};
+	return {draw, isDone, isPointerOver, onPointerPressed, onConfirm, reset};
 }
