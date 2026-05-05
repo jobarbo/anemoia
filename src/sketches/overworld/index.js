@@ -2,7 +2,7 @@
  * Overworld map sketch — phosphor-green terminal aesthetic.
  *
  * Receives neighborhood data via container[data-sketch-data]:
- *   { neighborhoods: Array<{ name, slug, position: {x, y} }> }
+ *   { neighborhoods: Array<{ id, name, slug, position: {x, y} }> }
  *
  * Renders:
  *   - Dark terminal background with grid
@@ -21,8 +21,14 @@ import {getOverworldMapData} from "../../lib/data/overworld-map-data.js";
 export default function (container) {
 	const raw = container.dataset.sketchData;
 	const {neighborhoods = []} = raw ? JSON.parse(raw) : {};
+	const getNeighborhoodKey = (neighborhood) => String(neighborhood?.slug ?? neighborhood?.id ?? neighborhood?.name ?? "").trim();
 	const isNeighborhoodEnabled = (neighborhood) => neighborhood?.viewEnabled !== false;
 	const isNeighborhoodIndexEnabled = (index) => isNeighborhoodEnabled(neighborhoods[index]);
+	const getNeighborhoodIndexByKey = (key) => neighborhoods.findIndex((hood) => getNeighborhoodKey(hood) === key);
+	const isNeighborhoodKeyEnabled = (key) => {
+		const index = getNeighborhoodIndexByKey(key);
+		return index >= 0 && isNeighborhoodIndexEnabled(index);
+	};
 	const findFirstEnabledPin = () => neighborhoods.findIndex((hood) => isNeighborhoodEnabled(hood));
 
 	return (sketch) => {
@@ -56,6 +62,14 @@ export default function (container) {
 		const navigateToNeighborhoodAtIndex = (index) => {
 			if (!isNeighborhoodIndexEnabled(index)) return false;
 			sceneNavigate("neighborhood", {slug: neighborhoods[index].slug});
+			return true;
+		};
+
+		const navigateToNeighborhoodByKey = (key) => {
+			const index = getNeighborhoodIndexByKey(key);
+			if (index < 0) return false;
+			if (!navigateToNeighborhoodAtIndex(index)) return false;
+			selectedPin = index;
 			return true;
 		};
 
@@ -120,7 +134,8 @@ export default function (container) {
 			// Retro terminal placeholder grid (no map image)
 			const hoveredOverlay = findNeighborhoodOverlayAtMouse();
 			hoveredOverlaySlug = hoveredOverlay?.slug ?? null;
-			drawMapPlaceholder(artBuffer, mapX, mapY, mapW, mapH, mapOutline, mapOutlineState, neighborhoodOverlays, hoveredOverlaySlug, selectedPin, cityGeoBounds, sketch, neighborhoods);
+			const selectedNeighborhoodKey = getNeighborhoodKey(neighborhoods[selectedPin]);
+			drawMapPlaceholder(artBuffer, mapX, mapY, mapW, mapH, mapOutline, mapOutlineState, neighborhoodOverlays, hoveredOverlaySlug, selectedNeighborhoodKey, cityGeoBounds, sketch, neighborhoods);
 
 			// ── Title ─────────────────────────────────────────────────────────────
 			const titleSz = w * 0.028;
@@ -201,9 +216,7 @@ export default function (container) {
 			}
 			const overlayHit = findNeighborhoodOverlayAtMouse();
 			if (overlayHit) {
-				if (navigateToNeighborhoodAtIndex(overlayHit.pinIndex)) {
-					selectedPin = overlayHit.pinIndex;
-				}
+				navigateToNeighborhoodByKey(overlayHit.neighborhoodKey);
 				return;
 			}
 			const pinIndex = findPinAtMouse();
@@ -252,7 +265,7 @@ export default function (container) {
 			for (let i = 0; i < neighborhoodOverlays.length; i++) {
 				const overlay = neighborhoodOverlays[i];
 				if (!overlay?.anchor) continue;
-				if (!isNeighborhoodIndexEnabled(overlay.pinIndex)) continue;
+				if (!isNeighborhoodKeyEnabled(overlay.neighborhoodKey)) continue;
 				const anchor = toScreenPoint(overlay.anchor, mapBounds, cityGeoBounds);
 				const dx = pointer.x - anchor.x;
 				const dy = pointer.y - anchor.y;
@@ -260,7 +273,7 @@ export default function (container) {
 			}
 			for (let i = 0; i < neighborhoodOverlays.length; i++) {
 				const overlay = neighborhoodOverlays[i];
-				if (!isNeighborhoodIndexEnabled(overlay.pinIndex)) continue;
+				if (!isNeighborhoodKeyEnabled(overlay.neighborhoodKey)) continue;
 				for (let j = 0; j < overlay.rings.length; j++) {
 					const screenRing = toScreenRing(overlay.rings[j], mapBounds, cityGeoBounds);
 					if (screenRing.length < 3) continue;
@@ -271,7 +284,10 @@ export default function (container) {
 		}
 
 		function hasNeighborhoodOverlayAtIndex(index) {
-			return neighborhoodOverlays.some((o) => o.pinIndex === index);
+			const hood = neighborhoods[index];
+			const key = getNeighborhoodKey(hood);
+			if (!key) return false;
+			return neighborhoodOverlays.some((o) => o.neighborhoodKey === key);
 		}
 	};
 }
@@ -315,7 +331,7 @@ function drawPin(buf, x, y, name, hovered, p, options = {}) {
 
 // ── Map placeholder grid ──────────────────────────────────────────────────────
 
-function drawMapPlaceholder(buf, x, y, w, h, mapOutline, mapOutlineState, neighborhoodOverlays, hoveredOverlaySlug, selectedPinIndex, geoBounds, p, neighborhoods = []) {
+function drawMapPlaceholder(buf, x, y, w, h, mapOutline, mapOutlineState, neighborhoodOverlays, hoveredOverlaySlug, selectedNeighborhoodKey, geoBounds, p, neighborhoods = []) {
 	// Dark panel
 	buf.fill(...THEME.BG, 200);
 	buf.stroke(...THEME.GREEN_PRIMARY, 55);
@@ -337,7 +353,7 @@ function drawMapPlaceholder(buf, x, y, w, h, mapOutline, mapOutlineState, neighb
 	}
 
 	drawMapOutline(buf, x, y, w, h, mapOutline, geoBounds);
-	drawNeighborhoodOverlays(buf, {x, y, w, h}, neighborhoodOverlays, hoveredOverlaySlug, selectedPinIndex, geoBounds, p, neighborhoods);
+	drawNeighborhoodOverlays(buf, {x, y, w, h}, neighborhoodOverlays, hoveredOverlaySlug, selectedNeighborhoodKey, geoBounds, p, neighborhoods);
 
 	// Border
 	buf.noFill();
@@ -383,18 +399,19 @@ function drawMapOutline(buf, x, y, w, h, mapOutline, geoBounds) {
 	buf.drawingContext.restore();
 }
 
-function drawNeighborhoodOverlays(buf, mapRect, overlays, hoveredSlug, selectedPinIndex, geoBounds, p, neighborhoods = []) {
+function drawNeighborhoodOverlays(buf, mapRect, overlays, hoveredSlug, selectedNeighborhoodKey, geoBounds, p, neighborhoods = []) {
 	if (!Array.isArray(overlays) || overlays.length === 0) return;
+	const getNeighborhoodKey = (hood) => String(hood?.slug ?? hood?.id ?? hood?.name ?? "").trim();
 	buf.drawingContext.save();
 	buf.drawingContext.beginPath();
 	buf.drawingContext.rect(mapRect.x, mapRect.y, mapRect.w, mapRect.h);
 	buf.drawingContext.clip();
 	for (let i = 0; i < overlays.length; i++) {
 		const overlay = overlays[i];
-		const neighborhood = neighborhoods[overlay.pinIndex];
+		const neighborhood = neighborhoods.find((hood) => getNeighborhoodKey(hood) === overlay.neighborhoodKey);
 		const isEnabled = neighborhood?.viewEnabled !== false;
 		const isHovered = hoveredSlug === overlay.slug;
-		const isSelected = isEnabled && selectedPinIndex === overlay.pinIndex;
+		const isSelected = isEnabled && overlay.neighborhoodKey === selectedNeighborhoodKey;
 		const isActive = isHovered || isSelected;
 		for (let j = 0; j < overlay.rings.length; j++) {
 			const ring = overlay.rings[j];

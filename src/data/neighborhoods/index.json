@@ -11,9 +11,9 @@
 		"position": {"x": 45, "y": 60}
 	},
 	{
-		"id": "old-limoilou",
-		"name": "Old-Limoilou",
-		"slug": "old-limoilou",
+		"id": "vieux-limoilou",
+		"name": "Old Limoilou",
+		"slug": "vieux-limoilou",
 		"description": "The charm of balconies and spiral staircases.",
 		"viewEnabled": false,
 		"scenePath": "/assets/scenes/vieux-limoilou/manifest.json",
@@ -23,9 +23,9 @@
 	},
 
 	{
-		"id": "university-district",
+		"id": "cité-universitaire",
 		"name": "University District",
-		"slug": "university-district",
+		"slug": "cité-universitaire",
 		"description": "The student neighborhood of the city.",
 		"viewEnabled": false,
 		"scenePath": "/assets/scenes/sainte-foy/manifest.json",

@@ -82,8 +82,9 @@ async function fetchAndCacheOverworldMapData(neighborhoods, signature) {
 
 	const hoodRaw = [];
 	for (let i = 0; i < neighborhoods.length; i++) {
-		const geojson = await fetchFirstNeighborhoodPolygonGeoJson(neighborhoods[i].name);
-		hoodRaw.push({hood: neighborhoods[i], index: i, geojson});
+		const hood = neighborhoods[i];
+		const geojson = await fetchFirstNeighborhoodPolygonGeoJson(hood);
+		hoodRaw.push({hood, geojson});
 	}
 
 	let unionBounds = {...city.bounds};
@@ -97,16 +98,16 @@ async function fetchAndCacheOverworldMapData(neighborhoods, signature) {
 	const mapOutline = normalizeGeoJsonRings(city.geojson, unionBounds);
 	const overlays = [];
 	for (let i = 0; i < hoodRaw.length; i++) {
-		const {hood, index, geojson} = hoodRaw[i];
+		const {hood, geojson} = hoodRaw[i];
 		if (!geojson) continue;
 		const rings = normalizeGeoJsonRings(geojson, unionBounds);
 		if (rings.length === 0) continue;
 		overlays.push({
 			name: hood.name,
 			slug: hood.slug,
+			neighborhoodKey: getNeighborhoodKey(hood),
 			rings,
 			anchor: computeOverlayAnchor(rings),
-			pinIndex: index,
 		});
 	}
 
@@ -170,10 +171,18 @@ function createNeighborhoodSignature(neighborhoods) {
 	if (!Array.isArray(neighborhoods)) return "[]";
 	return JSON.stringify(
 		neighborhoods.map((hood) => ({
-			name: String(hood?.name ?? ""),
+			id: String(hood?.id ?? ""),
 			slug: String(hood?.slug ?? ""),
 		})),
 	);
+}
+
+function getNeighborhoodKey(neighborhood) {
+	const slug = String(neighborhood?.slug ?? "").trim();
+	if (slug) return slug;
+	const id = String(neighborhood?.id ?? "").trim();
+	if (id) return id;
+	return String(neighborhood?.name ?? "").trim();
 }
 
 async function loadQuebecOutlineRaw() {
@@ -199,9 +208,9 @@ async function loadQuebecOutlineRaw() {
 	}
 }
 
-async function fetchFirstNeighborhoodPolygonGeoJson(name) {
+async function fetchFirstNeighborhoodPolygonGeoJson(neighborhood) {
 	try {
-		const candidates = neighborhoodQueryCandidates(name);
+		const candidates = neighborhoodQueryCandidates(neighborhood);
 		for (let i = 0; i < candidates.length; i++) {
 			const geojson = await fetchNeighborhoodPolygonGeoJson(candidates[i]);
 			if (geojson) return geojson;
@@ -237,10 +246,15 @@ async function fetchNeighborhoodPolygonGeoJson(neighborhoodName) {
 	return null;
 }
 
-function neighborhoodQueryCandidates(name) {
-	const base = String(name ?? "").trim();
+function neighborhoodQueryCandidates(neighborhood) {
+	const baseName = String(neighborhood?.name ?? "").trim();
+	const baseSlug = String(neighborhood?.slug ?? neighborhood?.id ?? "").trim();
+	const slugLabel = slugToApiLabel(baseSlug);
+	const base = baseName || slugLabel;
 	const candidates = [];
-	if (base) candidates.push(base);
+	if (baseName) candidates.push(baseName);
+	if (slugLabel) candidates.push(slugLabel);
+	if (baseSlug) candidates.push(baseSlug.replace(/[-_]+/g, " "));
 
 	const folded = foldNeighborhoodName(base);
 	if (folded.includes("limoilou")) {
@@ -251,6 +265,21 @@ function neighborhoodQueryCandidates(name) {
 	}
 
 	return [...new Set(candidates)];
+}
+
+function slugToApiLabel(slug) {
+	const normalized = String(slug ?? "").trim().toLowerCase();
+	if (!normalized) return "";
+	const aliases = {
+		"saint-roch": "Saint-Roch",
+		"vieux-limoilou": "Vieux-Limoilou",
+		"cite-universitaire": "Cite Universitaire",
+		"cité-universitaire": "Cite Universitaire",
+	};
+	if (aliases[normalized]) return aliases[normalized];
+	return normalized
+		.replace(/[-_]+/g, " ")
+		.replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
 function foldNeighborhoodName(value) {
