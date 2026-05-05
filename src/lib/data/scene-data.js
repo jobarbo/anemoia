@@ -1,3 +1,5 @@
+import {compareRemDates} from "./rem-calendar.js";
+
 /**
  * Scene data access for the SPA router.
  *
@@ -27,6 +29,7 @@ let _cache = null;
  * @typedef {{
  *   id: string,
  *   title: string,
+ *   date?: string,
  *   neighborhood: string,
  *   returnTo?: 'desktop' | 'neighborhood',
  *   audioSrc?: string,
@@ -72,7 +75,12 @@ export function getStoriesByNeighborhood(neighborhood) {
 	const stories = loadCache().stories;
 	return Object.values(stories)
 		.filter((s) => s.neighborhood === neighborhood)
-		.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+		.sort((a, b) => {
+			// If both have a REM date, sort chronologically
+			if (a.date && b.date) return compareRemDates(a.date, b.date);
+			// Otherwise fall back to numeric order
+			return (a.order ?? 0) - (b.order ?? 0);
+		});
 }
 
 /**
