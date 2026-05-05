@@ -421,8 +421,9 @@ function buildDesktopTreeRows(opts = {}) {
 			});
 		}
 	}
-	rows.push({label: "The Vertical Cities", depth: 0, interactive: true, action: "overworld"});
-	for (const n of getNeighborhoods()) {
+	rows.push({label: "The Vertical Cities", depth: 0, interactive: true, action: "overworld", icon: "map"});
+	const sortedNeighborhoods = [...getNeighborhoods()].sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
+	for (const n of sortedNeighborhoods) {
 		const viewEnabled = isNeighborhoodViewEnabled(n);
 		const storySlugs = Array.isArray(n.stories) ? n.stories : [];
 		const neighborhoodStories = storySlugs.map((slug) => ({slug, story: getStory(slug)})).filter(({story}) => Boolean(story));
@@ -635,7 +636,35 @@ function drawInteractivePanel(buf, w, h, hoveredAction, panelState, p) {
 		const rowActive = isInteractive && hoveredAction === row.action;
 		const rowTextColor = isDisabled ? [214, 154, 154] : rowActive ? THEME.GREEN_MID : THEME.GREEN_SUBTLE;
 		buf.fill(...rowTextColor, 255);
-		buf.text(row.label, labelX + (isDisabled ? panelW * 0.055 : 0), y);
+
+		const labelTextX = labelX + (isDisabled ? panelW * 0.055 : 0);
+		buf.text(row.label, labelTextX, y);
+
+		// Draw icon to the right if present
+		if (row.icon === "map") {
+			const iconSize = optionSz * 0.9;
+			const iconPadding = optionSz * 0.83;
+			const textWidth = buf.textWidth(row.label);
+			const iconX = labelTextX + textWidth + iconPadding;
+			const iconY = y;
+
+			// Simple retro map icon (compass-like shape with crosshairs)
+			buf.strokeWeight(1.2);
+			buf.stroke(...rowTextColor, 200);
+			buf.noFill();
+
+			// Outer circle
+			buf.circle(iconX, iconY, iconSize);
+
+			// Cardinal directions (cross)
+			const r = iconSize * 0.35;
+			buf.line(iconX, iconY - r, iconX, iconY + r);
+			buf.line(iconX - r, iconY, iconX + r, iconY);
+
+			// Small center dot
+			buf.fill(...rowTextColor, 180);
+			buf.circle(iconX, iconY, iconSize * 0.1);
+		}
 	}
 
 	buf.stroke(...branchColor);
