@@ -6,31 +6,10 @@
  */
 
 /** Mois dans l'ordre chronologique (index 0 = premier mois de l'an). */
-export const MONTHS = [
-	"Reveillase",
-	"Nevrose",
-	"Sucriene",
-	"Slochimene",
-	"Esperance",
-	"Sainhanbatis",
-	"Caniculasse",
-	"Humidase",
-	"Feuillandre",
-	"Macabrase",
-	"Griseille",
-	"Bacaisse",
-];
+export const MONTHS = ["Reveillase", "Nevrose", "Sucriene", "Slochimene", "Esperance", "Sainhanbatis", "Caniculasse", "Humidase", "Feuillandre", "Macabrase", "Griseille", "Bacaisse"];
 
 /** Jours dans l'ordre chronologique (registre du transport). */
-export const DAYS = [
-	"Tramedi",
-	"Vélocredi",
-	"Métreudi",
-	"Piétonnedi",
-	"Busedi",
-	"Covoituredi",
-	"Triportanche",
-];
+export const DAYS = ["Tramedi", "Vélocredi", "Métreudi", "Piétonnedi", "Busedi", "Covoituredi", "Triportanche"];
 
 /**
  * Parse une date REM en valeurs numériques comparables.
