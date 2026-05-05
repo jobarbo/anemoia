@@ -594,7 +594,7 @@ function drawNeighborhoodSidebar(buf, sidebarRect, neighborhoods, selectedIndex,
 	const titleSize = Math.max(11, buf.width * 0.0105);
 	applyThemeCanvasFont(buf, titleSize, p);
 	buf.noStroke();
-	buf.fill(...THEME.GREEN_SUBTLE, 240);
+	buf.fill(255, 255, 255, 255);
 	buf.textAlign(p.LEFT, p.TOP);
 	buf.text("Quartiers", x + padX, y + padY * 0.55);
 
@@ -612,14 +612,14 @@ function drawNeighborhoodSidebar(buf, sidebarRect, neighborhoods, selectedIndex,
 		const isSelected = i === selectedIndex;
 
 		buf.stroke(...(enabled ? THEME.GREEN_PRIMARY : [120, 68, 68]), isHovered ? 190 : 95);
-		buf.strokeWeight(isSelected ? 2 : 1);
+		buf.strokeWeight(isSelected ? 2 : 2);
 		buf.fill(...(enabled ? THEME.BG : [40, 18, 18]), isHovered || isSelected ? 185 : 130);
 		buf.rect(x + padX, itemY, itemW, rowH, 7);
 
-		const labelSize = Math.max(10, buf.width * 0.0088);
+		const labelSize = Math.max(16, buf.width * 0.0098);
 		applyThemeCanvasFont(buf, labelSize, p);
 		buf.noStroke();
-		buf.fill(...(enabled ? THEME.GREEN_MID : [190, 120, 120]), enabled ? 240 : 210);
+		buf.fill(...(enabled ? THEME.GREEN_MID : [255, 255, 255]), 255);
 		buf.textAlign(p.LEFT, p.CENTER);
 		buf.text(neighborhoods[i]?.name ?? `Quartier ${i + 1}`, x + padX + itemW * 0.06, itemY + rowH * 0.52);
 	}
