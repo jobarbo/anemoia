@@ -705,35 +705,40 @@ function buildSystemStats() {
 	const res = `${screen.width}×${screen.height}`;
 	const lang = (navigator.language ?? "--").toUpperCase();
 
-	const lines = [];
-	if (cores !== null) lines.push(`CPU CORES`, `${cores} THREADS`);
-	if (ramGb !== null) lines.push(``, `TOTAL RAM`, `${ramGb} GB`);
-	lines.push(``, `DISPLAY`, res);
-	lines.push(``, `LOCALE`, lang);
-	return lines.join("\n").replace(/^\n/, "");
+	const stats = [];
+	if (cores !== null) stats.push({label: "CPU CORES", value: `${cores} THREADS`});
+	if (ramGb !== null) stats.push({label: "TOTAL RAM", value: `${ramGb} GB`});
+	stats.push({label: "DISPLAY", value: res});
+	stats.push({label: "LOCALE", value: lang});
+	return stats;
 }
 
 function drawSystemCard(buf, w, h, p, blink, gazeXNorm, gazeYNorm, systemStats) {
-	const statsText = systemStats ?? "CPU CLOCK\n64 MHZ\n\nTOTAL RAM\n10 MB\n\nFREE RAM\n5 MB\n\nI/O MODE\nMIDI";
-	const statsLines = statsText.split("\n");
+	const stats = Array.isArray(systemStats) && systemStats.length > 0
+		? systemStats
+		: [{label: "CPU CLOCK", value: "64 MHZ"}, {label: "TOTAL RAM", value: "10 MB"}, {label: "FREE RAM", value: "5 MB"}, {label: "I/O MODE", value: "MIDI"}];
 	const cardY = h * 0.23;
 	const cardRight = w * 0.95;
 	const cardGapY = Math.max(14, h * 0.03);
 	const cardPadX = Math.max(16, w * 0.018);
 	const cardPadY = Math.max(14, h * 0.024);
 
-	const maxCardW = w * 0.47;
-	let statSz = Math.max(13, w * 0.016);
-	applyThemeCanvasFont(buf, statSz, p);
-	let statsMaxW = Math.max(...statsLines.map((line) => (line ? buf.textWidth(line) : 0)));
-	while (statsMaxW > maxCardW - cardPadX * 2 && statSz > 9) {
-		statSz -= 1;
-		applyThemeCanvasFont(buf, statSz, p);
-		statsMaxW = Math.max(...statsLines.map((line) => (line ? buf.textWidth(line) : 0)));
+	const labelSz = Math.max(10, w * 0.012);
+	const valueSz = Math.max(13, w * 0.016);
+	const groupGap = Math.max(8, labelSz * 0.8);
+	const intraGap = Math.max(2, labelSz * 0.15);
+
+	applyThemeCanvasFont(buf, valueSz, p);
+	let statsMaxW = 0;
+	for (const s of stats) {
+		applyThemeCanvasFont(buf, labelSz, p);
+		statsMaxW = Math.max(statsMaxW, buf.textWidth(s.label));
+		applyThemeCanvasFont(buf, valueSz, p);
+		statsMaxW = Math.max(statsMaxW, buf.textWidth(s.value));
 	}
 
-	const lineH = statSz * 1.2;
-	const statsH = (statsLines.length - 1) * lineH + statSz;
+	const groupH = labelSz + intraGap + valueSz;
+	const statsH = stats.length * groupH + Math.max(0, stats.length - 1) * groupGap;
 	const eyeW = Math.max(statsMaxW, w * 0.22);
 	const eyeH = Math.max(76, eyeW * 0.28);
 	const contentW = Math.max(eyeW, statsMaxW);
@@ -767,13 +772,31 @@ function drawSystemCard(buf, w, h, p, blink, gazeXNorm, gazeYNorm, systemStats) 
 	buf.circle(eyeX + eyeW * 0.5 + gazeX, eyeY + eyeH * 0.53 + gazeY, eyeH * 0.48);
 	buf.drawingContext.restore();
 
-	applyThemeCanvasFont(buf, statSz, p);
-	buf.textLeading(lineH);
-	buf.fill(...THEME.GREEN_SUBTLE, 255);
 	buf.textAlign(p.LEFT, p.TOP);
 	const statsX = cardX + (cardW - statsMaxW) * 0.15;
-	const statsY = eyeY + eyeH + cardGapY;
-	buf.text(statsText, statsX, statsY);
+	let currentY = eyeY + eyeH + cardGapY;
+	const ctx = buf.drawingContext;
+
+	for (let i = 0; i < stats.length; i++) {
+		const {label, value} = stats[i];
+
+		// Label: small, muted, bold
+		ctx.save();
+		applyThemeCanvasFont(buf, labelSz, p);
+		ctx.font = "bold " + ctx.font;
+		ctx.fillStyle = `rgba(${THEME.GREEN_SUBTLE.join(",")}, 0.6)`;
+		ctx.textAlign = "left";
+		ctx.textBaseline = "top";
+		ctx.fillText(label, statsX, currentY);
+		ctx.restore();
+		currentY += labelSz + intraGap;
+
+		// Value: larger, bright
+		applyThemeCanvasFont(buf, valueSz, p);
+		buf.fill(...THEME.GREEN_MID, 255);
+		buf.text(value, statsX, currentY);
+		currentY += valueSz + (i < stats.length - 1 ? groupGap : 0);
+	}
 }
 
 function pClamp(value, min, max) {
