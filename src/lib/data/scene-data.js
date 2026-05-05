@@ -88,10 +88,7 @@ export function getStoriesByNeighborhood(neighborhood) {
  * @returns {Promise<object>}
  */
 export async function fetchNeighborhoodManifest(scenePath, slug) {
-	const [manifestRes, sceneConfigRes] = await Promise.all([
-		fetch(scenePath),
-		fetch(scenePath.replace("manifest.json", "scene-config.json")),
-	]);
+	const [manifestRes, sceneConfigRes] = await Promise.all([fetch(scenePath), fetch(scenePath.replace("manifest.json", "scene-config.json"))]);
 
 	if (!manifestRes.ok) throw new Error(`[scene-data] Failed to fetch manifest: ${scenePath}`);
 

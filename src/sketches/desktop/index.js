@@ -336,8 +336,6 @@ function splitWeatherLabel(label) {
 // Weather Icons font (Erik Flowers) — Private Use Area codepoints
 const WEATHER_ICON_NA = "\uF07B";
 
-
-
 function isNeighborhoodViewEnabled(neighborhood) {
 	return neighborhood?.viewEnabled !== false;
 }
