@@ -4,7 +4,7 @@ interface Props {
 	label?: string;
 	dataScrollFixed?: boolean;
 }
-const { href, label = "Retour", dataScrollFixed } = Astro.props;
+const { href, label = "Back", dataScrollFixed } = Astro.props;
 ---
 <a href={href} class="back-btn" data-composite-exclude data-scroll-fixed={dataScrollFixed ? true : undefined}>{label}</a>
 
