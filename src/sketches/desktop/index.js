@@ -714,9 +714,15 @@ function buildSystemStats() {
 }
 
 function drawSystemCard(buf, w, h, p, blink, gazeXNorm, gazeYNorm, systemStats) {
-	const stats = Array.isArray(systemStats) && systemStats.length > 0
-		? systemStats
-		: [{label: "CPU CLOCK", value: "64 MHZ"}, {label: "TOTAL RAM", value: "10 MB"}, {label: "FREE RAM", value: "5 MB"}, {label: "I/O MODE", value: "MIDI"}];
+	const stats =
+		Array.isArray(systemStats) && systemStats.length > 0
+			? systemStats
+			: [
+					{label: "CPU CLOCK", value: "64 MHZ"},
+					{label: "TOTAL RAM", value: "10 MB"},
+					{label: "FREE RAM", value: "5 MB"},
+					{label: "I/O MODE", value: "MIDI"},
+				];
 	const cardY = h * 0.23;
 	const cardRight = w * 0.95;
 	const cardGapY = Math.max(14, h * 0.03);
