@@ -1,5 +1,5 @@
 ---
-title: PRÉAMBULE
+title: Préambule
 neighborhood: desktop
 returnTo: desktop
 order: 1
