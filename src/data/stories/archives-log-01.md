@@ -6,4 +6,10 @@ order: 1
 date: Busedi, Reveillase 12, Année 4 Après REM
 ---
 
-Je suis l'Archiviste. C'est du moins ce que les gens avaient l'habitude de m'appeler, à l'époque où nous devions nous cacher pour simplement exister. Par exister, j'entends lire, chercher la connaissance, se rencontrer, échanger, ou se livrer à tout loisir jugé interdit par Trudeyl Corp. Mais aujourd'hui, il ne reste plus personne autour de moi. Je suis seul. Je n'ai qu'un seul but : documenter les années d'horreur que mes concitoyens et moi avons vécues. Rien de plus. Pour qu'une telle ère de terreur ne puisse jamais se répéter.
+Je suis l’Archiviste. C’est du moins comme cela que les gens m’appelaient à une
+certaine époque, quand nous devions nous cacher pour exister. Par exister,
+j’entends lire, se renseigner, se rencontrer, échanger ou s’adonner à un
+quelconque loisir jugé interdit par Trudeyl Corp. Or, aujourd’hui, il n’y a plus
+personne autour de moi. Je suis seul. Je n’ai qu’une seule volonté : documenter
+les années d’horreur que mes concitoyen·nes et moi-même avons vécues. Rien
+de plus. Pour qu’une telle ère de terreur ne puisse plus jamais voir le jour.

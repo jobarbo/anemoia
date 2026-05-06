@@ -6,4 +6,5 @@ order: 7
 date: Covoituredi, Slochimene 7, Année 4 Après REM
 ---
 
-Les vents d'ouest apportent d'étranges nouvelles. Une lumière violette dans le ciel. La Vieille-Sainte-Foy menacée.
+Les vents de l’ouest m’apportent une étrange nouvelle. Une lumière mauve dans
+le ciel. L’Ancien-Sainte-Foy menacé.

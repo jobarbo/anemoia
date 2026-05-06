@@ -6,4 +6,5 @@ order: 9
 date: Tramedi, Esperance 11, Année 4 Après REM
 ---
 
-Tandis que les ruelles résonnent encore du rire des jeunes, il n'en est pas de même des ruines de l'autoroute, où la mort sent les temps anciens.
+Si les ruelles se font toujours l’écho des rires de la jeunesse, nous ne pouvons
+pas en dire autant des ruines autoroutières, où la mort pue les temps anciens.

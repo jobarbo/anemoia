@@ -6,4 +6,5 @@ order: 2
 date: Tramedi, Reveillase 21, Année 4 Après REM
 ---
 
-Si le manuscrit retrouvé est un lieu commun de la littérature, qu'en est-il alors de l'ordinateur retrouvé ?
+Si le manuscrit retrouvé est un topos pour le moins éprouvé en littérature, qu’en
+est-il de l’ordinateur retrouvé?

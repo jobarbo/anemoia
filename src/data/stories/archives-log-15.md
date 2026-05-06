@@ -6,4 +6,6 @@ order: 15
 date: Busedi, Macabrase 6, Année 4 Après REM
 ---
 
-Une rumeur étrange mais persistante me parvient : Trudeyl Corp. aurait lancé un programme biomédical visant à modifier le code génétique de ses clients. À quelle fin ?
+Une rumeur loufoque, mais persistante, parvient à mes oreilles : Trudeyl Corp.
+aurait lancé un programme biomédical destiné à modifier le code génétique de
+leurs clients. Dans quel but?

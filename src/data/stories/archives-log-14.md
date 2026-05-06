@@ -6,4 +6,5 @@ order: 14
 date: Covoituredi, Feuillandre 23, Année 4 Après REM
 ---
 
-Premier témoignage reçu. Création d'un nouveau répertoire. Dans l'espoir que ce ne sera pas le dernier.
+Premier témoignage reçu. Création d’un nouveau répertoire. En espérant qu’il
+s’agisse du premier d’une longue série.

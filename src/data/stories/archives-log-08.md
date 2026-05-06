@@ -6,4 +6,6 @@ order: 8
 date: Busedi, Slochimene 24, Année 4 Après REM
 ---
 
-Rien de mieux que l'art culinaire pour apprendre à connaître une civilisation et ses coutumes. Il est temps de cataloguer les pratiques alimentaires de la société d'antan.
+Rien de mieux que l’art culinaire pour en apprendre sur une civilisation et ses
+coutumes. Il est temps de répertorier les pratiques alimentaires de la société de
+jadis.

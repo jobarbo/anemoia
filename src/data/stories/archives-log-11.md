@@ -6,4 +6,4 @@ order: 11
 date: Vélocredi, Caniculasse 14, Année 4 Après REM
 ---
 
-TÉMÉRACLE_02x inaccessible depuis près de 36 heures.
+TÉMÉRACLE_02x inaccessible depuis bientôt 36 heures.

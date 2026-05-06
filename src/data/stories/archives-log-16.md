@@ -6,4 +6,4 @@ order: 16
 date: Tramedi, Griseille 18, Année 4 Après REM
 ---
 
-Pluie acide. Suffisamment pour faire fondre les carcasses de bicyclettes rouillées.
+Pluie acide. À en faire fondre les carcasses de vélos rouillés.
