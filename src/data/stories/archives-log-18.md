@@ -3,7 +3,7 @@ title: LOG - Bac. 27, 4 A.REM
 neighborhood: archives
 returnTo: desktop
 order: 18
-date: Piétonnedi, Bacaisse 27, Year 4 After REM
+date: Piétonnedi, Bacaisse 27, Année 4 Après REM
 ---
 
-New addition to my collection (newly christened "read"): a red concoction made, judging by the bottle, from 57 ingredients.
+Nouvel ajout à ma collection (récemment baptisée « lue ») : une mixture rouge composée, à en juger par la bouteille, de 57 ingrédients.

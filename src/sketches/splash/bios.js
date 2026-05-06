@@ -10,16 +10,16 @@ import {THEME} from "../../lib/utils/retro-theme.js";
 
 const LINES = [
 	"BOOT-BOY BIOS  Version 1.04",
-	"Copyright (C) 1998-2026  BootSoft Inc.  All rights reserved.",
+	"Copyright (C) 1998-2026  BootSoft Inc.  Tous droits réservés.",
 	"",
 	"CPU : Compatible Z80  @  4.00 MHz .............. OK",
-	"MEMORY TEST: 640K  Base memory .............. OK",
-	"MEMORY TEST: 32768K  Extended memory ........ OK",
+	"TEST MÉMOIRE: 640K  Mémoire de base ............ OK",
+	"TEST MÉMOIRE: 32768K  Mémoire étendue ......... OK",
 	"IDE CHANNEL 0: Primary Master",
 	"  QUANTUM FIREBALL  2.1GB  LBA HDS=4092 C=16 S=63",
-	"PCI BUS INITIALIZATION ...................... OK",
+	"INITIALISATION BUS PCI ..................... OK",
 	"",
-	"LOADING  BOOT-BOY OS  3.0 ...",
+	"CHARGEMENT  BOOT-BOY OS  3.0 ...",
 ];
 
 /** Milliseconds between revealing each character */

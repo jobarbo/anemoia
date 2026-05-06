@@ -3,7 +3,7 @@ title: LOG - Sai. 2, 4 A.REM
 neighborhood: archives
 returnTo: desktop
 order: 10
-date: Triportanche, Sainhanbatis 2, Year 4 After REM
+date: Triportanche, Sainhanbatis 2, Année 4 Après REM
 ---
 
-The Squad just arrested that mother, right near my home. In fact, it happened at my doorstep. I could have intervened.
+L'Escouade vient d'arrêter cette mère, juste près de chez moi. En fait, c'est arrivé sur le pas de ma porte. J'aurais pu intervenir.

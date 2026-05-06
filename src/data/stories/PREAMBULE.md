@@ -1,18 +1,18 @@
 ---
-title: The lore
+title: Préambule
 neighborhood: desktop
 returnTo: desktop
 order: 1
 ---
 
-## Preamble
+## Préambule
 
-It is in Quebec, that curious northern city, that the emergence of vertical cities began.
+C'est à Québec, cette curieuse ville nordique, que l'émergence des villes verticales a débuté.
 
-It all started in year 12 before the Ecomobilist Revolution (-12 EMR), during yet another city council meeting on the construction of a seventh link between the former High-Ground of Levis and Quebec (also once called, according to the oldest archives, "the accent of America"). Citizens, until then divided on questions of mobility, inter-urbanism and ecology, united when mayors Montpetit and Taschereau informed their respective populations that the bridge in question would serve only to support gas pipelines (eighteen, according to the records, stacked one on top of another). A betrayal that spelled the end for the municipal, provincial and federal leaders of the time. All were imprisoned in Complex G by a coalition of revolutionary militias. The construction of the bridge, well underway though it was, would never reach completion: its ruins can still be seen on clear mornings from the other side of the river.
+Tout a commencé en l'an 12 avant la Révolution Écomobiliste (-12 EMR), lors d'une énième réunion du conseil municipal portant sur la construction d'un septième lien entre l'ancien Haut-Fond de Lévis et Québec (aussi jadis appelée, selon les plus vieilles archives, « l'accent de l'Amérique »). Les citoyens, jusqu'alors divisés sur les questions de mobilité, d'inter-urbanisme et d'écologie, s'unirent lorsque les maires Montpetit et Taschereau informèrent leurs populations respectives que le pont en question ne servirait qu'à soutenir des gazoducs (dix-huit, selon les registres, empilés les uns sur les autres). Une trahison qui sonna le glas des élus municipaux, provinciaux et fédéraux de l'époque. Tous furent emprisonnés dans le Complexe G par une coalition de milices révolutionnaires. La construction du pont, pourtant bien avancée, ne serait jamais achevée : ses ruines sont encore visibles par les matins clairs depuis l'autre rive.
 
-Following this unprecedented seizure of power by the population, citizens had the opportunity to rebuild a new society — fairer, richer, more democratic.
+À la suite de cette prise de pouvoir sans précédent par la population, les citoyens eurent l'occasion de rebâtir une nouvelle société — plus juste, plus riche, plus démocratique.
 
-But none of that came to pass.
+Mais rien de tout cela ne se produisit.
 
-These are the circumstances that led to the "Anemoia" era; an era that everyone idealizes today without ever having lived through it. All that remains of this period of history is accessible through the journals of the old Archivist's registrarium. Without him, we could not have documented what truly happened.
+Telles sont les circonstances qui menèrent à l'ère « Anemoia » ; une ère que tout le monde idéalise aujourd'hui sans jamais l'avoir vécue. Tout ce qui subsiste de cette période de l'histoire est accessible à travers les journaux du registrarium du vieil Archiviste. Sans lui, nous n'aurions pu documenter ce qui s'est véritablement passé.

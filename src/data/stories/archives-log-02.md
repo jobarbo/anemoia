@@ -3,7 +3,7 @@ title: LOG - Rev. 21, 4 A.REM
 neighborhood: archives
 returnTo: desktop
 order: 2
-date: Tramedi, Reveillase 21, Year 4 After REM
+date: Tramedi, Reveillase 21, Année 4 Après REM
 ---
 
-If the found manuscript is a well-worn trope in literature, what then of the found computer?
+Si le manuscrit retrouvé est un lieu commun de la littérature, qu'en est-il alors de l'ordinateur retrouvé ?

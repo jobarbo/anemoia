@@ -1,20 +1,20 @@
 ---
-title: A Morning From Before
+title: Un matin d'avant
 neighborhood: saint-roch
 audioSrc: /assets/scenes/saint-roch/ambient.mp3
 order: 1
 ---
 
-I live in the Arago apartment complex, third floor, street-facing window. In the morning, I wake up before my alarm, not because of the sun: because of the machines. Hydraulic hammers have their own way of passing through concrete. When I pour my coffee, the cup shakes just enough for me to know the time without looking at the clock.
+J'habite dans l'immeuble Arago, troisième étage, fenêtre côté rue. Le matin, je me réveille avant mon réveil, non pas à cause du soleil : à cause des machines. Les marteaux hydrauliques ont leur façon bien à eux de traverser le béton. Quand je verse mon café, la tasse tremble juste assez pour que je sache l'heure sans regarder le cadran.
 
-Down below, Saint-Roch moves forward through detours. Construction signs grow faster than trees. We are told this is the price of a modern city: rebuilt underground networks, reorganized lanes, temporary coexistence. Temporary is the word that comes back everywhere. Temporary like the barricades. Temporary like the noise. Temporary like neighbors who leave when the rent goes up.
+En bas, Saint-Roch avance par détours. Les panneaux de construction poussent plus vite que les arbres. On nous dit que c'est le prix d'une ville moderne : réseaux souterrains reconstruits, voies réorganisées, cohabitation temporaire. Temporaire est le mot qui revient partout. Temporaire comme les barricades. Temporaire comme le bruit. Temporaire comme les voisins qui partent quand le loyer monte.
 
-On the bus, municipal screens repeat the same numbers: 19 kilometers, 29 stations, planned service in 2033. The tramway is supposed to become Quebec City's backbone, linking Le Gendre to Charlesbourg through our side of town. I wish I could believe it without hesitation. I wish I could believe a backbone can grow without breaking ribs.
+Dans l'autobus, les écrans municipaux répètent les mêmes chiffres : 19 kilomètres, 29 stations, mise en service prévue en 2033. Le tramway est censé devenir l'épine dorsale de Québec, reliant Le Gendre à Charlesbourg en passant par notre côté de la ville. J'aimerais pouvoir y croire sans hésitation. J'aimerais croire qu'une épine dorsale peut pousser sans briser des côtes.
 
-In the evening, at the corner store, people mostly talk about the third link. Some swear the selected corridor will finally ease travel between Quebec and Levis, protect freight transport, and give the East some breathing room. Others talk about highway exits, neighborhoods split in two, promises that change shape every year. Me, I do not have engineers' science. I only have my legs, my route, and the memory of my street.
+Le soir, au dépanneur, on parle surtout du troisième lien. Certains jurent que le corridor retenu facilitera enfin les déplacements entre Québec et Lévis, protégera le transport de marchandises, donnera de l'air à l'Est. D'autres parlent de bretelles d'autoroute, de quartiers coupés en deux, de promesses qui changent de forme chaque année. Moi, je n'ai pas la science des ingénieurs. J'ai juste mes jambes, mon trajet, et la mémoire de ma rue.
 
-Meanwhile, real-estate announcements rise like cranes. Fleur de Lys. Galeries Charlesbourg. Ilot Dorchester. We read: first phase delivered, consultation, groundbreaking, new uses, increased height. On paper, it looks clean. In real life, it is more mixed: a clinic opens, a counter closes, some families hope, others pack up. Trudeyl Corp calls it development. We call it learning to say goodbye quickly.
+Pendant ce temps, les annonces immobilières montent comme des grues. Fleur de Lys. Galeries Charlesbourg. Îlot Dorchester. On y lit : première phase livrée, consultation, pelletée de terre, nouveaux usages, hauteur augmentée. Sur papier, ça a l'air propre. Dans la réalité, c'est plus mêlé : une clinique ouvre, un comptoir ferme, des familles espèrent, d'autres font leurs boîtes. Trudeyl Corp appelle ça du développement. Nous, on appelle ça apprendre à dire au revoir vite.
 
-I do not have a machine to file History. I have a fridge covered in bills, a plant that survives dust poorly, and a balcony from which I watch the city redraw itself. But I know how to recognize the moment when something tips: it is when neighborhoods stop being places and become phases.
+Je n'ai pas de machine pour archiver l'Histoire. J'ai un frigo couvert de factures, une plante qui survit mal à la poussière, et un balcon d'où je regarde la ville se redessiner. Mais je sais reconnaître le moment où quelque chose bascule : c'est quand les quartiers cessent d'être des lieux et deviennent des phases.
 
-Later, maybe people will say it was all reasonable. A tramway to go greener. A link to ease traffic. Towers to house people. Exemptions to speed things up. Maybe. But the city will not remember me, or us.
+Plus tard, peut-être qu'on dira que c'était raisonnable. Un tramway pour verdir. Un lien pour fluidifier. Des tours pour loger. Des dérogations pour accélérer. Peut-être. Mais la ville ne se souviendra pas de moi, ni de nous.

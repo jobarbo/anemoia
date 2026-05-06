@@ -3,7 +3,7 @@ title: LOG - Mac. 6, 4 A.REM
 neighborhood: archives
 returnTo: desktop
 order: 15
-date: Busedi, Macabrase 6, Year 4 After REM
+date: Busedi, Macabrase 6, Année 4 Après REM
 ---
 
-A strange but persistent rumor reaches my ears: Trudeyl Corp. has allegedly launched a biomedical program to modify the genetic code of their clients. To what end?
+Une rumeur étrange mais persistante me parvient : Trudeyl Corp. aurait lancé un programme biomédical visant à modifier le code génétique de ses clients. À quelle fin ?

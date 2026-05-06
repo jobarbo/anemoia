@@ -3,7 +3,7 @@ title: LOG - Slo. 7, 4 A.REM
 neighborhood: archives
 returnTo: desktop
 order: 7
-date: Covoituredi, Slochimene 7, Year 4 After REM
+date: Covoituredi, Slochimene 7, Année 4 Après REM
 ---
 
-The west winds bring strange news. A purple light in the sky. Old-Sainte-Foy threatened.
+Les vents d'ouest apportent d'étranges nouvelles. Une lumière violette dans le ciel. La Vieille-Sainte-Foy menacée.

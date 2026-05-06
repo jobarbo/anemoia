@@ -472,7 +472,7 @@ function drawWindowTopBar(buf, w, h, closeHovered, title, p) {
 	applyThemeCanvasFont(buf, Math.max(12, w * 0.014), p);
 	buf.fill(...THEME.GREEN_SUBTLE, 240);
 	buf.textAlign(p.CENTER, p.CENTER);
-	buf.text(title || "Story Viewer", w * 0.5, barH * 0.5);
+	buf.text(title || "Visionneuse de récit", w * 0.5, barH * 0.5);
 
 	return {
 		closeRect: {x: btnX, y: btnY, w: btnSize, h: btnSize},

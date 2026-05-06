@@ -206,14 +206,14 @@ export default function (container) {
 
 			// ── Title ─────────────────────────────────────────────────────────────
 			const titleSz = w * 0.028;
-			drawTitleAberration(artBuffer, "The Vertical Cities", w / 2, topBarH + titleH * 0.45, titleSz, 255, sketch);
+			drawTitleAberration(artBuffer, "Les Villes Verticales", w / 2, topBarH + titleH * 0.45, titleSz, 255, sketch);
 
 			// Key hint
 			const hintSz = w * 0.011;
 			artBuffer.textAlign(sketch.RIGHT, sketch.CENTER);
 			applyThemeCanvasFont(artBuffer, hintSz, sketch);
 			artBuffer.fill(...THEME.GREEN_SUBTLE, 210);
-			artBuffer.text("↑↓ CHOOSE   ENTER CONFIRM   ESC CLOSE   🖱↑↓ ZOOM/PAN", w - w * 0.04, h - bottomBarH * 0.5);
+			artBuffer.text("↑↓ CHOISIR   ENTRÉE CONFIRMER   ÉCH FERMER   🖱↑↓ ZOOM/PAN", w - w * 0.04, h - bottomBarH * 0.5);
 
 			// Draw pan limit indicators
 			if (zoomLevel > 1.01) {
@@ -441,7 +441,7 @@ function drawPin(buf, x, y, name, hovered, p, options = {}) {
 	if (disabled) {
 		applyThemeCanvasFont(buf, Math.max(9, labelSz * 0.72), p);
 		buf.fill(228, 146, 146, 230);
-		if (showLabel) buf.text("ACCESS BLOCKED", x, y + dotR * 3.7);
+		if (showLabel) buf.text("ACCÈS BLOQUÉ", x, y + dotR * 3.7);
 	} else if (showLabel) {
 		buf.fill(255, 255, 255, 255);
 		buf.text(name, x, y + dotR * 3.5);
@@ -490,7 +490,7 @@ function drawMapFrame(buf, x, y, w, h, mapOutlineState, zoomLevel, p) {
 
 	// Top-right: outline status
 	buf.textAlign(p.RIGHT, p.TOP);
-	const status = mapOutlineState === "loading" ? "QC Outline: loading..." : "QC Outline: active";
+	const status = mapOutlineState === "loading" ? "Contour QC : chargement..." : "Contour QC : actif";
 	buf.text(status, x + w - w * 0.02, y + h * 0.02);
 
 	// Bottom-right: zoom indicator
@@ -576,7 +576,7 @@ function drawOverlayAnchor(buf, mapRect, overlay, isHovered, isSelected, geoBoun
 		applyThemeCanvasFont(buf, Math.max(9, labelSz * 0.72), p);
 		buf.textAlign(p.CENTER, p.BOTTOM);
 		buf.fill(228, 146, 146, 230);
-		if (isHovered) buf.text("ACCESS BLOCKED", center.x, center.y - dotR * 2.1);
+		if (isHovered) buf.text("ACCÈS BLOQUÉ", center.x, center.y - dotR * 2.1);
 	} else if (isHovered) {
 		buf.fill(255, 255, 255, 255);
 		buf.text(overlay.name, center.x, center.y - dotR * 2.1);
@@ -597,7 +597,7 @@ function drawNeighborhoodSidebar(buf, sidebarRect, neighborhoods, selectedIndex,
 	buf.noStroke();
 	buf.fill(255, 255, 255, 255);
 	buf.textAlign(p.LEFT, p.TOP);
-	buf.text("Cities", x + padX, y + padY * 0.55);
+	buf.text("Quartiers", x + padX, y + padY * 0.55);
 
 	const contentTop = y + padY + titleSize * 1.25;
 	const contentBottom = y + h - padY;

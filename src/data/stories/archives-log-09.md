@@ -3,7 +3,7 @@ title: LOG - Esp. 11, 4 A.REM
 neighborhood: archives
 returnTo: desktop
 order: 9
-date: Tramedi, Esperance 11, Year 4 After REM
+date: Tramedi, Esperance 11, Année 4 Après REM
 ---
 
-While the alleyways still echo with the laughter of youth, the same cannot be said of the highway ruins, where death reeks of ancient times.
+Tandis que les ruelles résonnent encore du rire des jeunes, il n'en est pas de même des ruines de l'autoroute, où la mort sent les temps anciens.

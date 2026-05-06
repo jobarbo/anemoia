@@ -18,7 +18,7 @@ const TITLE_FONT = {
 
 const TITLE_TEXT = "ANÉMOIA";
 const AUTHOR_TEXT = "Olivier Laforest  ·  Jonathan Barbeau";
-const PROMPT_TEXT = "[ CLICK TO CONTINUE ]";
+const PROMPT_TEXT = "[ CLIQUER POUR CONTINUER ]";
 const SKY_PAN_MS = 4400;
 const TITLE_REVEAL_MS = 1600;
 const AUTHOR_FADE_MS = 900;

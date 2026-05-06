@@ -3,7 +3,7 @@ title: LOG - Slo. 24, 4 A.REM
 neighborhood: archives
 returnTo: desktop
 order: 8
-date: Busedi, Slochimene 24, Year 4 After REM
+date: Busedi, Slochimene 24, Année 4 Après REM
 ---
 
-Nothing better than culinary art to learn about a civilization and its customs. It is time to catalog the dietary practices of the society of old.
+Rien de mieux que l'art culinaire pour apprendre à connaître une civilisation et ses coutumes. Il est temps de cataloguer les pratiques alimentaires de la société d'antan.

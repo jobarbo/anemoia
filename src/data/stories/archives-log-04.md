@@ -3,7 +3,7 @@ title: LOG - Nev. 17, 4 A.REM
 neighborhood: archives
 returnTo: desktop
 order: 4
-date: Vélocredi, Nevrose 17, Year 4 After REM
+date: Vélocredi, Nevrose 17, Année 4 Après REM
 ---
 
-According to whispers reaching me from outside, the War seems to have moved south, toward Montreal, then to the border of the United States of America. Quebec is no longer the only martyr.
+Selon les rumeurs qui me parviennent de l'extérieur, la Guerre semble s'être déplacée vers le sud, en direction de Montréal, puis vers la frontière des États-Unis d'Amérique. Québec n'est plus le seul martyr.
