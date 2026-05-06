@@ -54,6 +54,15 @@ function toPixelValue(value) {
 	return `${toFiniteNumber(value)}px`;
 }
 
+function setLayerParallaxValue(layer, name, value) {
+	layer.style.setProperty(name, toPixelValue(value));
+}
+
+function safeSetParallaxXY(layer, x, y) {
+	setLayerParallaxValue(layer, "--parallax-x", x);
+	setLayerParallaxValue(layer, "--parallax-y", y);
+}
+
 function parallaxYPixels(normalizedY, speed, translateDistance) {
 	const ny = clamp(toFiniteNumber(normalizedY, 0), -1, 1);
 	return ny * speed * translateDistance;
@@ -101,32 +110,67 @@ function computeScrollLayerOffsetY(layer, normalizedY, depthCurve) {
 
 export function createParallaxUpdater(layers) {
 	const depthCurve = readSceneDepthCurve(layers);
+	const layerConfigs = Array.from(layers).map((layer) => {
+		const baseSpeed = parseNumericAttr(layer, "data-parallax-speed") ?? DEFAULT_SPEED;
+		// Depth ranges 0..1 where 0 = far background and 1 = near foreground.
+		const depth = parseNumericAttr(layer, "data-parallax-depth") ?? 0.5;
+		const speed = baseSpeed * getDepthMultiplier(depth, depthCurve, TRACKING_MIN_DEPTH_MULTIPLIER, TRACKING_MAX_DEPTH_MULTIPLIER);
+		return {
+			layer,
+			depth,
+			speed,
+			duration: getLayerDuration(depth),
+		};
+	});
 
-	return (xPercent, yPercent) => {
-		const normalizedX = clamp(toFiniteNumber(xPercent, 0), -1, 1);
-		const normalizedY = clamp(toFiniteNumber(yPercent, 0), -1, 1);
+	let normalizedX = 0;
+	let normalizedY = 0;
+	let rafId = null;
+	let destroyed = false;
 
-		layers.forEach((layer) => {
-			const baseSpeed = parseNumericAttr(layer, "data-parallax-speed") ?? DEFAULT_SPEED;
-			// Depth ranges 0..1 where 0 = far background and 1 = near foreground.
-			const depth = parseNumericAttr(layer, "data-parallax-depth") ?? 0.5;
-			const speed = baseSpeed * getDepthMultiplier(depth, depthCurve, TRACKING_MIN_DEPTH_MULTIPLIER, TRACKING_MAX_DEPTH_MULTIPLIER);
+	const applyFrame = () => {
+		rafId = null;
+		if (destroyed) return;
+
+		layerConfigs.forEach(({layer, speed, duration}) => {
 			const targetX = normalizedX * speed * TRACKING_TRANSLATE_DISTANCE;
 			const targetY = parallaxYPixels(normalizedY, speed, TRACKING_TRANSLATE_DISTANCE);
 
-			gsap.to(layer, {
-				"--parallax-x": targetX,
-				"--parallax-y": targetY,
-				duration: getLayerDuration(depth),
-				ease: "power2.out",
-				overwrite: "auto",
-				modifiers: {
-					"--parallax-x": toPixelValue,
-					"--parallax-y": toPixelValue,
-				},
-			});
+			try {
+				gsap.to(layer, {
+					"--parallax-x": targetX,
+					"--parallax-y": targetY,
+					duration,
+					ease: "power2.out",
+					overwrite: "auto",
+					modifiers: {
+						"--parallax-x": toPixelValue,
+						"--parallax-y": toPixelValue,
+					},
+				});
+			} catch {
+				// Fallback to direct CSS vars if GSAP fails mid-frame.
+				safeSetParallaxXY(layer, targetX, targetY);
+			}
 		});
 	};
+
+	const update = (xPercent, yPercent) => {
+		normalizedX = clamp(toFiniteNumber(xPercent, 0), -1, 1);
+		normalizedY = clamp(toFiniteNumber(yPercent, 0), -1, 1);
+		if (rafId !== null) return;
+		rafId = requestAnimationFrame(applyFrame);
+	};
+
+	update.destroy = () => {
+		destroyed = true;
+		if (rafId !== null) {
+			cancelAnimationFrame(rafId);
+			rafId = null;
+		}
+	};
+
+	return update;
 }
 
 export function initParallaxFromInput(layers, subscribeInput) {
@@ -136,6 +180,9 @@ export function initParallaxFromInput(layers, subscribeInput) {
 	return () => {
 		if (typeof unsubscribe === "function") {
 			unsubscribe();
+		}
+		if (typeof updateParallax.destroy === "function") {
+			updateParallax.destroy();
 		}
 	};
 }
@@ -162,34 +209,56 @@ export function initMouseParallax(layers) {
  */
 export function initScrollParallax(layers, scrollContainer) {
 	const depthCurve = readSceneScrollDepthCurve(layers);
+	let rafId = null;
+	let destroyed = false;
 
 	const applyScrollOffsets = () => {
+		if (destroyed) return;
+		rafId = null;
 		// Adaptive normalization keeps perceived min/max offsets stable across viewport ratios.
 		const scrollNormalizedY = getAdaptiveScrollNormalizedY(scrollContainer);
 
 		layers.forEach((layer) => {
 			const offsetY = computeScrollLayerOffsetY(layer, scrollNormalizedY, depthCurve);
-			gsap.set(layer, {"--parallax-scroll-y": `${offsetY}px`});
+			try {
+				gsap.set(layer, {"--parallax-scroll-y": `${offsetY}px`});
+			} catch {
+				setLayerParallaxValue(layer, "--parallax-scroll-y", offsetY);
+			}
 		});
 	};
 
-	scrollContainer.addEventListener("scroll", applyScrollOffsets, {passive: true});
-	window.addEventListener("resize", applyScrollOffsets, {passive: true});
+	const scheduleApplyScrollOffsets = () => {
+		if (destroyed || rafId !== null) return;
+		rafId = requestAnimationFrame(applyScrollOffsets);
+	};
+
+	scrollContainer.addEventListener("scroll", scheduleApplyScrollOffsets, {passive: true});
+	window.addEventListener("resize", scheduleApplyScrollOffsets, {passive: true});
 
 	let resizeObserver = null;
 	if (typeof ResizeObserver !== "undefined") {
-		resizeObserver = new ResizeObserver(applyScrollOffsets);
+		resizeObserver = new ResizeObserver(scheduleApplyScrollOffsets);
 		resizeObserver.observe(scrollContainer);
 	}
 
 	applyScrollOffsets();
 
 	return () => {
-		scrollContainer.removeEventListener("scroll", applyScrollOffsets);
-		window.removeEventListener("resize", applyScrollOffsets);
+		destroyed = true;
+		if (rafId !== null) {
+			cancelAnimationFrame(rafId);
+			rafId = null;
+		}
+		scrollContainer.removeEventListener("scroll", scheduleApplyScrollOffsets);
+		window.removeEventListener("resize", scheduleApplyScrollOffsets);
 		resizeObserver?.disconnect();
 		layers.forEach((layer) => {
-			gsap.set(layer, {"--parallax-scroll-y": "0px"});
+			try {
+				gsap.set(layer, {"--parallax-scroll-y": "0px"});
+			} catch {
+				setLayerParallaxValue(layer, "--parallax-scroll-y", 0);
+			}
 		});
 	};
 }
