@@ -1,9 +1,9 @@
 ---
-title: LOG - 7 Slochimene, an 4 REM
+title: LOG - Slo. 7, 4 A.REM
 neighborhood: archives
 returnTo: desktop
 order: 7
-date: Covoituredi, 7 Slochimene, an 4 REM
+date: Covoituredi, Slochimene 7, Year 4 After REM
 ---
 
-Les vents de l’ouest m’apportent une étrange nouvelle. Une lumière mauve dans le ciel. L’Ancien-Sainte-Foy menacé.
+The west winds bring strange news. A purple light in the sky. Old-Sainte-Foy threatened.

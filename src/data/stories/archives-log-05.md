@@ -1,9 +1,9 @@
 ---
-title: LOG - 3 Sucriene, an 4 REM
+title: LOG - Suc. 3, 4 A.REM
 neighborhood: archives
 returnTo: desktop
 order: 5
-date: Métreudi, 3 Sucriene, an 4 REM
+date: Métreudi, Sucriene 3, Year 4 After REM
 ---
 
-L’ascenseur nord est en panne depuis trois jours. Impossible d’atteindre les quartiers 06A et B18.
+The north elevator has been out of service for three days. Impossible to reach sectors 06A and B18.

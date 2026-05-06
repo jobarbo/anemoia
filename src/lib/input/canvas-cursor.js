@@ -58,6 +58,23 @@ function bindEscapePreferenceListener() {
 export function createCanvasCursor(options) {
 	const {canvasEl, lockOnClick = true} = options;
 
+	function requestPointerLockSafely() {
+		if (!canvasEl || typeof canvasEl.requestPointerLock !== "function") return;
+		if (!canvasEl.isConnected) return;
+		if (canvasEl.ownerDocument !== document) return;
+		if (document.pointerLockElement === canvasEl) return;
+		try {
+			const maybePromise = canvasEl.requestPointerLock();
+			if (maybePromise && typeof maybePromise.catch === "function") {
+				maybePromise.catch(() => {
+					// Ignore pointer-lock failures during scene swaps or browser restrictions.
+				});
+			}
+		} catch {
+			// Ignore pointer-lock failures during scene swaps or browser restrictions.
+		}
+	}
+
 	let canvasW = 1;
 	let canvasH = 1;
 	let x = 0;
@@ -78,7 +95,7 @@ export function createCanvasCursor(options) {
 		if (!finePointer || !lockOnClick) return;
 		if (!pointerLockPreference.wantsLock) return;
 		if (document.pointerLockElement === canvasEl) return;
-		canvasEl.requestPointerLock?.();
+		requestPointerLockSafely();
 	}
 
 	function syncFromClient(clientX, clientY) {
@@ -105,7 +122,7 @@ export function createCanvasCursor(options) {
 		pointerLockPreference.wantsLock = true;
 		writePointerLockPreference(true);
 		if (document.pointerLockElement === canvasEl) return;
-		canvasEl.requestPointerLock?.();
+		requestPointerLockSafely();
 	}
 
 	/** @param {MouseEvent} e */

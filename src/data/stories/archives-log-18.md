@@ -1,9 +1,9 @@
 ---
-title: LOG - 27 Bacaisse, an 4 REM
+title: LOG - Bac. 27, 4 A.REM
 neighborhood: archives
 returnTo: desktop
 order: 18
-date: Piétonnedi, 27 Bacaisse, an 4 REM
+date: Piétonnedi, Bacaisse 27, Year 4 After REM
 ---
 
-Nouvelle entrée à ma collection (nouvellement baptisée « lus ») : une concoction rouge, faites, à en juger par la bouteille, de 57 ingrédients.
+New addition to my collection (newly christened "read"): a red concoction made, judging by the bottle, from 57 ingredients.

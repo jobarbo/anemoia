@@ -21,11 +21,13 @@ const neighborhoods = defineCollection({
 		id: z.string(),
 		name: z.string(),
 		slug: z.string(),
+		order: z.number().optional(),
 		description: z.string().optional(),
 		viewEnabled: z.boolean().optional(),
 		scenePath: z.string(),
 		audioSrc: z.string().optional(),
 		stories: z.array(z.string()),
+		apiSearchTerms: z.array(z.string()).optional(),
 		position: z.object({x: z.number(), y: z.number()}),
 	}),
 });

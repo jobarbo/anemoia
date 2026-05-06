@@ -1,9 +1,9 @@
 ---
-title: LOG - 4 Nevrose, an 4 REM
+title: LOG - Nev. 4, 4 A.REM
 neighborhood: archives
 returnTo: desktop
 order: 3
-date: Triportanche, 4 Nevrose, an 4 REM
+date: Triportanche, Nevrose 4, Year 4 After REM
 ---
 
-Appel à témoignages diffusé sur le réseau TÉMÉRACLE_02x.
+Call for testimonies broadcast on the TÉMÉRACLE_02x network.

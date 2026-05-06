@@ -1,7 +1,7 @@
 /**
  * LOGIN phase — semi-interactive terminal login sequence.
  *
- * - Username "Archiviste" is auto-typed.
+ * - Username "Archivist" is auto-typed.
  * - Password must be entered by the user (correct: "ketchup").
  *   Each character is echoed as "*". Backspace removes the last char.
  *   Enter submits. Wrong password shows an error and clears the field.
@@ -23,10 +23,10 @@ const STEPS = {
 	DONE: 4,
 };
 
-const USERNAME_STR = "Archiviste";
+const USERNAME_STR = "Archivist";
 const PASSWORD = "ketchup";
-const AUTH_BASE = "Authentification";
-const GRANTED_STR = "ACCÈS AUTORISÉ — Bienvenue, Archiviste.";
+const AUTH_BASE = "Authentication";
+const GRANTED_STR = "ACCESS GRANTED — Welcome, Archivist.";
 
 const CHAR_MS = 80;
 const DOT_MS = 320;
@@ -103,15 +103,15 @@ export function createLoginPhase(sketch, artBuffer, fontApi) {
 		const masked = "*".repeat(passwordInput.length);
 		if (passwordInput === PASSWORD) {
 			// Correct — commit and move to auth
-			lines.push("Mot de passe : " + masked);
+			lines.push("password: " + masked);
 			lines.push("");
 			passwordInput = "";
 			step = STEPS.AUTH_DOTS;
 			dotCount = 0;
 		} else {
 			// Wrong — show masked attempt + error, clear, stay at prompt
-			lines.push("Mot de passe : " + masked);
-			lines.push("  Login incorrect. Veuillez réessayer.");
+			lines.push("password: " + masked);
+			lines.push("  Incorrect login. Please try again.");
 			lines.push("");
 			passwordInput = "";
 		}
@@ -126,7 +126,7 @@ export function createLoginPhase(sketch, artBuffer, fontApi) {
 		if (step === STEPS.USERNAME_TYPING) {
 			charIdx++;
 			if (charIdx >= USERNAME_STR.length) {
-				lines.push("identifiant : " + USERNAME_STR);
+				lines.push("username: " + USERNAME_STR);
 				step = STEPS.PASSWORD_PROMPT;
 				charIdx = 0;
 			}
@@ -182,7 +182,7 @@ export function createLoginPhase(sketch, artBuffer, fontApi) {
 		buf.textAlign(sketch.LEFT, sketch.TOP);
 		fontApi?.applyCanvasFont?.(buf, Math.round(w * 0.022)) ?? buf.textSize(Math.round(w * 0.022));
 		buf.fill(...THEME.GREEN_PRIMARY);
-		buf.text("Boot-Boy OS  3.0  —  Système interactif ANEMOIA", padLeft, headerY);
+		buf.text("Boot-Boy OS  3.0  —  ANEMOIA Interactive System", padLeft, headerY);
 
 		// Separator line
 		const sepY = headerY + fontSize * 2.4;
@@ -194,7 +194,7 @@ export function createLoginPhase(sketch, artBuffer, fontApi) {
 		// Status line
 		fontApi?.applyCanvasFont?.(buf, fontSize) ?? buf.textSize(fontSize);
 		buf.fill(...THEME.GREEN_SUBTLE, 230);
-		buf.text("CONNECTÉ À : ANEMOIA-SRV-01", padLeft, sepY + fontSize * 0.8);
+		buf.text("CONNECTED TO: ANEMOIA-SRV-01", padLeft, sepY + fontSize * 0.8);
 
 		// ── Committed lines ───────────────────────────────────────────────────
 		const termStartY = sepY + fontSize * 3.2;
@@ -218,12 +218,12 @@ export function createLoginPhase(sketch, artBuffer, fontApi) {
 		const currentY = termStartY + lines.length * lineH;
 
 		if (step === STEPS.USERNAME_TYPING) {
-			const partial = "identifiant : " + USERNAME_STR.slice(0, charIdx);
+			const partial = "username: " + USERNAME_STR.slice(0, charIdx);
 			buf.fill(...THEME.GREEN_MID);
 			buf.text(partial, padLeft, currentY);
 			if (blinkVisible) _drawCursor(buf, partial, padLeft, currentY, fontSize);
 		} else if (step === STEPS.PASSWORD_PROMPT) {
-			const masked = "Mot de passe : " + "*".repeat(passwordInput.length);
+			const masked = "password: " + "*".repeat(passwordInput.length);
 			buf.fill(...THEME.GREEN_MID);
 			buf.text(masked, padLeft, currentY);
 			if (blinkVisible) _drawCursor(buf, masked, padLeft, currentY, fontSize);
@@ -233,7 +233,7 @@ export function createLoginPhase(sketch, artBuffer, fontApi) {
 				buf.textAlign(sketch.LEFT, sketch.TOP);
 				fontApi?.applyCanvasFont?.(buf, Math.max(10, Math.round(w * 0.012))) ?? buf.textSize(Math.max(10, Math.round(w * 0.012)));
 				buf.fill(...THEME.GREEN_SUBTLE, 200);
-				buf.text("Entrez le mot de passe et appuyez sur ENTRÉE", padLeft, currentY + lineH);
+				buf.text("Enter password and press ENTER", padLeft, currentY + lineH);
 			}
 		} else if (step === STEPS.AUTH_DOTS) {
 			const partial = AUTH_BASE + ".".repeat(Math.min(dotCount, 3));

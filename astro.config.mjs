@@ -1,4 +1,5 @@
 import {defineConfig} from "astro/config";
+import netlify from "@astrojs/netlify";
 
 const watchParallaxConfig = {
 	name: "watch-parallax-config",
@@ -13,6 +14,7 @@ const watchParallaxConfig = {
 };
 
 export default defineConfig({
+	adapter: netlify(),
 	vite: {
 		plugins: [watchParallaxConfig],
 		optimizeDeps: {

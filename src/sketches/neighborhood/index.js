@@ -49,7 +49,7 @@ export default function (container) {
 			drawOpaqueFrame(artBuffer, w, h, framePad);
 
 			const backSize = Math.max(11, Math.round(w * 0.013));
-			const backLabel = "[ RETOUR À LA CARTE ]";
+			const backLabel = "[ BACK TO MAP ]";
 			applyThemeCanvasFont(artBuffer, backSize, sketch);
 			const backW = artBuffer.textWidth(backLabel) + backSize;
 			const backX = framePad + Math.max(12, Math.round(w * 0.01)) + backW * 0.5;
@@ -66,7 +66,7 @@ export default function (container) {
 
 			applyThemeCanvasFont(artBuffer, Math.max(10, Math.round(w * 0.011)), sketch);
 			artBuffer.fill(...THEME.GREEN_SUBTLE, 255);
-			artBuffer.text("SCENE DE QUARTIER ACTIVE", w - innerPadX, innerPadY / 2);
+			artBuffer.text("ACTIVE NEIGHBORHOOD SCENE", w - innerPadX, innerPadY / 2);
 
 			sketch.clear();
 			drawCanvasCursor(artBuffer, pointer, {hovered: backHovered});

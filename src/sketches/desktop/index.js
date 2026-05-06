@@ -318,19 +318,19 @@ function drawBottomNav(buf, w, h, locationLabel, weatherLabel, p) {
 	buf.textAlign(p.LEFT, p.CENTER);
 	buf.text(text, w * 0.485, barY + barH * 0.5);
 	buf.textAlign(p.RIGHT, p.CENTER);
-	buf.text("Gestionnaire de fichiers", w * 0.97, barY + barH * 0.5);
+	buf.text("File Manager", w * 0.97, barY + barH * 0.5);
 }
 
 function splitWeatherLabel(label) {
 	const raw = String(label ?? "").trim();
-	if (!raw) return {icon: WEATHER_ICON_NA, text: "Météo : --"};
+	if (!raw) return {icon: WEATHER_ICON_NA, text: "Weather: --"};
 	const firstSpace = raw.indexOf(" ");
 	if (firstSpace <= 0) return {icon: WEATHER_ICON_NA, text: raw};
 	const maybeIcon = raw.slice(0, firstSpace);
 	const rest = raw.slice(firstSpace + 1).trim();
 	return {
 		icon: maybeIcon,
-		text: rest || "Météo : --",
+		text: rest || "Weather: --",
 	};
 }
 
@@ -405,7 +405,7 @@ function buildDesktopTreeRows(opts = {}) {
 			action: nextStoryAction(story.id),
 		})),
 		{
-			label: `${archivesExpanded ? "[-]" : "[+]"} Les archives`,
+			label: `${archivesExpanded ? "[-]" : "[+]"} The Archives`,
 			depth: 0,
 			interactive: true,
 			action: `toggle:${archivesGroupId}`,
@@ -421,8 +421,9 @@ function buildDesktopTreeRows(opts = {}) {
 			});
 		}
 	}
-	rows.push({label: "Les villes verticales", depth: 0, interactive: true, action: "overworld"});
-	for (const n of getNeighborhoods()) {
+	rows.push({label: "The Vertical Cities", depth: 0, interactive: true, action: "overworld", icon: "map"});
+	const sortedNeighborhoods = [...getNeighborhoods()].sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
+	for (const n of sortedNeighborhoods) {
 		const viewEnabled = isNeighborhoodViewEnabled(n);
 		const storySlugs = Array.isArray(n.stories) ? n.stories : [];
 		const neighborhoodStories = storySlugs.map((slug) => ({slug, story: getStory(slug)})).filter(({story}) => Boolean(story));
@@ -499,7 +500,7 @@ function drawInteractivePanel(buf, w, h, hoveredAction, panelState, p) {
 	buf.textAlign(p.LEFT, p.TOP);
 	buf.fill(...THEME.GREEN_SUBTLE, 255);
 	buf.noStroke();
-	buf.text("menu_principal", pathTextX, pathBoxY + panelH * 0.018);
+	buf.text("main_menu", pathTextX, pathBoxY + panelH * 0.018);
 
 	const treeStartY = panelY + panelH * 0.24;
 	const rowH = panelH * 0.1;
@@ -635,7 +636,35 @@ function drawInteractivePanel(buf, w, h, hoveredAction, panelState, p) {
 		const rowActive = isInteractive && hoveredAction === row.action;
 		const rowTextColor = isDisabled ? [214, 154, 154] : rowActive ? THEME.GREEN_MID : THEME.GREEN_SUBTLE;
 		buf.fill(...rowTextColor, 255);
-		buf.text(row.label, labelX + (isDisabled ? panelW * 0.055 : 0), y);
+
+		const labelTextX = labelX + (isDisabled ? panelW * 0.055 : 0);
+		buf.text(row.label, labelTextX, y);
+
+		// Draw icon to the right if present
+		if (row.icon === "map") {
+			const iconSize = optionSz * 0.9;
+			const iconPadding = optionSz * 0.83;
+			const textWidth = buf.textWidth(row.label);
+			const iconX = labelTextX + textWidth + iconPadding;
+			const iconY = y;
+
+			// Simple retro map icon (compass-like shape with crosshairs)
+			buf.strokeWeight(1.2);
+			buf.stroke(...rowTextColor, 200);
+			buf.noFill();
+
+			// Outer circle
+			buf.circle(iconX, iconY, iconSize);
+
+			// Cardinal directions (cross)
+			const r = iconSize * 0.35;
+			buf.line(iconX, iconY - r, iconX, iconY + r);
+			buf.line(iconX - r, iconY, iconX + r, iconY);
+
+			// Small center dot
+			buf.fill(...rowTextColor, 180);
+			buf.circle(iconX, iconY, iconSize * 0.1);
+		}
 	}
 
 	buf.stroke(...branchColor);
@@ -676,35 +705,46 @@ function buildSystemStats() {
 	const res = `${screen.width}×${screen.height}`;
 	const lang = (navigator.language ?? "--").toUpperCase();
 
-	const lines = [];
-	if (cores !== null) lines.push(`CŒURS CPU`, `${cores} CŒURS`);
-	if (ramGb !== null) lines.push(``, `RAM TOTALE`, `${ramGb} GO`);
-	lines.push(``, `AFFICHAGE`, res);
-	lines.push(``, `LANGUE`, lang);
-	return lines.join("\n").replace(/^\n/, "");
+	const stats = [];
+	if (cores !== null) stats.push({label: "CPU CORES", value: `${cores} THREADS`});
+	if (ramGb !== null) stats.push({label: "TOTAL RAM", value: `${ramGb} GB`});
+	stats.push({label: "DISPLAY", value: res});
+	stats.push({label: "LOCALE", value: lang});
+	return stats;
 }
 
 function drawSystemCard(buf, w, h, p, blink, gazeXNorm, gazeYNorm, systemStats) {
-	const statsText = systemStats ?? "HORLOGE CPU\n64 MHZ\n\nRAM TOTALE\n10 MO\n\nRAM LIBRE\n5 MO\n\nMODE E/S\nMIDI";
-	const statsLines = statsText.split("\n");
+	const stats =
+		Array.isArray(systemStats) && systemStats.length > 0
+			? systemStats
+			: [
+					{label: "CPU CLOCK", value: "64 MHZ"},
+					{label: "TOTAL RAM", value: "10 MB"},
+					{label: "FREE RAM", value: "5 MB"},
+					{label: "I/O MODE", value: "MIDI"},
+				];
 	const cardY = h * 0.23;
 	const cardRight = w * 0.95;
 	const cardGapY = Math.max(14, h * 0.03);
 	const cardPadX = Math.max(16, w * 0.018);
 	const cardPadY = Math.max(14, h * 0.024);
 
-	const maxCardW = w * 0.47;
-	let statSz = Math.max(13, w * 0.016);
-	applyThemeCanvasFont(buf, statSz, p);
-	let statsMaxW = Math.max(...statsLines.map((line) => (line ? buf.textWidth(line) : 0)));
-	while (statsMaxW > maxCardW - cardPadX * 2 && statSz > 9) {
-		statSz -= 1;
-		applyThemeCanvasFont(buf, statSz, p);
-		statsMaxW = Math.max(...statsLines.map((line) => (line ? buf.textWidth(line) : 0)));
+	const labelSz = Math.max(10, w * 0.012);
+	const valueSz = Math.max(13, w * 0.016);
+	const groupGap = Math.max(8, labelSz * 0.8);
+	const intraGap = Math.max(2, labelSz * 0.15);
+
+	applyThemeCanvasFont(buf, valueSz, p);
+	let statsMaxW = 0;
+	for (const s of stats) {
+		applyThemeCanvasFont(buf, labelSz, p);
+		statsMaxW = Math.max(statsMaxW, buf.textWidth(s.label));
+		applyThemeCanvasFont(buf, valueSz, p);
+		statsMaxW = Math.max(statsMaxW, buf.textWidth(s.value));
 	}
 
-	const lineH = statSz * 1.2;
-	const statsH = (statsLines.length - 1) * lineH + statSz;
+	const groupH = labelSz + intraGap + valueSz;
+	const statsH = stats.length * groupH + Math.max(0, stats.length - 1) * groupGap;
 	const eyeW = Math.max(statsMaxW, w * 0.22);
 	const eyeH = Math.max(76, eyeW * 0.28);
 	const contentW = Math.max(eyeW, statsMaxW);
@@ -738,13 +778,31 @@ function drawSystemCard(buf, w, h, p, blink, gazeXNorm, gazeYNorm, systemStats) 
 	buf.circle(eyeX + eyeW * 0.5 + gazeX, eyeY + eyeH * 0.53 + gazeY, eyeH * 0.48);
 	buf.drawingContext.restore();
 
-	applyThemeCanvasFont(buf, statSz, p);
-	buf.textLeading(lineH);
-	buf.fill(...THEME.GREEN_SUBTLE, 255);
 	buf.textAlign(p.LEFT, p.TOP);
 	const statsX = cardX + (cardW - statsMaxW) * 0.15;
-	const statsY = eyeY + eyeH + cardGapY;
-	buf.text(statsText, statsX, statsY);
+	let currentY = eyeY + eyeH + cardGapY;
+	const ctx = buf.drawingContext;
+
+	for (let i = 0; i < stats.length; i++) {
+		const {label, value} = stats[i];
+
+		// Label: small, muted, bold
+		ctx.save();
+		applyThemeCanvasFont(buf, labelSz, p);
+		ctx.font = "bold " + ctx.font;
+		ctx.fillStyle = `rgba(${THEME.GREEN_SUBTLE.join(",")}, 0.6)`;
+		ctx.textAlign = "left";
+		ctx.textBaseline = "top";
+		ctx.fillText(label, statsX, currentY);
+		ctx.restore();
+		currentY += labelSz + intraGap;
+
+		// Value: larger, bright
+		applyThemeCanvasFont(buf, valueSz, p);
+		buf.fill(...THEME.GREEN_MID, 255);
+		buf.text(value, statsX, currentY);
+		currentY += valueSz + (i < stats.length - 1 ? groupGap : 0);
+	}
 }
 
 function pClamp(value, min, max) {
@@ -804,7 +862,7 @@ function drawAngledPanel(buf, x, y, w, h, opts) {
 
 async function startLiveContext(onUpdate) {
 	if (!navigator.geolocation) {
-		onUpdate("Localisation indisponible", "Météo indisponible");
+		onUpdate("Location unavailable", "Weather unavailable");
 		return;
 	}
 
@@ -817,25 +875,25 @@ async function startLiveContext(onUpdate) {
 	}).catch(() => null);
 
 	if (!position) {
-		onUpdate("Localisation indisponible", "Météo indisponible");
+		onUpdate("Location unavailable", "Weather unavailable");
 		return;
 	}
 
 	const lat = position.coords.latitude;
 	const lon = position.coords.longitude;
-	const roundedLocation = `Position ${lat.toFixed(2)}, ${lon.toFixed(2)}`;
+	const roundedLocation = `Location ${lat.toFixed(2)}, ${lon.toFixed(2)}`;
 
 	const place = await fetchPlaceLabel(lat, lon);
-	onUpdate(place ?? roundedLocation, "Chargement de la météo...");
+	onUpdate(place ?? roundedLocation, "Loading weather...");
 
 	const weather = await fetchWeatherLabel(lat, lon);
-	onUpdate(place ?? roundedLocation, weather ?? "Météo indisponible");
+	onUpdate(place ?? roundedLocation, weather ?? "Weather unavailable");
 }
 
 async function fetchPlaceLabel(lat, lon) {
 	try {
-		const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
-		const res = await fetch(url, {headers: {"Accept-Language": "fr-CA,fr"}});
+		const url = `/api/nominatim.json?mode=reverse&format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
+		const res = await fetch(url, {headers: {"Accept-Language": "en-CA,en"}});
 		if (!res.ok) return null;
 		const data = await res.json();
 		const addr = data?.address ?? {};
@@ -875,34 +933,34 @@ function weatherCodeToUi(code) {
 	// wi-rain \uF019 · wi-snow \uF01B · wi-snowflake-cold \uF076 · wi-showers \uF01A
 	// wi-snow-wind \uF064 · wi-thunderstorm \uF01E · wi-hail \uF015 · wi-na \uF07B
 	const map = {
-		0: {icon: "\uF00D", label: "Dégagé"},
-		1: {icon: "\uF00C", label: "Plutôt dégagé"},
-		2: {icon: "\uF002", label: "Partiellement nuageux"},
-		3: {icon: "\uF013", label: "Couvert"},
-		45: {icon: "\uF014", label: "Brouillard"},
-		48: {icon: "\uF014", label: "Brouillard givrant"},
-		51: {icon: "\uF01C", label: "Bruine"},
-		53: {icon: "\uF01C", label: "Bruine"},
-		55: {icon: "\uF019", label: "Forte bruine"},
-		56: {icon: "\uF017", label: "Bruine verglaçante"},
-		57: {icon: "\uF017", label: "Bruine verglaçante"},
-		61: {icon: "\uF019", label: "Pluie"},
-		63: {icon: "\uF019", label: "Pluie"},
-		65: {icon: "\uF019", label: "Forte pluie"},
-		66: {icon: "\uF017", label: "Pluie verglaçante"},
-		67: {icon: "\uF017", label: "Pluie verglaçante"},
-		71: {icon: "\uF01B", label: "Neige"},
-		73: {icon: "\uF01B", label: "Neige"},
-		75: {icon: "\uF01B", label: "Forte neige"},
-		77: {icon: "\uF076", label: "Neige en grains"},
-		80: {icon: "\uF01A", label: "Averses de pluie"},
-		81: {icon: "\uF01A", label: "Averses de pluie"},
-		82: {icon: "\uF019", label: "Fortes averses"},
-		85: {icon: "\uF064", label: "Averses de neige"},
-		86: {icon: "\uF064", label: "Fortes averses de neige"},
-		95: {icon: "\uF01E", label: "Orage"},
-		96: {icon: "\uF015", label: "Orage de grêle"},
-		99: {icon: "\uF015", label: "Orage de grêle"},
+		0: {icon: "\uF00D", label: "Clear"},
+		1: {icon: "\uF00C", label: "Mostly clear"},
+		2: {icon: "\uF002", label: "Partly cloudy"},
+		3: {icon: "\uF013", label: "Overcast"},
+		45: {icon: "\uF014", label: "Fog"},
+		48: {icon: "\uF014", label: "Rime fog"},
+		51: {icon: "\uF01C", label: "Drizzle"},
+		53: {icon: "\uF01C", label: "Drizzle"},
+		55: {icon: "\uF019", label: "Heavy drizzle"},
+		56: {icon: "\uF017", label: "Freezing drizzle"},
+		57: {icon: "\uF017", label: "Freezing drizzle"},
+		61: {icon: "\uF019", label: "Rain"},
+		63: {icon: "\uF019", label: "Rain"},
+		65: {icon: "\uF019", label: "Heavy rain"},
+		66: {icon: "\uF017", label: "Freezing rain"},
+		67: {icon: "\uF017", label: "Freezing rain"},
+		71: {icon: "\uF01B", label: "Snow"},
+		73: {icon: "\uF01B", label: "Snow"},
+		75: {icon: "\uF01B", label: "Heavy snow"},
+		77: {icon: "\uF076", label: "Snow grains"},
+		80: {icon: "\uF01A", label: "Rain showers"},
+		81: {icon: "\uF01A", label: "Rain showers"},
+		82: {icon: "\uF019", label: "Heavy showers"},
+		85: {icon: "\uF064", label: "Snow showers"},
+		86: {icon: "\uF064", label: "Heavy snow showers"},
+		95: {icon: "\uF01E", label: "Thunderstorm"},
+		96: {icon: "\uF015", label: "Hailstorm"},
+		99: {icon: "\uF015", label: "Hailstorm"},
 	};
-	return map[code] ?? {icon: WEATHER_ICON_NA, label: "Météo"};
+	return map[code] ?? {icon: WEATHER_ICON_NA, label: "Weather"};
 }

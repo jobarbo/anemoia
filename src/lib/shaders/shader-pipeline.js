@@ -1,3 +1,11 @@
+function isSafariMobile() {
+	const ua = window.navigator.userAgent;
+	const iOS = !!ua.match(/iPad/i) || !!ua.match(/iPhone/i);
+	const webkit = !!ua.match(/WebKit/i);
+	const iOSSafari = iOS && webkit && !ua.match(/CriOS/i);
+	return iOSSafari;
+}
+
 /**
  * Chain multiple fullscreen shader passes (ping-pong when 2+ passes).
  */
@@ -17,7 +25,10 @@ export class ShaderPipeline {
 		this.height = height;
 
 		if (enabledEffects.length > 1) {
-			this._ensurePingPongBuffers(2, width, height);
+			const bufferDivisor = isSafariMobile() ? 1 : 1;
+			const targetW = Math.max(1, Math.round(width / bufferDivisor));
+			const targetH = Math.max(1, Math.round(height / bufferDivisor));
+			this._ensurePingPongBuffers(2, targetW, targetH);
 		}
 
 		for (const buf of this.buffers) {
@@ -85,9 +96,7 @@ export class ShaderPipeline {
 		const out = outputTarget ?? this.p5;
 
 		if (this.passes.length === 0) {
-			this.shaderManager
-				.apply("copy", {uTexture: inputTexture}, out)
-				.drawFullscreenQuad(out);
+			this.shaderManager.apply("copy", {uTexture: inputTexture}, out).drawFullscreenQuad(out);
 			return;
 		}
 

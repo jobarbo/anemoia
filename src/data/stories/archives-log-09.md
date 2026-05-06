@@ -1,9 +1,9 @@
 ---
-title: LOG - 11 Esperance, an 4 REM
+title: LOG - Esp. 11, 4 A.REM
 neighborhood: archives
 returnTo: desktop
 order: 9
-date: Tramedi, 11 Esperance, an 4 REM
+date: Tramedi, Esperance 11, Year 4 After REM
 ---
 
-Si les ruelles se font toujours l’écho des rires de la jeunesse, nous ne pouvons pas en dire autant des ruines autoroutières, où la mort pue les temps anciens.
+While the alleyways still echo with the laughter of youth, the same cannot be said of the highway ruins, where death reeks of ancient times.

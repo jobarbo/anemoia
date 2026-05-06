@@ -1,4 +1,4 @@
-export const DEFAULT_MAX_RENDER_PIXELS = 800 * 800;
+export const DEFAULT_MAX_RENDER_PIXELS = 900 * 900;
 
 function clamp(value, min, max) {
 	if (!Number.isFinite(value)) return min;

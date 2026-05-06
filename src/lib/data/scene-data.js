@@ -1,5 +1,3 @@
-import {compareRemDates} from "./rem-calendar.js";
-
 /**
  * Scene data access for the SPA router.
  *
@@ -9,6 +7,8 @@ import {compareRemDates} from "./rem-calendar.js";
  *
  * Manifests (scene layer data) are loaded lazily via fetch() from public/.
  */
+
+import {compareRemDates} from "./rem-calendar.js";
 
 /** @type {{ neighborhoods: NeighborhoodData[], stories: Record<string, StoryData> } | null} */
 let _cache = null;
@@ -103,8 +103,17 @@ export async function fetchNeighborhoodManifest(scenePath, slug) {
 	const manifest = await manifestRes.json();
 	normalizeManifestPositions(manifest);
 
+	let config = null;
 	if (sceneConfigRes.ok) {
-		applySceneConfig(manifest, await sceneConfigRes.json());
+		config = await sceneConfigRes.json();
+	} else {
+		const legacyConfigRes = await fetch(scenePath.replace("manifest.json", "parallax-config.json"));
+		if (legacyConfigRes.ok) {
+			config = await legacyConfigRes.json();
+		}
+	}
+	if (config) {
+		applySceneConfig(manifest, config);
 	}
 
 	return manifest;
@@ -125,11 +134,21 @@ function normalizeManifestPositions(manifest) {
 }
 
 /**
+ * Apply scene-level authored config (new format preferred):
+ * {
+ *   parallaxConfig: { depthCurve, scrollDepthCurve },
+ *   sceneSketches: [ ...scene-level sketch attachments... ],
+ *   layers: { ...patchesByName },
+ *   layerEffects: { ...effectsByName },
+ *   sceneEffects: { ...globalShaderOverrides }
+ * }
+ * Also supports legacy top-level depthCurve/scrollDepthCurve.
+ *
  * @param {Record<string, any>} manifest
  * @param {Record<string, any>} config
  */
 function applySceneConfig(manifest, config) {
-	const parallaxConfig = config.parallaxConfig ?? {};
+	const parallaxConfig = config.parallaxConfig && typeof config.parallaxConfig === "object" ? config.parallaxConfig : config;
 
 	if (Array.isArray(parallaxConfig.depthCurve) && parallaxConfig.depthCurve.length === 4) {
 		manifest.depthCurve = parallaxConfig.depthCurve;

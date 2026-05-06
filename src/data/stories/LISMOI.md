@@ -1,42 +1,42 @@
 ---
-title: LISMOI
+title: README
 neighborhood: desktop
 returnTo: desktop
 order: 0
 ---
 
-## Registrarium — Notice d’accès
+## Registrarium — Access Notice
 
-Vous avez obtenu l’accès à l’ordinateur de l’Archiviste.
+You have been granted access to the Archivist’s computer.
 
-Ce terminal contient les journaux, les cartes et les fragments de mémoire collectés avant la disparition de son propriétaire. Il n’a pas été modifié. Les lacunes, les entrées manquantes et les quartiers inaccessibles sont documentés tels quels.
+This terminal contains the journals, maps, and memory fragments collected before its owner’s disappearance. It has not been altered. The gaps, the missing entries, and the inaccessible neighborhoods are documented as-is.
 
-La navigation est simple. Elle a été conçue pour être utilisée seul, dans l’urgence ou dans l’obscurité.
+Navigation is simple. It was designed to be used alone, in urgency or in darkness.
 
 ---
 
 ## Navigation
 
-| Écran               | Ce que vous voyez                  | Comment avancer                                     |
-| ------------------- | ---------------------------------- | --------------------------------------------------- |
-| Bureau              | Menu principal du registrarium     | Cliquez sur un fichier                              |
-| Carte des quartiers | Vue aérienne de la ville verticale | Clic sur un quartier — ou flèches + Entrée          |
-| Quartier            | Décor interactif                   | Cliquez sur les zones actives                       |
-| Histoire            | Texte défilant                     | Molette ou glisser — bouton retour en haut à gauche |
+| Screen           | What you see                     | How to proceed                                      |
+| ---------------- | -------------------------------- | --------------------------------------------------- |
+| Desktop          | Main menu of the registrarium    | Click on a file                                     |
+| Neighborhood map | Aerial view of the vertical city | Click on a neighborhood — or use arrow keys + Enter |
+| Neighborhood     | Interactive scene                | Click on active zones                               |
+| Story            | Scrolling text                   | Scroll wheel or drag — back button in the top-left  |
 
 ---
 
-## Remarques
+## Notes
 
-- La caméra, si disponible, active la parallaxe. Sinon : orientation de l’appareil ou souris.
-- Certains quartiers sont vides. Ce n’est pas un bogue.
-- Les archives sont numérotées. Elles ne sont pas classées par ordre d’importance.
+- The camera, if available, enables parallax. Otherwise: device orientation or mouse.
+- Some neighborhoods are empty. This is not a bug.
+- The archives are numbered. They are not sorted by order of importance.
 
 ---
 
-## Sur l’auteur
+## About the Author
 
-L’Archiviste a commencé à tenir ce journal à une époque où lire, se rencontrer ou s’adonner à un loisir était interdit par Trudeyl Corp. Il documentait non pas pour être lu, mais pour que l’oubli ne soit pas total.
+The Archivist began keeping this journal at a time when reading, gathering, or pursuing any leisure activity was forbidden by Trudeyl Corp. He documented not to be read, but so that forgetting would not be total.
 
-> « Si le manuscrit retrouvé est un topos pour le moins éprouvé en littérature, qu’en est-il de l’ordinateur retrouvé? »
+> “If the found manuscript is a well-worn trope in literature, what then of the found computer?”
 > — LOG 02

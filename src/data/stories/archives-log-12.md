@@ -1,9 +1,9 @@
 ---
-title: LOG - 29 Humidase, an 4 REM
+title: LOG - Hum. 29, 4 A.REM
 neighborhood: archives
 returnTo: desktop
 order: 12
-date: Piétonnedi, 29 Humidase, an 4 REM
+date: Piétonnedi, Humidase 29, Year 4 After REM
 ---
 
-Accès à TÉMÉRACLE_02x rétabli.
+Access to TÉMÉRACLE_02x restored.

@@ -1,18 +1,18 @@
 ---
-title: Préambule
+title: The lore
 neighborhood: desktop
 returnTo: desktop
 order: 1
 ---
 
-## Préambule
+## Preamble
 
-C’est à Québec, cette curieuse ville nordique, que nous devons l’apparition des villes verticales.
+It is in Quebec, that curious northern city, that the emergence of vertical cities began.
 
-Tout a commencé en l’an 12 avant la Révolution Écolomobiliste (-12 REM), lors d’un énième conseil municipal portant sur la construction d’un septième lien entre l’ancien Haut-Lieu de Lévis et Québec (également autrefois appelée, selon les archives les plus anciennes, « l’accent d’Amérique »). Les citoyens, jusqu’alors déchirés sur les questions de mobilité, d’interurbanisme et d’écologie, s’unirent lorsque les maires Montpetit et Taschereau apprirent à leur population respective que le pont en question ne servirait qu’à soutenir des gazoducs (dix-huit, selon les registres, empilés les uns sur les autres). Une trahison qui aura eu raison des dirigeants municipaux, provinciaux et fédéraux de l’époque. Tous furent emprisonnés dans le Complexe G par une coalition de milices révolutionnaires. La construction du pont, quant à elle, pourtant déjà bien entamée, ne connaîtra jamais son terme : il est d'ailleurs toujours possible d’apercevoir ses ruines, les matins sans fumée, de l’autre côté de la rive. 
+It all started in year 12 before the Ecomobilist Revolution (-12 EMR), during yet another city council meeting on the construction of a seventh link between the former High-Ground of Levis and Quebec (also once called, according to the oldest archives, "the accent of America"). Citizens, until then divided on questions of mobility, inter-urbanism and ecology, united when mayors Montpetit and Taschereau informed their respective populations that the bridge in question would serve only to support gas pipelines (eighteen, according to the records, stacked one on top of another). A betrayal that spelled the end for the municipal, provincial and federal leaders of the time. All were imprisoned in Complex G by a coalition of revolutionary militias. The construction of the bridge, well underway though it was, would never reach completion: its ruins can still be seen on clear mornings from the other side of the river.
 
-À la suite de cette prise de pouvoir sans précédent par la population, les citoyens eurent l’occasion de refonder une société nouvelle, plus juste, plus riche, plus démocratique.
+Following this unprecedented seizure of power by the population, citizens had the opportunity to rebuild a new society — fairer, richer, more democratic.
 
-Mais rien de tout cela ne se produisit.
+But none of that came to pass.
 
-Ce sont les circonstances ayant mené à l’ère « Anémoia »; une époque que tout le monde idéalise aujourd’hui sans jamais l’avoir vécue. Tout ce qui nous reste de cette période de l’histoire est accessible via les journaux du registrarium du vieil Archiviste. Sans lui, nous n’aurions pas pu documenter ce qui s’est réellement passé.
+These are the circumstances that led to the "Anemoia" era; an era that everyone idealizes today without ever having lived through it. All that remains of this period of history is accessible through the journals of the old Archivist's registrarium. Without him, we could not have documented what truly happened.

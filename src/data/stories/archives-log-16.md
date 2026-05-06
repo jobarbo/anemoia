@@ -1,9 +1,9 @@
 ---
-title: LOG - 18 Griseille, an 4 REM
+title: LOG - Gri. 18, 4 A.REM
 neighborhood: archives
 returnTo: desktop
 order: 16
-date: Tramedi, 18 Griseille, an 4 REM
+date: Tramedi, Griseille 18, Year 4 After REM
 ---
 
-Pluie acide. À en faire fondre les carcasses de vélos rouillés.
+Acid rain. Enough to melt the carcasses of rusted bicycles.

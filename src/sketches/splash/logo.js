@@ -191,7 +191,7 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 		buf.textAlign(sketch.CENTER, sketch.CENTER);
 		fontApi?.applyCanvasFont?.(buf, subSz) ?? (buf.textFont(canvasFont), buf.textSize(subSz));
 		buf.fill(188, 216, 255, 220);
-		buf.text("CERT. PAR TRUDEYL CORP", cx, markY + subtitleOffsetY);
+		buf.text("CERT. BY TRUDEYL CORP", cx, markY + subtitleOffsetY);
 
 		// ── Version info (below box) ───────────────────────────────────────────
 		const infoSz = Math.max(10, Math.round(w * 0.013));
@@ -207,7 +207,7 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 		const promptSz = Math.max(10, Math.round(w * 0.016));
 		buf.textAlign(sketch.CENTER, sketch.CENTER);
 		fontApi?.applyCanvasFont?.(buf, promptSz) ?? buf.textSize(promptSz);
-		const promptText = "[ CLIQUEZ POUR DEMARRER ]";
+		const promptText = "[ CLICK TO START ]";
 		const promptY = h - h * 0.12;
 		const promptW = buf.textWidth(promptText);
 		const promptPadX = Math.max(10, promptSz * 0.65);
