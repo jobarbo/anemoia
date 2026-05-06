@@ -96,18 +96,22 @@ export function getStoriesByNeighborhood(neighborhood) {
  * @returns {Promise<object>}
  */
 export async function fetchNeighborhoodManifest(scenePath, slug) {
-	const [manifestRes, sceneConfigRes, legacyConfigRes] = await Promise.all([
-		fetch(scenePath),
-		fetch(scenePath.replace("manifest.json", "scene-config.json")),
-		fetch(scenePath.replace("manifest.json", "parallax-config.json")),
-	]);
+	const [manifestRes, sceneConfigRes] = await Promise.all([fetch(scenePath), fetch(scenePath.replace("manifest.json", "scene-config.json"))]);
 
 	if (!manifestRes.ok) throw new Error(`[scene-data] Failed to fetch manifest: ${scenePath}`);
 
 	const manifest = await manifestRes.json();
 	normalizeManifestPositions(manifest);
 
-	const config = sceneConfigRes.ok ? await sceneConfigRes.json() : legacyConfigRes.ok ? await legacyConfigRes.json() : null;
+	let config = null;
+	if (sceneConfigRes.ok) {
+		config = await sceneConfigRes.json();
+	} else {
+		const legacyConfigRes = await fetch(scenePath.replace("manifest.json", "parallax-config.json"));
+		if (legacyConfigRes.ok) {
+			config = await legacyConfigRes.json();
+		}
+	}
 	if (config) {
 		applySceneConfig(manifest, config);
 	}
