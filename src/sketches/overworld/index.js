@@ -782,7 +782,7 @@ function drawWindowTopBar(buf, w, h, closeHovered, p) {
 	applyThemeCanvasFont(buf, Math.max(12, w * 0.014), p);
 	buf.fill(...THEME.GREEN_SUBTLE, 240);
 	buf.textAlign(p.LEFT, p.CENTER);
-	buf.text("Back to main menu", btnX + btnSize + w * 0.02, barH * 0.5);
+	buf.text("Retour au menu principal", btnX + btnSize + w * 0.02, barH * 0.5);
 
 	return {
 		height: barH,
@@ -812,7 +812,7 @@ function drawBottomStatusBar(buf, w, h, p, zoomLevel = 1, panX = 0, panY = 0) {
 	applyThemeCanvasFont(buf, navSz, p);
 	buf.fill(...THEME.GREEN_MID, 245);
 	buf.textAlign(p.LEFT, p.CENTER);
-	buf.text("Active Mapping", w * 0.03, barY + barH * 0.5);
+	buf.text("Cartographie active", w * 0.03, barY + barH * 0.5);
 
 	// Center: 2D View
 	buf.textAlign(p.CENTER, p.CENTER);

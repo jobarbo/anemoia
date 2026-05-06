@@ -405,7 +405,7 @@ function buildDesktopTreeRows(opts = {}) {
 			action: nextStoryAction(story.id),
 		})),
 		{
-			label: `${archivesExpanded ? "[-]" : "[+]"} The Archives`,
+			label: `${archivesExpanded ? "[-]" : "[+]"} Les archives`,
 			depth: 0,
 			interactive: true,
 			action: `toggle:${archivesGroupId}`,
@@ -500,7 +500,7 @@ function drawInteractivePanel(buf, w, h, hoveredAction, panelState, p) {
 	buf.textAlign(p.LEFT, p.TOP);
 	buf.fill(...THEME.GREEN_SUBTLE, 255);
 	buf.noStroke();
-	buf.text("main_menu", pathTextX, pathBoxY + panelH * 0.018);
+	buf.text("menu_principal", pathTextX, pathBoxY + panelH * 0.018);
 
 	const treeStartY = panelY + panelH * 0.24;
 	const rowH = panelH * 0.1;
