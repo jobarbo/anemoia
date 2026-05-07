@@ -91,6 +91,8 @@ export default function (container) {
 	}
 
 	return (sketch) => {
+		let pointer = {x: 0, y: 0};
+
 		// ── Setup ──────────────────────────────────────────────────────────────
 
 		sketch.setup = () => {
@@ -145,7 +147,7 @@ export default function (container) {
 
 		sketch.draw = () => {
 			const now = sketch.millis();
-			const pointer = canvasCursor.beginFrame({mouseX: sketch.mouseX, mouseY: sketch.mouseY, width: artBuffer.width, height: artBuffer.height});
+			pointer = canvasCursor.beginFrame({mouseX: sketch.mouseX, mouseY: sketch.mouseY, width: artBuffer.width, height: artBuffer.height});
 			let hoveredCursor = phase === PHASE.TITLE;
 
 			// Advance state machine
@@ -191,8 +193,8 @@ export default function (container) {
 		// ── Input ──────────────────────────────────────────────────────────────
 
 		sketch.mousePressed = () => {
-			if (phase === PHASE.LOGO) logo.onPointerPressed(sketch.mouseX, sketch.mouseY);
-			if (phase === PHASE.TITLE) title.onPointerPressed(sketch.mouseX, sketch.mouseY);
+			if (phase === PHASE.LOGO) logo.onPointerPressed(pointer.x, pointer.y);
+			if (phase === PHASE.TITLE) title.onPointerPressed(pointer.x, pointer.y);
 			return false;
 		};
 

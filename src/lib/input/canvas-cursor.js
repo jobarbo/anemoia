@@ -108,9 +108,11 @@ export function createCanvasCursor(options) {
 		hasPosition = true;
 	}
 
-	/** @param {MouseEvent} e */
-	function onCanvasMouseDown(e) {
+	/** @param {PointerEvent} e */
+	function onCanvasPointerDown(e) {
 		if (!finePointer) return;
+		// Skip non-mouse pointer events (touch, pen) on hybrid devices.
+		if (e.pointerType && e.pointerType !== "mouse") return;
 		// Only sync from client coords when NOT locked — during pointer lock,
 		// clientX/clientY are frozen to the lock-engagement position and would
 		// snap the software cursor back to that stale position on every click.
@@ -144,7 +146,7 @@ export function createCanvasCursor(options) {
 		}
 	}
 
-	canvasEl.addEventListener("mousedown", onCanvasMouseDown);
+	canvasEl.addEventListener("pointerdown", onCanvasPointerDown);
 	window.addEventListener("mousemove", onWindowMouseMove);
 	document.addEventListener("pointerlockchange", onPointerLockChange);
 
@@ -195,7 +197,7 @@ export function createCanvasCursor(options) {
 		},
 
 		destroy() {
-			canvasEl.removeEventListener("mousedown", onCanvasMouseDown);
+			canvasEl.removeEventListener("pointerdown", onCanvasPointerDown);
 			window.removeEventListener("mousemove", onWindowMouseMove);
 			document.removeEventListener("pointerlockchange", onPointerLockChange);
 		},
