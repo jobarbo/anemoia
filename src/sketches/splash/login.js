@@ -11,9 +11,27 @@
  *   createLoginPhase(sketch, artBuffer, fontApi) → { draw(now), isDone(), onKeyPressed(keyCode, key), reset() }
  */
 
+import {loadSlicedSfx, playSlicedSfx} from "../../lib/audio/sliced-audio-sfx.js";
+import {playSfx} from "../../lib/audio/sfx.js";
 import {THEME} from "../../lib/utils/retro-theme.js";
 
 const BG = [...THEME.BG];
+
+/** Plusieurs one-shots dans un seul fichier ; découpe auto (`loadSlicedSfx` dans `sliced-audio-sfx.js`). */
+const LOGIN_SLICED_SFX_URL = "/assets/scenes/splash/click-array.mp3";
+/**
+ * Si la détection fusionne ou coupe trop : ajuster `minOnsetGapMs` / `noveltyThreshold`
+ * (voir `detectOnsetSamples` dans `sliced-audio-sfx.js`).
+ */
+const LOGIN_SLICED_SFX_ANALYSIS = {
+	minOnsetGapMs: 40,
+	noveltyThreshold: 0.16,
+};
+
+/** Secours si le pack découpé est indisponible. */
+const LOGIN_KEYCLICK_SFX_LIST = ["/assets/scenes/splash/click3.mp3"];
+
+const LOGIN_KEYCLICK_VOLUME = 0.65;
 
 const STEPS = {
 	USERNAME_TYPING: 0,
@@ -57,6 +75,32 @@ export function createLoginPhase(sketch, artBuffer, fontApi) {
 	let grantedCharIdx = 0;
 	let lastGrantedChar = 0;
 
+	/** @type {{ buffer: AudioBuffer, segments: { startSec: number, durationSec: number }[] } | null} */
+	let slicedSfxPack = null;
+	let slicedSfxLoadStarted = false;
+
+	function ensureSlicedSfxLoaded() {
+		if (slicedSfxLoadStarted) return;
+		slicedSfxLoadStarted = true;
+		void loadSlicedSfx(LOGIN_SLICED_SFX_URL, LOGIN_SLICED_SFX_ANALYSIS).then((data) => {
+			if (data.buffer && data.segments.length > 0) slicedSfxPack = data;
+		});
+	}
+
+	/**
+	 * Variante aléatoire parmi les segments du pack. Index fixe : `playSlicedSfx(pack.buffer, pack.segments[i], vol)`.
+	 */
+	function playRandomKeyclick() {
+		if (slicedSfxPack?.buffer && slicedSfxPack.segments.length > 0) {
+			const idx = Math.floor(sketch.random(slicedSfxPack.segments.length));
+			playSlicedSfx(slicedSfxPack.buffer, slicedSfxPack.segments[idx], LOGIN_KEYCLICK_VOLUME);
+			return;
+		}
+		if (LOGIN_KEYCLICK_SFX_LIST.length > 0) {
+			playSfx(sketch.random(LOGIN_KEYCLICK_SFX_LIST), {volume: LOGIN_KEYCLICK_VOLUME});
+		}
+	}
+
 	function reset() {
 		step = STEPS.USERNAME_TYPING;
 		charIdx = 0;
@@ -90,12 +134,18 @@ export function createLoginPhase(sketch, artBuffer, fontApi) {
 		const RETURN = sketch.RETURN ?? 13;
 
 		if (keyCode === BACKSPACE) {
-			passwordInput = passwordInput.slice(0, -1);
+			if (passwordInput.length > 0) {
+				playRandomKeyclick();
+				passwordInput = passwordInput.slice(0, -1);
+			}
 		} else if (keyCode === ENTER || keyCode === RETURN) {
 			_submitPassword();
 		} else if (key && key.length === 1) {
 			// printable char — max length guard
-			if (passwordInput.length < 32) passwordInput += key;
+			if (passwordInput.length < 32) {
+				playRandomKeyclick();
+				passwordInput += key;
+			}
 		}
 	}
 
@@ -156,6 +206,7 @@ export function createLoginPhase(sketch, artBuffer, fontApi) {
 	// ── Draw ──────────────────────────────────────────────────────────────────
 
 	function draw(now) {
+		ensureSlicedSfxLoaded();
 		tickAuto(now);
 		tickGranted(now);
 
