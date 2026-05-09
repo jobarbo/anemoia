@@ -22,6 +22,12 @@ import {createCanvasCursor, drawCanvasCursor} from "../../lib/input/canvas-curso
 
 const PHASE = {LOGO: 0, BIOS: 1, LOGIN: 2, TITLE: 3, EXIT: 4};
 
+/** Background layer for all splash phases; `""` disables. Plays under title music (`title.js`). */
+const SPLASH_AMBIENT_SRC = "/assets/scenes/splash/boot.mp3";
+const SPLASH_AMBIENT_LOOP = true;
+/** 0–1; lower leaves headroom for `TITLE_AUDIO_VOLUME` in `title.js`. */
+const SPLASH_AMBIENT_VOLUME = 0.99;
+
 const loadedGoogleStylesheets = new Set();
 const loadedLocalFontFaces = new Set();
 
@@ -92,6 +98,25 @@ export default function (container) {
 
 	return (sketch) => {
 		let pointer = {x: 0, y: 0};
+		/** @type {HTMLAudioElement|null} */
+		let splashAmbientAudio = null;
+
+		function stopSplashAmbient() {
+			if (splashAmbientAudio) {
+				splashAmbientAudio.pause();
+				splashAmbientAudio.currentTime = 0;
+			}
+		}
+
+		/** Browsers block autoplay until a user gesture; retry after click/key (see setup listeners). */
+		function tryPlaySplashAmbient() {
+			if (!splashAmbientAudio) return;
+			const p = splashAmbientAudio.play();
+			if (p !== undefined) p.catch(() => {});
+		}
+
+		/** @type {(() => void) | null} */
+		let splashAmbientUserUnlock = null;
 
 		// ── Setup ──────────────────────────────────────────────────────────────
 
@@ -141,6 +166,16 @@ export default function (container) {
 			logo = createLogoPhase(sketch, artBuffer, fontApi);
 			login = createLoginPhase(sketch, artBuffer, fontApi);
 			title = createTitlePhase(sketch, artBuffer, fontApi);
+
+			if (SPLASH_AMBIENT_SRC && typeof Audio !== "undefined") {
+				splashAmbientAudio = new Audio(SPLASH_AMBIENT_SRC);
+				splashAmbientAudio.loop = SPLASH_AMBIENT_LOOP;
+				splashAmbientAudio.volume = SPLASH_AMBIENT_VOLUME;
+				tryPlaySplashAmbient();
+				splashAmbientUserUnlock = () => tryPlaySplashAmbient();
+				document.addEventListener("pointerdown", splashAmbientUserUnlock, {capture: true});
+				document.addEventListener("keydown", splashAmbientUserUnlock, {capture: true});
+			}
 		};
 
 		// ── Draw ───────────────────────────────────────────────────────────────
@@ -154,7 +189,11 @@ export default function (container) {
 			if (phase === PHASE.LOGO && logo.isDone()) phase = PHASE.BIOS;
 			if (phase === PHASE.BIOS && bios.isDone()) phase = PHASE.LOGIN;
 			if (phase === PHASE.LOGIN && login.isDone()) phase = PHASE.TITLE;
-			if (phase === PHASE.TITLE && title.isDone()) phase = PHASE.EXIT;
+			if (phase === PHASE.TITLE && title.isDone()) {
+				title.stopAudio();
+				stopSplashAmbient();
+				phase = PHASE.EXIT;
+			}
 
 			// Delegate drawing to active phase
 			switch (phase) {
@@ -193,12 +232,14 @@ export default function (container) {
 		// ── Input ──────────────────────────────────────────────────────────────
 
 		sketch.mousePressed = () => {
+			tryPlaySplashAmbient();
 			if (phase === PHASE.LOGO) logo.onPointerPressed(pointer.x, pointer.y);
 			if (phase === PHASE.TITLE) title.onPointerPressed(pointer.x, pointer.y);
 			return false;
 		};
 
 		sketch.keyPressed = () => {
+			tryPlaySplashAmbient();
 			const isConfirmKey = sketch.keyCode === sketch.ENTER || sketch.keyCode === sketch.RETURN || sketch.keyCode === 13 || sketch.key === "Enter" || sketch.key === "Return";
 			if (phase === PHASE.LOGO && isConfirmKey) logo.onConfirm();
 			if (phase === PHASE.LOGIN) login.onKeyPressed(sketch.keyCode, sketch.key);
@@ -218,6 +259,13 @@ export default function (container) {
 
 		if (typeof sketch.registerMethod === "function") {
 			sketch.registerMethod("remove", () => {
+				if (splashAmbientUserUnlock) {
+					document.removeEventListener("pointerdown", splashAmbientUserUnlock, {capture: true});
+					document.removeEventListener("keydown", splashAmbientUserUnlock, {capture: true});
+					splashAmbientUserUnlock = null;
+				}
+				title?.stopAudio?.();
+				stopSplashAmbient();
 				canvasCursor?.destroy();
 			});
 		}

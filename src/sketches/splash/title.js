@@ -16,6 +16,13 @@ const TITLE_FONT = {
 	cssUrl: "https://fonts.googleapis.com/css2?family=Offside&display=swap",
 };
 
+/** Served from `public/assets/scenes/splash/` (Astro root URL). */
+const TITLE_AUDIO_SRC = "/assets/scenes/splash/song.m4a";
+/** When true, title music repeats until the phase ends or `stopAudio` runs. */
+const TITLE_AUDIO_LOOP = true;
+/** 0–1; mixed with splash ambient (`index.js` `SPLASH_AMBIENT_*`). */
+const TITLE_AUDIO_VOLUME = 0.85;
+
 const TITLE_TEXT = "ANÉMOIA";
 const AUTHOR_TEXT = "Olivier Laforest  ·  Jonathan Barbeau";
 const PROMPT_TEXT = "[ CLIQUER POUR CONTINUER ]";
@@ -73,6 +80,27 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 	let skyline = null;
 	let titleFontReady = false;
 	let titleFontLoadStarted = false;
+	let titleAudio = null;
+	let titleAudioPlayStarted = false;
+
+	function stopAudio() {
+		if (titleAudio) {
+			titleAudio.pause();
+			titleAudio.currentTime = 0;
+		}
+		titleAudioPlayStarted = false;
+	}
+
+	function tryStartTitleAudio() {
+		if (titleAudioPlayStarted || typeof Audio === "undefined") return;
+		titleAudioPlayStarted = true;
+		if (!titleAudio) {
+			titleAudio = new Audio(TITLE_AUDIO_SRC);
+			titleAudio.loop = TITLE_AUDIO_LOOP;
+			titleAudio.volume = TITLE_AUDIO_VOLUME;
+		}
+		titleAudio.play().catch(() => {});
+	}
 
 	function easeOutCubic(t) {
 		const clamped = sketch.constrain(t, 0, 1);
@@ -320,6 +348,7 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 	}
 
 	function reset() {
+		stopAudio();
 		phaseStart = 0;
 		revealComplete = false;
 		doneAt = null;
@@ -357,6 +386,7 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 		const w = buf.width;
 		const h = buf.height;
 		if (phaseStart === 0) phaseStart = now;
+		tryStartTitleAudio();
 		const elapsed = now - phaseStart;
 		ensureParticles(w, h);
 		ensureSkyline(w, h);
@@ -428,5 +458,5 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 		drawVignette(buf);
 	}
 
-	return {draw, isDone, isPointerOver, onPointerPressed, onConfirm, reset};
+	return {draw, isDone, isPointerOver, onPointerPressed, onConfirm, reset, stopAudio};
 }
