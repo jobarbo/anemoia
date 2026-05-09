@@ -20,7 +20,7 @@ const TITLE_FONT = {
 const TITLE_AUDIO_SRC = "/assets/scenes/splash/song.m4a";
 /** When true, title music repeats until the phase ends or `stopAudio` runs. */
 const TITLE_AUDIO_LOOP = true;
-/** 0–1; mixed with splash ambient (`index.js` `SPLASH_AMBIENT_*`). */
+/** 0–1; mixed with splash background tracks (`index.js` `SPLASH_BACKGROUND_TRACKS`). */
 const TITLE_AUDIO_VOLUME = 0.85;
 
 const TITLE_TEXT = "ANÉMOIA";

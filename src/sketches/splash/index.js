@@ -26,11 +26,16 @@ import {createCanvasCursor, drawCanvasCursor} from "../../lib/input/canvas-curso
 
 const PHASE = {CLICK_TO_START: 0, BOOT: 1, LOGO: 2, BIOS: 3, LOGIN: 4, TITLE: 5, EXIT: 6};
 
-/** Background layer for all splash phases; `""` disables. Plays under title music (`title.js`). */
-const SPLASH_AMBIENT_SRC = "/assets/scenes/splash/boot.mp3";
-const SPLASH_AMBIENT_LOOP = true;
-/** 0–1; lower leaves headroom for `TITLE_AUDIO_VOLUME` in `title.js`. */
-const SPLASH_AMBIENT_VOLUME = 0.99;
+/**
+ * Pistes de fond du splash, mixées en parallèle (sous la musique du titre, `title.js`).
+ * Ajoute une ligne `{ src, loop?, volume? }` pour une couche de plus ; `src: ""` ou entrée omise = ignorée.
+ *
+ * @type {ReadonlyArray<{ src: string, loop?: boolean, volume?: number }>}
+ */
+const SPLASH_BACKGROUND_TRACKS = [
+	{src: "/assets/scenes/splash/boot.mp3", loop: true, volume: 0.99},
+	{src: "/assets/scenes/splash/parasite.wav", loop: true, volume: 0.45},
+];
 
 const loadedGoogleStylesheets = new Set();
 const loadedLocalFontFaces = new Set();
@@ -104,21 +109,23 @@ export default function (container) {
 
 	return (sketch) => {
 		let pointer = {x: 0, y: 0};
-		/** @type {HTMLAudioElement|null} */
-		let splashAmbientAudio = null;
+		/** @type {HTMLAudioElement[]} */
+		let splashBackgroundAudios = [];
 
 		function stopSplashAmbient() {
-			if (splashAmbientAudio) {
-				splashAmbientAudio.pause();
-				splashAmbientAudio.currentTime = 0;
+			for (let i = 0; i < splashBackgroundAudios.length; i++) {
+				const a = splashBackgroundAudios[i];
+				a.pause();
+				a.currentTime = 0;
 			}
 		}
 
-		/** Browsers block autoplay until a user gesture; retry after click/key (see setup listeners). */
+		/** Browsers block autoplay until a user gesture; first click/key on the sketch retries `play()`. */
 		function tryPlaySplashAmbient() {
-			if (!splashAmbientAudio) return;
-			const p = splashAmbientAudio.play();
-			if (p !== undefined) p.catch(() => {});
+			for (let i = 0; i < splashBackgroundAudios.length; i++) {
+				const p = splashBackgroundAudios[i].play();
+				if (p !== undefined) p.catch(() => {});
+			}
 		}
 
 		// ── Setup ──────────────────────────────────────────────────────────────
@@ -172,10 +179,16 @@ export default function (container) {
 			login = createLoginPhase(sketch, artBuffer, fontApi);
 			title = createTitlePhase(sketch, artBuffer, fontApi);
 
-			if (SPLASH_AMBIENT_SRC && typeof Audio !== "undefined") {
-				splashAmbientAudio = new Audio(SPLASH_AMBIENT_SRC);
-				splashAmbientAudio.loop = SPLASH_AMBIENT_LOOP;
-				splashAmbientAudio.volume = SPLASH_AMBIENT_VOLUME;
+			splashBackgroundAudios = [];
+			if (typeof Audio !== "undefined") {
+				for (let i = 0; i < SPLASH_BACKGROUND_TRACKS.length; i++) {
+					const t = SPLASH_BACKGROUND_TRACKS[i];
+					if (!t?.src) continue;
+					const a = new Audio(t.src);
+					a.loop = t.loop ?? true;
+					a.volume = t.volume ?? 1;
+					splashBackgroundAudios.push(a);
+				}
 			}
 		};
 
