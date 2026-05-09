@@ -2,6 +2,8 @@
  * Splash screen orchestrator.
  *
  * State machine:
+ *   CLICK_TO_START — débloque l’audio (1er clic / Entrée sur le canvas)
+ *   BOOT  — court écran de mise en route; clic / Entrée ou délai auto → logo
  *   LOGO  — boot certification splash; mouse click advances
  *   BIOS  — POST-style diagnostic text streams in
  *   LOGIN — automated terminal login sequence
@@ -13,6 +15,8 @@
  * and the artBuffer → visible canvas pipeline.
  */
 
+import {createClickToStartPhase} from "./click-to-start.js";
+import {createBootScreenPhase} from "./boot-screen.js";
 import {createBiosPhase} from "./bios.js";
 import {createLogoPhase} from "./logo.js";
 import {createLoginPhase} from "./login.js";
@@ -20,7 +24,7 @@ import {createTitlePhase} from "./title.js";
 import {THEME_FONT, applyThemeCanvasFont} from "../../lib/utils/retro-theme.js";
 import {createCanvasCursor, drawCanvasCursor} from "../../lib/input/canvas-cursor.js";
 
-const PHASE = {LOGO: 0, BIOS: 1, LOGIN: 2, TITLE: 3, EXIT: 4};
+const PHASE = {CLICK_TO_START: 0, BOOT: 1, LOGO: 2, BIOS: 3, LOGIN: 4, TITLE: 5, EXIT: 6};
 
 /** Background layer for all splash phases; `""` disables. Plays under title music (`title.js`). */
 const SPLASH_AMBIENT_SRC = "/assets/scenes/splash/boot.mp3";
@@ -76,9 +80,11 @@ export default function (container) {
 	let splashFontWeight = THEME_FONT.weight ?? "400";
 	let splashFontVersion = 0;
 
-	let phase = PHASE.LOGO;
+	let phase = PHASE.CLICK_TO_START;
 
 	/** Phase instances — created in setup once artBuffer is ready. */
+	let clickToStart = null;
+	let boot = null;
 	let bios = null;
 	let logo = null;
 	let login = null;
@@ -114,9 +120,6 @@ export default function (container) {
 			const p = splashAmbientAudio.play();
 			if (p !== undefined) p.catch(() => {});
 		}
-
-		/** @type {(() => void) | null} */
-		let splashAmbientUserUnlock = null;
 
 		// ── Setup ──────────────────────────────────────────────────────────────
 
@@ -162,6 +165,8 @@ export default function (container) {
 				});
 			}
 			const fontApi = {getCanvasFont, getCanvasFontWeight, getCanvasFontVersion, applyCanvasFont};
+			clickToStart = createClickToStartPhase(sketch, artBuffer, fontApi);
+			boot = createBootScreenPhase(sketch, artBuffer, fontApi);
 			bios = createBiosPhase(sketch, artBuffer, fontApi);
 			logo = createLogoPhase(sketch, artBuffer, fontApi);
 			login = createLoginPhase(sketch, artBuffer, fontApi);
@@ -171,10 +176,6 @@ export default function (container) {
 				splashAmbientAudio = new Audio(SPLASH_AMBIENT_SRC);
 				splashAmbientAudio.loop = SPLASH_AMBIENT_LOOP;
 				splashAmbientAudio.volume = SPLASH_AMBIENT_VOLUME;
-				tryPlaySplashAmbient();
-				splashAmbientUserUnlock = () => tryPlaySplashAmbient();
-				document.addEventListener("pointerdown", splashAmbientUserUnlock, {capture: true});
-				document.addEventListener("keydown", splashAmbientUserUnlock, {capture: true});
 			}
 		};
 
@@ -186,6 +187,8 @@ export default function (container) {
 			let hoveredCursor = phase === PHASE.TITLE;
 
 			// Advance state machine
+			if (phase === PHASE.CLICK_TO_START && clickToStart.isDone()) phase = PHASE.BOOT;
+			if (phase === PHASE.BOOT && boot.isDone()) phase = PHASE.LOGO;
 			if (phase === PHASE.LOGO && logo.isDone()) phase = PHASE.BIOS;
 			if (phase === PHASE.BIOS && bios.isDone()) phase = PHASE.LOGIN;
 			if (phase === PHASE.LOGIN && login.isDone()) phase = PHASE.TITLE;
@@ -197,6 +200,14 @@ export default function (container) {
 
 			// Delegate drawing to active phase
 			switch (phase) {
+				case PHASE.CLICK_TO_START:
+					clickToStart.draw(now);
+					hoveredCursor = clickToStart.isPointerOver(pointer.x, pointer.y);
+					break;
+				case PHASE.BOOT:
+					boot.draw(now);
+					hoveredCursor = boot.isPointerOver(pointer.x, pointer.y);
+					break;
 				case PHASE.BIOS:
 					bios.draw(now);
 					break;
@@ -233,6 +244,8 @@ export default function (container) {
 
 		sketch.mousePressed = () => {
 			tryPlaySplashAmbient();
+			if (phase === PHASE.CLICK_TO_START) clickToStart.onPointerPressed(pointer.x, pointer.y);
+			if (phase === PHASE.BOOT) boot.onPointerPressed(pointer.x, pointer.y);
 			if (phase === PHASE.LOGO) logo.onPointerPressed(pointer.x, pointer.y);
 			if (phase === PHASE.TITLE) title.onPointerPressed(pointer.x, pointer.y);
 			return false;
@@ -241,6 +254,8 @@ export default function (container) {
 		sketch.keyPressed = () => {
 			tryPlaySplashAmbient();
 			const isConfirmKey = sketch.keyCode === sketch.ENTER || sketch.keyCode === sketch.RETURN || sketch.keyCode === 13 || sketch.key === "Enter" || sketch.key === "Return";
+			if (phase === PHASE.CLICK_TO_START && isConfirmKey) clickToStart.onConfirm();
+			if (phase === PHASE.BOOT && isConfirmKey) boot.onConfirm();
 			if (phase === PHASE.LOGO && isConfirmKey) logo.onConfirm();
 			if (phase === PHASE.LOGIN) login.onKeyPressed(sketch.keyCode, sketch.key);
 			if (phase === PHASE.TITLE && isConfirmKey) title.onConfirm();
@@ -259,11 +274,6 @@ export default function (container) {
 
 		if (typeof sketch.registerMethod === "function") {
 			sketch.registerMethod("remove", () => {
-				if (splashAmbientUserUnlock) {
-					document.removeEventListener("pointerdown", splashAmbientUserUnlock, {capture: true});
-					document.removeEventListener("keydown", splashAmbientUserUnlock, {capture: true});
-					splashAmbientUserUnlock = null;
-				}
 				title?.stopAudio?.();
 				stopSplashAmbient();
 				canvasCursor?.destroy();
