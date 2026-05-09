@@ -54,7 +54,7 @@ function detectOnsetSamples(mono, sampleRate, options = {}) {
 
 	const hop = Math.max(1, Math.floor((hopMs / 1000) * sampleRate));
 	const win = Math.max(1, Math.floor((windowMs / 1000) * sampleRate));
-	const minGapHops = Math.max(1, Math.floor((minOnsetGapMs / 1000) * sampleRate / hop));
+	const minGapHops = Math.max(1, Math.floor(((minOnsetGapMs / 1000) * sampleRate) / hop));
 
 	const nHop = Math.floor((mono.length - win) / hop);
 	if (nHop < 4) return [0];
@@ -97,29 +97,56 @@ function detectOnsetSamples(mono, sampleRate, options = {}) {
 }
 
 /**
+ * Construit les segments à partir des onsets.
+ *
+ * **Durée variable (comportement par défaut)** : chaque segment va du transitoire `i`
+ * jusqu’au transitoire suivant (ou la fin du fichier). L’écart entre deux pics n’est pas
+ * constant dans la matrice audio → certains sons paraissent courts, d’autres longs.
+ * `minDurationSec` / `maxDurationSec` ne font qu’**encadrer** cette durée naturelle ;
+ * les mettre à des valeurs minuscules (ex. 1e-5) ne « rallonge » pas le son, ça le casse.
+ *
+ * **Durée homogène** : passe `fixedSliceSec` — on lit toujours N secondes depuis chaque onset
+ * (tronqué en fin de fichier ; peut chevaucher le clic suivant).
+ *
  * @param {Float32Array} mono
  * @param {number} sampleRate
  * @param {number[]} onsetSamples
- * @param {{ gapBeforeNextMs?: number, minDurationSec?: number, maxDurationSec?: number }} [options]
+ * @param {{
+ *   gapBeforeNextMs?: number,
+ *   minDurationSec?: number,
+ *   maxDurationSec?: number,
+ *   fixedSliceSec?: number,
+ * }} [options]
  * @returns {SlicedSfxSegment[]}
  */
 function onsetsToSegments(mono, sampleRate, onsetSamples, options = {}) {
-	const gapBeforeNext = Math.floor(((options.gapBeforeNextMs ?? 4) / 1000) * sampleRate);
+	const gapBeforeNext = Math.floor(((options.gapBeforeNextMs ?? 0) / 1000) * sampleRate);
 	const minDur = options.minDurationSec ?? 0.012;
-	const maxDur = options.maxDurationSec ?? 0.4;
+	const maxDur = options.maxDurationSec ?? 1.2;
 	const minSamples = Math.floor(minDur * sampleRate);
+	const fixedSliceSec = options.fixedSliceSec;
+	const monoEndSec = mono.length / sampleRate;
 
 	const segments = [];
 	for (let i = 0; i < onsetSamples.length; i++) {
 		const start = onsetSamples[i];
-		const next = i + 1 < onsetSamples.length ? onsetSamples[i + 1] : mono.length;
-		let end = next - gapBeforeNext;
-		const minEnd = start + minSamples;
-		end = Math.max(minEnd, end);
-		end = Math.min(mono.length, end);
-		let durationSec = (end - start) / sampleRate;
+		const startSec = start / sampleRate;
+
+		let durationSec;
+		if (fixedSliceSec != null && fixedSliceSec > 0) {
+			durationSec = Math.min(fixedSliceSec, monoEndSec - startSec);
+		} else {
+			const next = i + 1 < onsetSamples.length ? onsetSamples[i + 1] : mono.length;
+			let end = next - gapBeforeNext;
+			const minEnd = start + minSamples;
+			end = Math.max(minEnd, end);
+			end = Math.min(mono.length, end);
+			durationSec = (end - start) / sampleRate;
+		}
 		durationSec = Math.min(maxDur, Math.max(minDur, durationSec));
-		segments.push({startSec: start / sampleRate, durationSec});
+		if (durationSec > 0) {
+			segments.push({startSec, durationSec});
+		}
 	}
 	return segments;
 }
@@ -136,6 +163,7 @@ function onsetsToSegments(mono, sampleRate, onsetSamples, options = {}) {
  *   gapBeforeNextMs?: number,
  *   minDurationSec?: number,
  *   maxDurationSec?: number,
+ *   fixedSliceSec?: number, // durée fixe depuis chaque onset (ignore l’écart jusqu’au suivant)
  * }} [analysisOptions]
  * @returns {Promise<{ buffer: AudioBuffer | null, segments: SlicedSfxSegment[] }>}
  */

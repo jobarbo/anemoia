@@ -18,6 +18,7 @@
  *   the DOM inside #game-container, then a beam expand (power on). Shader runs uninterrupted.
  */
 
+import {ensureTransitionSfxPackLoaded, playRandomTransitionSfx} from "../audio/transition-sfx.js";
 import {getNeighborhoods, getStory} from "../data/scene-data.js";
 
 /** Vertical phosphor “tube off / on” timing — feels like old CRT input switching */
@@ -46,6 +47,8 @@ export class SceneRouter {
 		this._transitioning = false;
 
 		_instance = this;
+
+		ensureTransitionSfxPackLoaded();
 
 		window.addEventListener("popstate", (e) => {
 			const state = e.state;
@@ -82,6 +85,7 @@ export class SceneRouter {
 		const hadScene = Boolean(this._current);
 
 		if (hadScene) {
+			playRandomTransitionSfx();
 			await this._overlay.crtSceneTransition("out", CRT_OUT_MS);
 		}
 
