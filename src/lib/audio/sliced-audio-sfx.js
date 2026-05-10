@@ -43,6 +43,7 @@ function mixToMono(buffer) {
  *   windowMs?: number,
  *   minOnsetGapMs?: number,
  *   noveltyThreshold?: number,
+ *   minEnergyRatio?: number,
  * }} [options]
  * @returns {number[]} indices d’échantillon des onsets
  */
@@ -51,6 +52,11 @@ function detectOnsetSamples(mono, sampleRate, options = {}) {
 	const windowMs = options.windowMs ?? 5;
 	const minOnsetGapMs = options.minOnsetGapMs ?? 42;
 	const noveltyThreshold = options.noveltyThreshold ?? 0.18;
+	/**
+	 * Énergie locale au pic ≥ ce ratio du pic global (évite les faux transitoires « entre deux » sons,
+	 * souvent faibles : réverb, clic de jointure). 0 = désactivé.
+	 */
+	const minEnergyRatio = options.minEnergyRatio ?? 0.07;
 
 	const hop = Math.max(1, Math.floor((hopMs / 1000) * sampleRate));
 	const win = Math.max(1, Math.floor((windowMs / 1000) * sampleRate));
@@ -70,6 +76,11 @@ function detectOnsetSamples(mono, sampleRate, options = {}) {
 		logE[h] = Math.log(Math.max(1e-15, sum / win));
 	}
 
+	let maxLogE = logE[0];
+	for (let h = 1; h < nHop; h++) if (logE[h] > maxLogE) maxLogE = logE[h];
+
+	const minLogEForOnset = minEnergyRatio > 0 ? maxLogE + Math.log(minEnergyRatio) : -Infinity;
+
 	const novelty = new Float32Array(nHop);
 	for (let h = 1; h < nHop; h++) {
 		const d = logE[h] - logE[h - 1];
@@ -85,6 +96,7 @@ function detectOnsetSamples(mono, sampleRate, options = {}) {
 	let lastH = -minGapHops;
 
 	for (let h = 2; h < nHop - 1; h++) {
+		if (logE[h] < minLogEForOnset) continue;
 		const peak = novelty[h] >= novelty[h - 1] && novelty[h] >= novelty[h + 1] && novelty[h] >= thresh;
 		if (peak && h - lastH >= minGapHops) {
 			onsets.push(h * hop);
@@ -160,10 +172,12 @@ function onsetsToSegments(mono, sampleRate, onsetSamples, options = {}) {
  *   windowMs?: number,
  *   minOnsetGapMs?: number,
  *   noveltyThreshold?: number,
+ *   minEnergyRatio?: number,
+ *   discardSegmentsShorterThanMs?: number,
  *   gapBeforeNextMs?: number,
  *   minDurationSec?: number,
  *   maxDurationSec?: number,
- *   fixedSliceSec?: number, // durée fixe depuis chaque onset (ignore l’écart jusqu’au suivant)
+ *   fixedSliceSec?: number,
  * }} [analysisOptions]
  * @returns {Promise<{ buffer: AudioBuffer | null, segments: SlicedSfxSegment[] }>}
  */
@@ -180,6 +194,12 @@ export async function loadSlicedSfx(url, analysisOptions = {}) {
 	const mono = mixToMono(buffer);
 	const onsets = detectOnsetSamples(mono, buffer.sampleRate, analysisOptions);
 	let segments = onsetsToSegments(mono, buffer.sampleRate, onsets, analysisOptions);
+
+	const discardMs = analysisOptions.discardSegmentsShorterThanMs;
+	if (discardMs != null && discardMs > 0) {
+		const minSec = discardMs / 1000;
+		segments = segments.filter((s) => s.durationSec >= minSec);
+	}
 
 	if (segments.length === 0) {
 		segments = [{startSec: 0, durationSec: buffer.duration}];

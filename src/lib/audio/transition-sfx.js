@@ -8,13 +8,17 @@ import {loadSlicedSfx, playSlicedSfx} from "./sliced-audio-sfx.js";
 export const TRANSITION_SFX_URL = "/assets/audio/transition_array.mp3";
 
 /**
- * Ajuster détection (`minOnsetGapMs`, `noveltyThreshold`) ou longueur :
- * - `maxDurationSec` : plafond si la zone entre deux transitoires est longue ;
- * - `fixedSliceSec` (ex. 0.85) : même durée lue depuis chaque onset (plus homogène, peut chevaucher le son suivant).
+ * Réduire les segments « entre deux » sons :
+ * - `minEnergyRatio` : rejette les pics faibles (réverb / artefacts entre deux hits) ;
+ * - `noveltyThreshold` ↑ : moins de pics pris en compte ;
+ * - `minOnsetGapMs` ↑ : force plus d’espace entre onsets ;
+ * - `discardSegmentsShorterThanMs` : enlève les tranches trop courtes après découpe.
  */
 export const TRANSITION_SFX_ANALYSIS = {
-	minOnsetGapMs: 45,
-	noveltyThreshold: 0.15,
+	minOnsetGapMs: 55,
+	noveltyThreshold: 0.22,
+	minEnergyRatio: 0.1,
+	discardSegmentsShorterThanMs: 32,
 	gapBeforeNextMs: 0,
 	maxDurationSec: 1.5,
 	fixedSliceSec: 1.85,

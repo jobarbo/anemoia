@@ -26,6 +26,8 @@ const LOGIN_SLICED_SFX_URL = "/assets/scenes/splash/click-array.mp3";
 const LOGIN_SLICED_SFX_ANALYSIS = {
 	minOnsetGapMs: 40,
 	noveltyThreshold: 0.16,
+	minEnergyRatio: 0.04,
+	discardSegmentsShorterThanMs: 15,
 	gapBeforeNextMs: 0,
 	maxDurationSec: 1.5,
 };
