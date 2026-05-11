@@ -181,14 +181,14 @@
       "clipped": false
     },
     {
-      "name": "bord-e",
-      "file": "bord-e.png",
+      "name": "fabrique",
+      "file": "fabrique.png",
       "zIndex": 11,
       "position": {
-        "centerLeft": 71.875,
-        "centerTop": 77.75,
-        "width": 72.39583333333334,
-        "height": 15.271428571428572
+        "centerLeft": 46.145833333333336,
+        "centerTop": 70.69285714285715,
+        "width": 68.64583333333333,
+        "height": 15.014285714285712
       },
       "parallaxSpeed": 0.27286230183619026,
       "interactive": false,
@@ -197,14 +197,14 @@
       "clipped": false
     },
     {
-      "name": "fabrique",
-      "file": "fabrique.png",
+      "name": "bord-e",
+      "file": "bord-e.png",
       "zIndex": 12,
       "position": {
-        "centerLeft": 46.145833333333336,
-        "centerTop": 70.69285714285715,
-        "width": 68.64583333333333,
-        "height": 15.014285714285712
+        "centerLeft": 71.875,
+        "centerTop": 77.75,
+        "width": 72.39583333333334,
+        "height": 15.271428571428572
       },
       "parallaxSpeed": 0.31362107267324624,
       "interactive": false,

@@ -94,13 +94,14 @@ export function measureMainNavStoryList(rect, ctx, canvasW) {
 	const stories = Array.isArray(ctx.stories) ? ctx.stories : [];
 	const padX = rect.w * 0.08;
 	const padY = Math.max(10, rect.h * 0.028);
+	const padTop = mainNavSidebarTopContentPadY(rect);
 	const titleSize = Math.max(11, canvasW * 0.0105);
 	const links = navLinksForContext(ctx);
 	const linkSize = Math.max(12, rect.w * 0.078);
 	const linkRowH = Math.max(30, linkSize * 1.55);
 	const linkGap = Math.max(5, rect.h * 0.012);
 
-	let cy = rect.y + padY + titleSize * 1.35;
+	let cy = rect.y + padTop + titleSize * 1.35;
 	for (let i = 0; i < links.length; i++) {
 		cy += linkRowH + linkGap;
 	}
@@ -128,6 +129,7 @@ export function drawMainNavSidebar(buf, rect, ctx, p) {
 	const stories = Array.isArray(ctx.stories) ? ctx.stories : [];
 	const padX = rect.w * 0.08;
 	const padY = Math.max(10, rect.h * 0.028);
+	const padTop = mainNavSidebarTopContentPadY(rect);
 	const titleSize = Math.max(11, buf.width * 0.0105);
 
 	const listMetrics = measureMainNavStoryList(rect, ctx, buf.width);
@@ -150,7 +152,7 @@ export function drawMainNavSidebar(buf, rect, ctx, p) {
 	const linkRowH = Math.max(30, linkSize * 1.55);
 	const linkGap = Math.max(5, rect.h * 0.012);
 
-	let cy = rect.y + padY;
+	let cy = rect.y + padTop;
 	applyThemeCanvasFont(buf, titleSize, p);
 	buf.fill(255, 255, 255, 245);
 	buf.textAlign(p.LEFT, p.TOP);
@@ -259,13 +261,14 @@ export function hitMainNavSidebar(px, py, rect, ctx, p) {
 	const stories = Array.isArray(ctx.stories) ? ctx.stories : [];
 	const padX = rect.w * 0.08;
 	const padY = Math.max(10, rect.h * 0.028);
+	const padTop = mainNavSidebarTopContentPadY(rect);
 	const titleSize = Math.max(11, p.width * 0.0105);
 	const links = navLinksForContext(ctx);
 	const linkSize = Math.max(12, rect.w * 0.078);
 	const linkRowH = Math.max(30, linkSize * 1.55);
 	const linkGap = Math.max(5, rect.h * 0.012);
 
-	let cy = rect.y + padY + titleSize * 1.35;
+	let cy = rect.y + padTop + titleSize * 1.35;
 	for (const def of links) {
 		const r = {x: rect.x + padX, y: cy, w: rect.w - padX * 2, h: linkRowH};
 		if (hitTest(px, py, r)) return {kind: "link", id: def.id};
@@ -327,6 +330,19 @@ export function layoutNavSidebarCollapseTab(sidebarRect) {
 	const btnW = Math.min(52, sidebarRect.w * 0.22);
 	const btnH = Math.min(40, Math.max(32, sidebarRect.h * 0.06));
 	return {x: sidebarRect.x + sidebarRect.w - btnW - 6, y: sidebarRect.y + 6, w: btnW, h: btnH};
+}
+
+/**
+ * Padding from the top of the sidebar rect before the "Navigation" heading so links
+ * sit below the collapse tab (and a small gap).
+ *
+ * @param {{ x: number, y: number, w: number, h: number }} sidebarRect
+ */
+export function mainNavSidebarTopContentPadY(sidebarRect) {
+	const basePad = Math.max(10, sidebarRect.h * 0.028);
+	const tab = layoutNavSidebarCollapseTab(sidebarRect);
+	const gap = Math.max(10, sidebarRect.h * 0.014);
+	return Math.max(basePad, tab.y + tab.h - sidebarRect.y + gap);
 }
 
 /**
