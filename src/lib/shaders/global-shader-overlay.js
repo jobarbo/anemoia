@@ -85,12 +85,12 @@ function computeInternalRenderSize(viewportW, viewportH, settings) {
 
 const DEFAULT_EFFECTS = {
 	pixelGrid: {
-		enabled: true,
-		gridCols: 400.0,
-		gridRows: 400.0,
+		enabled: false,
+		gridCols: 1122.0,
+		gridRows: 1123.0,
 		cellRatio: 1.0,
 		mode: 1.0,
-		diffuse: 0.0,
+		diffuse: 1.0,
 		gapSize: 0.0,
 		gapBrightness: 1.0,
 	},
@@ -156,7 +156,7 @@ const DEFAULT_EFFECTS = {
 	},
 	crtWarp: {
 		enabled: true,
-		warpAmount: 0.0,
+		warpAmount: 0.25,
 		aspectCorrect: 0.0,
 		borderColor: 2.0,
 		vignette: 0.0,
