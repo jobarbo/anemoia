@@ -562,4 +562,3 @@ function preloadImageUrl(url) {
 		im.src = url;
 	});
 }
-

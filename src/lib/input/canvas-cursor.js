@@ -8,6 +8,7 @@ function isFinePointerDevice() {
 }
 
 const POINTER_LOCK_PREFERENCE_KEY = "anemoia:pointer-lock-preferred";
+const POINTER_POSITION_KEY = "anemoia:pointer-position";
 
 function readPointerLockPreference() {
 	if (typeof window === "undefined") return false;
@@ -26,6 +27,35 @@ function writePointerLockPreference(preferred) {
 		} else {
 			window.sessionStorage.removeItem(POINTER_LOCK_PREFERENCE_KEY);
 		}
+	} catch {
+		// Ignore storage failures (private mode, blocked storage, etc.)
+	}
+}
+
+/**
+ * Read normalized cursor position (0..1) persisted from the previous scene so
+ * the software cursor can resume where it left off after a route change.
+ *
+ * @returns {{nx: number, ny: number} | null}
+ */
+function readPointerPosition() {
+	if (typeof window === "undefined") return null;
+	try {
+		const raw = window.sessionStorage.getItem(POINTER_POSITION_KEY);
+		if (!raw) return null;
+		const parsed = JSON.parse(raw);
+		if (!parsed || !Number.isFinite(parsed.nx) || !Number.isFinite(parsed.ny)) return null;
+		return {nx: clamp(parsed.nx, 0, 1), ny: clamp(parsed.ny, 0, 1)};
+	} catch {
+		return null;
+	}
+}
+
+function writePointerPosition(nx, ny) {
+	if (typeof window === "undefined") return;
+	if (!Number.isFinite(nx) || !Number.isFinite(ny)) return;
+	try {
+		window.sessionStorage.setItem(POINTER_POSITION_KEY, JSON.stringify({nx, ny}));
 	} catch {
 		// Ignore storage failures (private mode, blocked storage, etc.)
 	}
@@ -82,6 +112,18 @@ export function createCanvasCursor(options) {
 	let hasPosition = false;
 	let insideCanvas = false;
 	const finePointer = isFinePointerDevice();
+	// Whether the user has actually moved the mouse since this cursor was
+	// created. Until this is true, `frame.mouseX/mouseY` are treated as
+	// uninitialized defaults (commonly (0, 0) right after a scene swap) and
+	// must NOT override the restored position — otherwise the cursor snaps to
+	// the top-left corner on every navigation.
+	let pointerObserved = false;
+	// Normalized (0..1) cursor position carried over from the previous scene,
+	// applied lazily on the first `beginFrame` once the real canvas size is
+	// known. Cleared after it is consumed.
+	let pendingRestore = readPointerPosition();
+	let lastPositionSaveAt = 0;
+	const POSITION_SAVE_INTERVAL_MS = 200;
 
 	const state = {
 		locked: false,
@@ -96,6 +138,18 @@ export function createCanvasCursor(options) {
 		if (!pointerLockPreference.wantsLock) return;
 		if (document.pointerLockElement === canvasEl) return;
 		requestPointerLockSafely();
+	}
+
+	function persistPosition() {
+		if (!hasPosition || canvasW <= 0 || canvasH <= 0) return;
+		writePointerPosition(x / canvasW, y / canvasH);
+	}
+
+	function persistPositionThrottled(nowMs) {
+		if (!hasPosition) return;
+		if (nowMs - lastPositionSaveAt < POSITION_SAVE_INTERVAL_MS) return;
+		lastPositionSaveAt = nowMs;
+		persistPosition();
 	}
 
 	function syncFromClient(clientX, clientY) {
@@ -129,6 +183,7 @@ export function createCanvasCursor(options) {
 
 	/** @param {MouseEvent} e */
 	function onWindowMouseMove(e) {
+		pointerObserved = true;
 		if (!finePointer) return;
 		if (document.pointerLockElement === canvasEl) {
 			x = clamp(x + e.movementX, 0, canvasW);
@@ -168,13 +223,20 @@ export function createCanvasCursor(options) {
 				tryRestorePointerLock();
 			}
 
+			if (pendingRestore) {
+				x = clamp(pendingRestore.nx * canvasW, 0, canvasW);
+				y = clamp(pendingRestore.ny * canvasH, 0, canvasH);
+				hasPosition = true;
+				pendingRestore = null;
+			}
+
 			if (!hasPosition) {
 				x = canvasW * 0.5;
 				y = canvasH * 0.5;
 				hasPosition = true;
 			}
 
-			if (!state.locked && finePointer) {
+			if (!state.locked && finePointer && pointerObserved) {
 				const validMouse = Number.isFinite(frame.mouseX) && Number.isFinite(frame.mouseY);
 				if (validMouse) {
 					insideCanvas = frame.mouseX >= 0 && frame.mouseX <= canvasW && frame.mouseY >= 0 && frame.mouseY <= canvasH;
@@ -182,6 +244,8 @@ export function createCanvasCursor(options) {
 					y = clamp(frame.mouseY, 0, canvasH);
 				}
 			}
+
+			persistPositionThrottled(typeof performance !== "undefined" ? performance.now() : Date.now());
 
 			return {
 				x,
@@ -197,6 +261,7 @@ export function createCanvasCursor(options) {
 		},
 
 		destroy() {
+			persistPosition();
 			canvasEl.removeEventListener("pointerdown", onCanvasPointerDown);
 			window.removeEventListener("mousemove", onWindowMouseMove);
 			document.removeEventListener("pointerlockchange", onPointerLockChange);
