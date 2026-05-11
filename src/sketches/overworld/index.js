@@ -14,14 +14,7 @@
  */
 
 import {sceneNavigate} from "../../lib/router/scene-nav.js";
-import {
-	THEME,
-	drawTitleAberration,
-	hitTest,
-	applyThemeCanvasFont,
-	readingUiFontSize,
-	truncateCanvasTextToFitWidth,
-} from "../../lib/utils/retro-theme.js";
+import {THEME, drawTitleAberration, hitTest, applyThemeCanvasFont, readingUiFontSize, truncateCanvasTextToFitWidth} from "../../lib/utils/retro-theme.js";
 import {createCanvasCursor, drawCanvasCursor} from "../../lib/input/canvas-cursor.js";
 import {getOverworldMapData} from "../../lib/data/overworld-map-data.js";
 import {playUiClickSfx, playUiHoverSfxIfTargetChanged} from "../../lib/audio/ui-hover-sfx.js";
@@ -633,7 +626,8 @@ function overworldSidebarListLayout(sidebarRect, rowCount, canvasW) {
 	const rowGap = Math.max(4, h * 0.008);
 	const rowH = Math.max(26, (contentBottom - contentTop - rowGap * (visibleRows - 1)) / visibleRows);
 	const itemW = w - padX * 2;
-	const labelSize = Math.max(16, canvasW * 0.0098);
+	/** Taille des noms dans la liste — augmente le plancher (ex. 18) ou le ratio (ex. 0.0115) pour grossir. */
+	const labelSize = readingUiFontSize(Math.max(28, canvasW * 0.0098));
 	const textX = x + padX + itemW * 0.06;
 	const innerRight = x + padX + itemW;
 	const textRightMargin = Math.max(8, padX * 0.55);
@@ -667,8 +661,7 @@ function drawNeighborhoodSidebar(buf, sidebarRect, neighborhoods, selectedIndex,
 		buf.fill(...(enabled ? THEME.BG : [40, 18, 18]), isHovered || isSelected ? 185 : 130);
 		buf.rect(lay.rowLeft, itemY, lay.itemW, lay.rowH, 7);
 
-		const labelSize = readingUiFontSize(Math.max(16, buf.width * 0.0098));
-		applyThemeCanvasFont(buf, labelSize, p);
+		applyThemeCanvasFont(buf, lay.labelSize, p);
 		buf.noStroke();
 		buf.fill(...(enabled ? THEME.GREEN_MID : [255, 255, 255]), 255);
 		buf.textAlign(p.LEFT, p.CENTER);
