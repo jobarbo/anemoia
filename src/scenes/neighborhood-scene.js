@@ -171,7 +171,7 @@ export async function mount(container, params, data) {
 
 			// After slot outlets (layer shaders) so zones paint above recopie/overlay canvases.
 			if (layer.interactive && layer.interaction) {
-				layerContainer.appendChild(createInteractiveZone(layer, slug));
+				layerContainer.appendChild(createInteractiveZone(layer, slug, navStories));
 			}
 		}
 
@@ -436,7 +436,7 @@ function createLayerMedia(layer, parentLayer, scenePath, innerStackZIndex) {
 	return wrapper;
 }
 
-function createInteractiveZone(layer, currentSlug) {
+function createInteractiveZone(layer, currentSlug, navStories = []) {
 	const style = `
 		--layer-center-left: ${layer.position.centerLeft}%;
 		--layer-center-top: ${layer.position.centerTop}%;
@@ -453,6 +453,12 @@ function createInteractiveZone(layer, currentSlug) {
 		a.className = "zone zone--navigate";
 		a.dataset.zoneType = "navigate";
 		a.style.cssText = style;
+
+		const storyMatch = layer.interaction.target.match(/^\/story\/([^/]+)/);
+		if (storyMatch) {
+			const story = navStories.find((s) => s.slug === storyMatch[1]);
+			if (story?.title) a.dataset.tooltip = story.title;
+		}
 
 		if (layer.interaction.hoverImage) {
 			const img = document.createElement("img");

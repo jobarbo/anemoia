@@ -498,6 +498,11 @@ export default function (container) {
 
 			const sceneZoneVirtualHover = updateVirtualZoneHoverFromArtPointer(pointer.x, pointer.y, lay, w, h);
 
+			if (sceneZoneVirtualHover && lastVirtualHoveredZone instanceof HTMLElement) {
+				const tooltipLabel = lastVirtualHoveredZone.closest(".zone")?.dataset?.tooltip ?? null;
+				if (tooltipLabel) drawZoneTooltip(artBuffer, pointer.x, pointer.y, tooltipLabel, sketch);
+			}
+
 			{
 				let hotKey = null;
 				if (backHovered) hotKey = "back";
@@ -537,6 +542,45 @@ export default function (container) {
 			artBuffer.pixelDensity(1);
 		};
 	};
+}
+
+/**
+ * Draw a small retro-styled tooltip above the cursor showing a story name.
+ *
+ * @param {p5.Graphics} buf
+ * @param {number} px - cursor x in art-buffer space
+ * @param {number} py - cursor y in art-buffer space
+ * @param {string} label
+ * @param {p5} sketch
+ */
+function drawZoneTooltip(buf, px, py, label, sketch) {
+	const fontSize = Math.max(11, Math.round(buf.width * 0.012));
+	applyThemeCanvasFont(buf, fontSize, sketch);
+	const textW = buf.textWidth(label);
+	const padX = Math.round(fontSize * 0.85);
+	const padY = Math.round(fontSize * 0.55);
+	const boxW = textW + padX * 2;
+	const boxH = fontSize + padY * 2;
+	const gap = Math.round(fontSize * 0.7);
+
+	let bx = px - boxW / 2;
+	let by = py - boxH - gap;
+	bx = Math.max(4, Math.min(buf.width - boxW - 4, bx));
+	by = Math.max(4, Math.min(buf.height - boxH - 4, by));
+
+	buf.noStroke();
+	buf.fill(...THEME.BG, 232);
+	buf.rect(bx, by, boxW, boxH, 4);
+
+	buf.stroke(...THEME.GREEN_PRIMARY, 130);
+	buf.strokeWeight(1);
+	buf.noFill();
+	buf.rect(bx, by, boxW, boxH, 4);
+	buf.noStroke();
+
+	buf.fill(...THEME.GREEN_MID, 245);
+	buf.textAlign(sketch.LEFT, sketch.TOP);
+	buf.text(label, bx + padX, by + padY);
 }
 
 /**
