@@ -70,7 +70,8 @@
 		object-fit: cover;
 	}
 
-	&--navigate:hover .zone__hover {
+	&--navigate:hover .zone__hover,
+	&--navigate.zone--virtual-hover .zone__hover {
 		opacity: 1;
 	}
 }

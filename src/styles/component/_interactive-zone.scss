@@ -19,7 +19,8 @@
 			object-fit: cover;
 		}
 
-		&:hover .zone__hover {
+		&:hover .zone__hover,
+		&.zone--virtual-hover .zone__hover {
 			opacity: 1;
 		}
 	}

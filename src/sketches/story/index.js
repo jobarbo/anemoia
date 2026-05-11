@@ -37,14 +37,14 @@ import {
 	measureMainNavStoryList,
 	pointerInMainNavStoriesClip,
 } from "../../lib/navigation/main-nav-canvas.js";
-import {sceneNavigate} from "../../lib/router/scene-nav.js";
+import {sceneHistoryBack, sceneNavigate} from "../../lib/router/scene-nav.js";
 import {THEME, hitTest, applyThemeCanvasFont} from "../../lib/utils/retro-theme.js";
 import {createCanvasCursor, drawCanvasCursor} from "../../lib/input/canvas-cursor.js";
 import {playUiClickSfx, playUiHoverSfxIfTargetChanged} from "../../lib/audio/ui-hover-sfx.js";
 
 export default function (container) {
 	const raw = container.dataset.sketchData;
-	const {id: storyId = "", title = "", date = null, neighborhood = "", neighborhoodName = "", navStories = [], neighborhoodLinked, returnTo = "neighborhood", blocks = []} = raw ? JSON.parse(raw) : {};
+	const {id: storyId = "", title = "", date = null, neighborhood = "", neighborhoodName = "", navStories = [], neighborhoodLinked, blocks = []} = raw ? JSON.parse(raw) : {};
 	const titleBlocks = title ? [{type: "h1", text: title}, ...(date ? [{type: "h2", text: date}] : [])] : [];
 	const allBlocks = [...titleBlocks, ...blocks];
 
@@ -289,11 +289,7 @@ export default function (container) {
 			}
 			if (closeRect && hitTest(pointer.x, pointer.y, closeRect)) {
 				playUiClickSfx();
-				if (returnTo === "desktop") {
-					sceneNavigate("desktop");
-				} else {
-					sceneNavigate("neighborhood", {slug: neighborhood});
-				}
+				sceneHistoryBack();
 			}
 		};
 

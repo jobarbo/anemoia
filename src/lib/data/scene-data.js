@@ -9,6 +9,7 @@
  */
 
 import {compareRemDates} from "./rem-calendar.js";
+import {syncStackParallaxFromDepth} from "../scene/layer-stacks.js";
 
 /** @type {{ neighborhoods: NeighborhoodData[], stories: Record<string, StoryData> } | null} */
 let _cache = null;
@@ -31,7 +32,7 @@ let _cache = null;
  *   title: string,
  *   date?: string,
  *   neighborhood: string,
- *   returnTo?: 'desktop' | 'neighborhood',
+ *   returnTo?: 'desktop' | 'neighborhood' (frontmatter only; story close uses history.back),
  *   audioSrc?: string,
  *   order: number,
  *   blocks: Array<{ type: 'h1'|'h2'|'p', text: string }>
@@ -115,6 +116,8 @@ export async function fetchNeighborhoodManifest(scenePath, slug) {
 	if (config) {
 		applySceneConfig(manifest, config);
 	}
+
+	syncStackParallaxFromDepth(manifest.layers);
 
 	return manifest;
 }

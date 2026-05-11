@@ -34,6 +34,7 @@ export interface SceneLayer {
 	name: string;
 	file: string;
 	zIndex: number;
+	sceneGroupId?: string;
 	position: LayerPosition;
 	parallaxSpeed?: number;
 	opacity?: number;
@@ -45,7 +46,7 @@ export interface SceneLayer {
 }
 
 export interface SceneManifest {
-	canvas: { width: number; height: number };
+	canvas: {width: number; height: number};
 	layers: SceneLayer[];
 	layerEffects?: Record<string, LayerEffectAttachment[]>;
 	sceneEffects?: SceneShaderEffects;

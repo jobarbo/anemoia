@@ -143,17 +143,6 @@ const DEFAULT_EFFECTS = {
 		blurCrtPower: 10.0,
 		blurMin: 0.0,
 	},
-
-	crtWarp: {
-		enabled: true,
-		warpAmount: 0.25,
-		aspectCorrect: 0.0,
-		borderColor: 2.0,
-		vignette: 0.0,
-		cornerSmooth: 0.015,
-		cornerRadius: 0.08,
-		boundsInset: 0.08,
-	},
 	crtDisplay: {
 		enabled: true,
 		brightness: 0.99,

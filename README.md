@@ -143,10 +143,11 @@ node tools/psd-export.mjs ./designs/saint-roch.psd ./public/assets/scenes/saint-
 This will:
 
 - Create \`output-folder/layers/\` and export each visible layer as a PNG.
-- Write \`output-folder/manifest.json\` with the canvas size and per-layer data: \`name\`, \`file\`, \`zIndex\`, \`position\` (percent), \`parallaxSpeed\`, \`interactive\`.
-- Auto-generate \`parallaxSpeed\` from \`zIndex\`: closer layers move more, distant layers stay more stable.
+- Write \`output-folder/manifest.json\` with the canvas size and per-layer data: \`name\`, \`file\`, \`zIndex\`, \`position\` (percent), \`parallaxSpeed\`, \`interactive\`, and optionally \`sceneGroupId\`.
+- If the PSD has **exactly one** top-level **group** (e.g. \`saint-roch\`), that folder is unwrapped: its **direct children** define the web stack. A **direct child layer** becomes one \`.scene__layer-container\` (same as before). A **direct child group** becomes **one** container shared by every leaf layer inside that group (and nested subfolders do not split containers). All leaves in that group get the same \`sceneGroupId\` (sanitized group name) so they parallax together.
+- Auto-generate \`parallaxSpeed\` from **stack order** (back to front by the minimum \`zIndex\` in each stack): stacks farther back move less; foreground stacks move more.
 
-You can then edit \`manifest.json\` to set \`interactive: true\` and add an \`interaction\` block (e.g. \`type: "navigate"\`, \`target: "/story/my-story"\`, optional \`hoverImage\`) for clickable zones.
+You can then edit \`manifest.json\` to set \`interactive: true\` and add an \`interaction\` block (e.g. \`type: "navigate"\`, \`target: "/story/my-story"\`, optional \`hoverImage\`) for clickable zones. You can also assign the same \`sceneGroupId\` to multiple layers by hand if you need a shared container without re-exporting.
 
 ---
 
