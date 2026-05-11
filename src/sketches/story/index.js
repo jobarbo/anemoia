@@ -39,7 +39,7 @@ import {
 	pointerInMainNavStoriesClip,
 } from "../../lib/navigation/main-nav-canvas.js";
 import {sceneHistoryBack, sceneNavigate} from "../../lib/router/scene-nav.js";
-import {THEME, hitTest, applyThemeCanvasFont} from "../../lib/utils/retro-theme.js";
+import {THEME, hitTest, applyThemeCanvasFont, readingUiFontSize} from "../../lib/utils/retro-theme.js";
 import {createCanvasCursor, drawCanvasCursor} from "../../lib/input/canvas-cursor.js";
 import {playUiClickSfx, playUiHoverSfxIfTargetChanged} from "../../lib/audio/ui-hover-sfx.js";
 
@@ -666,8 +666,8 @@ async function loadFigureImagesForBlocks(p, blocks) {
 function fontSizeForType(type, canvasW) {
 	if (type === "h1") return canvasW * 0.048;
 	if (type === "h2") return canvasW * 0.028;
-	if (type === "figures") return canvasW * 0.02;
-	return canvasW * 0.02;
+	if (type === "figures") return readingUiFontSize(canvasW * 0.02);
+	return readingUiFontSize(canvasW * 0.02);
 }
 
 /**
@@ -774,7 +774,7 @@ function drawWindowTopBar(buf, w, h, closeHovered, title, p) {
 	buf.fill(...THEME.GREEN_PRIMARY, closeHovered ? 120 : 70);
 	buf.rect(btnX, btnY, btnSize, btnSize, 4);
 	buf.noStroke();
-	applyThemeCanvasFont(buf, Math.max(11, w * 0.013), p);
+	applyThemeCanvasFont(buf, readingUiFontSize(Math.max(11, w * 0.013)), p);
 	buf.fill(...THEME.GREEN_SUBTLE, closeHovered ? 255 : 240);
 	buf.textAlign(p.CENTER, p.CENTER);
 	buf.text("X", btnX + btnSize * 0.5, btnY + btnSize * 0.52);

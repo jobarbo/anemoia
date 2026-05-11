@@ -27,7 +27,7 @@ import {
 	measureMainNavStoryList,
 	pointerInMainNavStoriesClip,
 } from "../../lib/navigation/main-nav-canvas.js";
-import {THEME, applyThemeCanvasFont, drawButton, hitTest} from "../../lib/utils/retro-theme.js";
+import {THEME, applyThemeCanvasFont, drawButton, hitTest, readingUiFontSize} from "../../lib/utils/retro-theme.js";
 import {sceneNavigate} from "../../lib/router/scene-nav.js";
 import {createCanvasCursor, drawCanvasCursor} from "../../lib/input/canvas-cursor.js";
 import {remapPointer} from "../../lib/input/input-remap.js";
@@ -477,7 +477,7 @@ export default function (container) {
 			}
 
 			const backLabel = "[ RETOUR À LA CARTE ]";
-			const backSize = Math.max(11, Math.round(w * 0.013));
+			const backSize = readingUiFontSize(Math.max(11, Math.round(w * 0.013)));
 			applyThemeCanvasFont(artBuffer, backSize, sketch);
 			const backW = artBuffer.textWidth(backLabel) + backSize;
 			const backX = cutoutLeft + Math.max(12, Math.round(w * 0.01)) + backW * 0.5;
@@ -492,7 +492,7 @@ export default function (container) {
 			artBuffer.fill(...THEME.GREEN_PRIMARY, 255);
 			artBuffer.text(name || slug.toUpperCase(), w - innerPadX, innerPadY / 7);
 
-			applyThemeCanvasFont(artBuffer, Math.max(10, Math.round(w * 0.011)), sketch);
+			applyThemeCanvasFont(artBuffer, readingUiFontSize(Math.max(10, Math.round(w * 0.011))), sketch);
 			artBuffer.fill(...THEME.GREEN_SUBTLE, 255);
 			artBuffer.text("SCÈNE DE QUARTIER ACTIVE", w - innerPadX, innerPadY / 2);
 
@@ -554,7 +554,7 @@ export default function (container) {
  * @param {p5} sketch
  */
 function drawZoneTooltip(buf, px, py, label, sketch) {
-	const fontSize = Math.max(11, Math.round(buf.width * 0.012));
+	const fontSize = readingUiFontSize(Math.max(11, Math.round(buf.width * 0.012)));
 	applyThemeCanvasFont(buf, fontSize, sketch);
 	const textW = buf.textWidth(label);
 	const padX = Math.round(fontSize * 0.85);

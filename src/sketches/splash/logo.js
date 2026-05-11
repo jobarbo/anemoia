@@ -9,7 +9,7 @@
  *   createLogoPhase(sketch, artBuffer, fontApi) → { draw(now), isDone(), onPointerPressed(), reset() }
  */
 
-import {THEME, drawTitleAberration} from "../../lib/utils/retro-theme.js";
+import {THEME, drawTitleAberration, readingUiFontSize} from "../../lib/utils/retro-theme.js";
 
 const AUTO_ADVANCE_MS = 60000000;
 
@@ -69,7 +69,7 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 		const markTotalW = markGridW * px;
 		const markH = markGridH * px;
 		const titleSz = Math.round(w * 0.05);
-		const subSz = Math.round(w * 0.02);
+		const subSz = readingUiFontSize(Math.round(w * 0.02));
 		const titleOffsetY = markH + titleSz * 0.7;
 		const subtitleOffsetY = titleOffsetY + titleSz * 0.85;
 
@@ -194,7 +194,7 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 		buf.text("CERT. PAR T-CORP CORP", cx, markY + subtitleOffsetY);
 
 		// ── Version info (below box) ───────────────────────────────────────────
-		const infoSz = Math.max(10, Math.round(w * 0.013));
+		const infoSz = readingUiFontSize(Math.max(10, Math.round(w * 0.013)));
 		const infoY = boxY + boxH + infoSz * 1.6;
 		buf.textAlign(sketch.CENTER, sketch.CENTER);
 		fontApi?.applyCanvasFont?.(buf, infoSz) ?? (buf.textFont(canvasFont), buf.textSize(infoSz));
@@ -204,7 +204,7 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 		buf.text("1998 BootSoft Inc.  Environnement de démarrage OEM", cx, infoY + infoSz * 1.8);
 
 		// ── Prompt ─────────────────────────────────────────────────────────────
-		const promptSz = Math.max(10, Math.round(w * 0.016));
+		const promptSz = readingUiFontSize(Math.max(10, Math.round(w * 0.016)));
 		buf.textAlign(sketch.CENTER, sketch.CENTER);
 		fontApi?.applyCanvasFont?.(buf, promptSz) ?? buf.textSize(promptSz);
 		const promptText = "[ CLIQUER POUR DÉMARRER ]";

@@ -6,7 +6,7 @@
  *   createClickToStartPhase(sketch, artBuffer, fontApi) → { draw, isDone, isPointerOver, onPointerPressed, onConfirm, reset }
  */
 
-import {THEME} from "../../lib/utils/retro-theme.js";
+import {THEME, readingUiFontSize} from "../../lib/utils/retro-theme.js";
 
 const BG = [...THEME.BG];
 const PROMPT = "[ CLIQUER POUR DÉMARRER ]";
@@ -54,7 +54,7 @@ export function createClickToStartPhase(sketch, artBuffer, fontApi) {
 
 		const blink = Math.floor(now / THEME.BLINK_MS) % 2 === 0;
 		if (blink) {
-			const promptSize = Math.max(12, Math.round(w * 0.016));
+			const promptSize = readingUiFontSize(Math.max(12, Math.round(w * 0.016)));
 			fontApi?.applyCanvasFont?.(buf, promptSize, {weight: fontApi?.getCanvasFontWeight?.() ?? "500"}) ?? (buf.textFont(fontApi?.getCanvasFont?.() ?? "monospace"), buf.textSize(promptSize));
 			buf.fill(...THEME.GREEN_MID);
 			buf.text(PROMPT, w / 2, h * 0.48);

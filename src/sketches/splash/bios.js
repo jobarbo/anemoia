@@ -6,7 +6,7 @@
  *   createBiosPhase(sketch, artBuffer, fontApi) → { draw(now), isDone(), reset() }
  */
 
-import {THEME} from "../../lib/utils/retro-theme.js";
+import {THEME, readingUiFontSize} from "../../lib/utils/retro-theme.js";
 
 const LINES = [
 	"BOOT-BOY BIOS  Version 1.04",
@@ -90,7 +90,7 @@ export function createBiosPhase(sketch, artBuffer, fontApi) {
 		const buf = artBuffer;
 		const w = buf.width;
 		const h = buf.height;
-		const fontSize = Math.max(12, Math.round(w * 0.018));
+		const fontSize = readingUiFontSize(Math.max(12, Math.round(w * 0.018)));
 		const lineHeight = fontSize * 1.55;
 		const padLeft = w * 0.06;
 		const padTop = h * 0.1;

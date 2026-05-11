@@ -51,6 +51,17 @@ export const THEME = {
 	SCROLL_LERP: 0.08,
 };
 
+/** Extra px for long-form body copy and UI control / button labels (not hero or section titles). */
+export const THEME_READING_UI_FONT_EXTRA_PX = 3;
+
+/**
+ * @param {number} basePx
+ * @returns {number}
+ */
+export function readingUiFontSize(basePx) {
+	return basePx + THEME_READING_UI_FONT_EXTRA_PX;
+}
+
 const appliedThemeFontState = new WeakMap();
 
 function getP5TextStyle(sketch, style, weight) {

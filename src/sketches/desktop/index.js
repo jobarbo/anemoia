@@ -11,7 +11,7 @@
 import {sceneNavigate} from "../../lib/router/scene-nav.js";
 import {getNeighborhood, getNeighborhoods, getStory, getStoriesByNeighborhood} from "../../lib/data/scene-data.js";
 import {prefetchOverworldMapData} from "../../lib/data/overworld-map-data.js";
-import {THEME, applyThemeCanvasFont, hitTest, truncateCanvasTextToFitWidth} from "../../lib/utils/retro-theme.js";
+import {THEME, applyThemeCanvasFont, hitTest, readingUiFontSize, truncateCanvasTextToFitWidth} from "../../lib/utils/retro-theme.js";
 import {createCanvasCursor, drawCanvasCursor} from "../../lib/input/canvas-cursor.js";
 import {playUiClickSfx, playUiHoverSfxIfTargetChanged} from "../../lib/audio/ui-hover-sfx.js";
 
@@ -264,7 +264,7 @@ function drawTopBar(buf, w, h, p) {
 	buf.line(0, barH - 3, w, barH - 3);
 	buf.noStroke();
 
-	const textSize = Math.max(12, w * 0.014);
+	const textSize = readingUiFontSize(Math.max(12, w * 0.014));
 	applyThemeCanvasFont(buf, textSize, p);
 	buf.fill(...THEME.GREEN_SUBTLE, 255);
 	buf.textAlign(p.LEFT, p.CENTER);
@@ -303,7 +303,7 @@ function drawBottomNav(buf, w, h, locationLabel, weatherLabel, p) {
 	buf.line(0, barY + 3, w, barY + 3);
 	buf.noStroke();
 
-	const navSz = Math.max(11, w * 0.012);
+	const navSz = readingUiFontSize(Math.max(11, w * 0.012));
 	applyThemeCanvasFont(buf, navSz, p);
 	buf.fill(...THEME.GREEN_MID, 255);
 	buf.textAlign(p.LEFT, p.CENTER);
@@ -548,7 +548,8 @@ function drawInteractivePanel(buf, w, h, hoveredAction, panelState, p) {
 		connectorSegments.push({x1: trunkX, y1, x2: trunkX, y2});
 	}
 
-	const optionSz = Math.max(13, w * 0.016);
+	const optionBase = Math.max(13, w * 0.016);
+	const optionSz = readingUiFontSize(optionBase);
 	applyThemeCanvasFont(buf, optionSz, p);
 	buf.textAlign(p.LEFT, p.CENTER);
 
@@ -627,7 +628,7 @@ function drawInteractivePanel(buf, w, h, hoveredAction, panelState, p) {
 			buf.noStroke();
 			drawTrudeylMark(buf, rowBoxX + panelW * 0.045, y, rowH * 0.48);
 			if (statusLabel) {
-				const statusSz = Math.max(9, optionSz * 0.68);
+				const statusSz = readingUiFontSize(Math.max(9, optionBase * 0.68));
 				applyThemeCanvasFont(buf, statusSz, p);
 				buf.textAlign(p.RIGHT, p.CENTER);
 				buf.fill(228, 146, 146, 230);
@@ -740,8 +741,8 @@ function drawSystemCard(buf, w, h, p, blink, gazeXNorm, gazeYNorm, systemStats) 
 	const cardPadX = Math.max(16, w * 0.018);
 	const cardPadY = Math.max(14, h * 0.024);
 
-	const labelSz = Math.max(10, w * 0.012);
-	const valueSz = Math.max(13, w * 0.016);
+	const labelSz = readingUiFontSize(Math.max(10, w * 0.012));
+	const valueSz = readingUiFontSize(Math.max(13, w * 0.016));
 	const groupGap = Math.max(8, labelSz * 0.8);
 	const intraGap = Math.max(2, labelSz * 0.15);
 

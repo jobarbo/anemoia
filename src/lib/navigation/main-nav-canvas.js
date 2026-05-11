@@ -4,7 +4,7 @@
  */
 
 import {getNeighborhood} from "../data/scene-data.js";
-import {THEME, applyThemeCanvasFont, hitTest, truncateCanvasTextToFitWidth} from "../utils/retro-theme.js";
+import {THEME, applyThemeCanvasFont, hitTest, readingUiFontSize, truncateCanvasTextToFitWidth} from "../utils/retro-theme.js";
 
 /** @typedef {{ id: string, label: string, needsNeighborhood?: boolean }} NavLinkDef */
 
@@ -97,7 +97,7 @@ export function measureMainNavStoryList(rect, ctx, canvasW) {
 	const padTop = mainNavSidebarTopContentPadY(rect);
 	const titleSize = Math.max(11, canvasW * 0.0105);
 	const links = navLinksForContext(ctx);
-	const linkSize = Math.max(12, rect.w * 0.078);
+	const linkSize = readingUiFontSize(Math.max(12, rect.w * 0.078));
 	const linkRowH = Math.max(30, linkSize * 1.55);
 	const linkGap = Math.max(5, rect.h * 0.012);
 
@@ -107,7 +107,7 @@ export function measureMainNavStoryList(rect, ctx, canvasW) {
 	}
 	cy += linkGap * 0.5 + padY * 0.9 + titleSize * 1.2;
 
-	const storySize = Math.max(11, rect.w * 0.068);
+	const storySize = readingUiFontSize(Math.max(11, rect.w * 0.068));
 	const storyRowH = Math.max(26, storySize * 1.45);
 	const storyGap = Math.max(4, rect.h * 0.008);
 	const clipTop = cy;
@@ -148,7 +148,7 @@ export function drawMainNavSidebar(buf, rect, ctx, p) {
 	buf.noStroke();
 
 	const links = navLinksForContext(ctx);
-	const linkSize = Math.max(12, rect.w * 0.078);
+	const linkSize = readingUiFontSize(Math.max(12, rect.w * 0.078));
 	const linkRowH = Math.max(30, linkSize * 1.55);
 	const linkGap = Math.max(5, rect.h * 0.012);
 
@@ -194,7 +194,7 @@ export function drawMainNavSidebar(buf, rect, ctx, p) {
 	buf.text(secTitle, rect.x + padX, cy);
 	cy += titleSize * 1.2;
 
-	const storySize = Math.max(11, rect.w * 0.068);
+	const storySize = readingUiFontSize(Math.max(11, rect.w * 0.068));
 
 	if (storiesClip && stories.length > 0) {
 		buf.drawingContext.save();
@@ -239,7 +239,7 @@ export function drawMainNavSidebar(buf, rect, ctx, p) {
 			buf.rect(barX - 2, thumbY, 4, thumbH, 2);
 		}
 	} else if (stories.length === 0) {
-		applyThemeCanvasFont(buf, storySize * 0.95, p);
+		applyThemeCanvasFont(buf, readingUiFontSize(Math.max(10, rect.w * 0.068 * 0.95)), p);
 		buf.fill(...THEME.GREEN_SUBTLE, 160);
 		buf.textAlign(p.LEFT, p.TOP);
 		buf.text("Aucun récit lié", rect.x + padX, clipTop);
@@ -264,7 +264,7 @@ export function hitMainNavSidebar(px, py, rect, ctx, p) {
 	const padTop = mainNavSidebarTopContentPadY(rect);
 	const titleSize = Math.max(11, p.width * 0.0105);
 	const links = navLinksForContext(ctx);
-	const linkSize = Math.max(12, rect.w * 0.078);
+	const linkSize = readingUiFontSize(Math.max(12, rect.w * 0.078));
 	const linkRowH = Math.max(30, linkSize * 1.55);
 	const linkGap = Math.max(5, rect.h * 0.012);
 

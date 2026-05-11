@@ -14,7 +14,7 @@
  */
 
 import {sceneNavigate} from "../../lib/router/scene-nav.js";
-import {THEME, drawTitleAberration, hitTest, applyThemeCanvasFont} from "../../lib/utils/retro-theme.js";
+import {THEME, drawTitleAberration, hitTest, applyThemeCanvasFont, readingUiFontSize} from "../../lib/utils/retro-theme.js";
 import {createCanvasCursor, drawCanvasCursor} from "../../lib/input/canvas-cursor.js";
 import {getOverworldMapData} from "../../lib/data/overworld-map-data.js";
 import {playUiClickSfx, playUiHoverSfxIfTargetChanged} from "../../lib/audio/ui-hover-sfx.js";
@@ -221,7 +221,7 @@ export default function (container) {
 			drawTitleAberration(artBuffer, "Les Villes Verticales", w / 2, topBarH + titleH * 0.45, titleSz, 255, sketch);
 
 			// Key hint
-			const hintSz = w * 0.011;
+			const hintSz = readingUiFontSize(Math.max(10, w * 0.011));
 			artBuffer.textAlign(sketch.RIGHT, sketch.CENTER);
 			applyThemeCanvasFont(artBuffer, hintSz, sketch);
 			artBuffer.fill(...THEME.GREEN_SUBTLE, 210);
@@ -432,7 +432,8 @@ export default function (container) {
 function drawPin(buf, x, y, name, hovered, p, options = {}) {
 	const w = buf.width;
 	const dotR = w * 0.008;
-	const labelSz = w * 0.013;
+	const labelBase = Math.max(10, w * 0.013);
+	const labelSz = readingUiFontSize(labelBase);
 	const disabled = options.disabled === true;
 	const showLabel = options.showLabel === true;
 
@@ -454,7 +455,7 @@ function drawPin(buf, x, y, name, hovered, p, options = {}) {
 	applyThemeCanvasFont(buf, labelSz, p);
 	buf.noStroke();
 	if (disabled) {
-		applyThemeCanvasFont(buf, Math.max(9, labelSz * 0.72), p);
+		applyThemeCanvasFont(buf, readingUiFontSize(Math.max(9, labelBase * 0.72)), p);
 		buf.fill(228, 146, 146, 230);
 		if (showLabel) buf.text("ACCÈS BLOQUÉ", x, y + dotR * 3.7);
 	} else if (showLabel) {
@@ -498,7 +499,7 @@ function drawMapFrame(buf, x, y, w, h, mapOutlineState, zoomLevel, p) {
 	buf.strokeWeight(2);
 	buf.rect(x, y, w, h, 22);
 
-	const labelSz = Math.max(10, buf.width * 0.01);
+	const labelSz = readingUiFontSize(Math.max(10, buf.width * 0.01));
 	applyThemeCanvasFont(buf, labelSz, p);
 	buf.noStroke();
 	buf.fill(...THEME.GREEN_SUBTLE, 220);
@@ -572,7 +573,8 @@ function drawOverlayAnchor(buf, mapRect, overlay, isHovered, isSelected, geoBoun
 	if (!overlay?.anchor) return;
 	const center = toScreenPoint(overlay.anchor, mapRect, geoBounds);
 	const dotR = Math.max(4, buf.width * 0.00256);
-	const labelSz = Math.max(10, buf.width * 0.0115);
+	const labelBase = Math.max(10, buf.width * 0.0115);
+	const labelSz = readingUiFontSize(labelBase);
 	const isActive = isHovered || isSelected;
 	const disabled = options.disabled === true;
 
@@ -588,7 +590,7 @@ function drawOverlayAnchor(buf, mapRect, overlay, isHovered, isSelected, geoBoun
 	applyThemeCanvasFont(buf, labelSz, p);
 	buf.textAlign(p.CENTER, p.BOTTOM);
 	if (disabled) {
-		applyThemeCanvasFont(buf, Math.max(9, labelSz * 0.72), p);
+		applyThemeCanvasFont(buf, readingUiFontSize(Math.max(9, labelBase * 0.72)), p);
 		buf.textAlign(p.CENTER, p.BOTTOM);
 		buf.fill(228, 146, 146, 230);
 		if (isHovered) buf.text("ACCÈS BLOQUÉ", center.x, center.y - dotR * 2.1);
@@ -632,7 +634,7 @@ function drawNeighborhoodSidebar(buf, sidebarRect, neighborhoods, selectedIndex,
 		buf.fill(...(enabled ? THEME.BG : [40, 18, 18]), isHovered || isSelected ? 185 : 130);
 		buf.rect(x + padX, itemY, itemW, rowH, 7);
 
-		const labelSize = Math.max(16, buf.width * 0.0098);
+		const labelSize = readingUiFontSize(Math.max(16, buf.width * 0.0098));
 		applyThemeCanvasFont(buf, labelSize, p);
 		buf.noStroke();
 		buf.fill(...(enabled ? THEME.GREEN_MID : [255, 255, 255]), 255);
@@ -789,12 +791,12 @@ function drawWindowTopBar(buf, w, h, closeHovered, p) {
 	buf.fill(...THEME.GREEN_PRIMARY, closeHovered ? 120 : 70);
 	buf.rect(btnX, btnY, btnSize, btnSize, 4);
 	buf.noStroke();
-	applyThemeCanvasFont(buf, Math.max(11, w * 0.013), p);
+	applyThemeCanvasFont(buf, readingUiFontSize(Math.max(11, w * 0.013)), p);
 	buf.fill(...THEME.GREEN_SUBTLE, closeHovered ? 255 : 240);
 	buf.textAlign(p.CENTER, p.CENTER);
 	buf.text("X", btnX + btnSize * 0.5, btnY + btnSize * 0.52);
 
-	applyThemeCanvasFont(buf, Math.max(12, w * 0.014), p);
+	applyThemeCanvasFont(buf, readingUiFontSize(Math.max(12, w * 0.014)), p);
 	buf.fill(...THEME.GREEN_SUBTLE, 240);
 	buf.textAlign(p.LEFT, p.CENTER);
 	buf.text("Retour au menu principal", btnX + btnSize + w * 0.02, barH * 0.5);
@@ -823,7 +825,7 @@ function drawBottomStatusBar(buf, w, h, p, zoomLevel = 1, panX = 0, panY = 0) {
 	buf.line(0, barY + 3, w, barY + 3);
 	buf.noStroke();
 
-	const navSz = Math.max(11, w * 0.012);
+	const navSz = readingUiFontSize(Math.max(11, w * 0.012));
 	applyThemeCanvasFont(buf, navSz, p);
 	buf.fill(...THEME.GREEN_MID, 245);
 	buf.textAlign(p.LEFT, p.CENTER);

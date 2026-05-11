@@ -13,7 +13,7 @@
 
 import {loadSlicedSfx, playSlicedSfx} from "../../lib/audio/sliced-audio-sfx.js";
 import {playSfx} from "../../lib/audio/sfx.js";
-import {THEME} from "../../lib/utils/retro-theme.js";
+import {THEME, readingUiFontSize} from "../../lib/utils/retro-theme.js";
 
 const BG = [...THEME.BG];
 
@@ -223,7 +223,7 @@ export function createLoginPhase(sketch, artBuffer, fontApi) {
 		const buf = artBuffer;
 		const w = buf.width;
 		const h = buf.height;
-		const fontSize = Math.max(12, Math.round(w * 0.018));
+		const fontSize = readingUiFontSize(Math.max(12, Math.round(w * 0.018)));
 		const lineH = fontSize * 1.6;
 		const padLeft = w * 0.06;
 		const canvasFont = fontApi?.getCanvasFont?.() ?? "monospace";
@@ -286,7 +286,8 @@ export function createLoginPhase(sketch, artBuffer, fontApi) {
 			// Keyboard hint on first attempt (no lines yet after the login line)
 			if (lines.length === 1) {
 				buf.textAlign(sketch.LEFT, sketch.TOP);
-				fontApi?.applyCanvasFont?.(buf, Math.max(10, Math.round(w * 0.012))) ?? buf.textSize(Math.max(10, Math.round(w * 0.012)));
+				const hintPx = readingUiFontSize(Math.max(10, Math.round(w * 0.012)));
+				fontApi?.applyCanvasFont?.(buf, hintPx) ?? buf.textSize(hintPx);
 				buf.fill(...THEME.GREEN_SUBTLE, 200);
 				buf.text("Entrez le mot de passe et appuyez sur ENTRÉE", padLeft, currentY + lineH);
 			}

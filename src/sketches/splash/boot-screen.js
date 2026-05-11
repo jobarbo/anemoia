@@ -8,7 +8,7 @@
  *   createBootScreenPhase(sketch, artBuffer, fontApi) → { draw, isDone, isPointerOver, onPointerPressed, onConfirm, reset }
  */
 
-import {THEME} from "../../lib/utils/retro-theme.js";
+import {THEME, readingUiFontSize} from "../../lib/utils/retro-theme.js";
 
 const BG = [...THEME.BG];
 /** Durée minimale d’affichage si l’utilisateur saute tout de suite (évite un flash). */
@@ -69,7 +69,7 @@ export function createBootScreenPhase(sketch, artBuffer, fontApi) {
 		const titleAlpha = Math.round(fade * 255);
 		const subAlpha = Math.round(fade * 220);
 
-		const subSize = Math.max(11, Math.round(w * 0.018));
+		const subSize = readingUiFontSize(Math.max(11, Math.round(w * 0.018)));
 		fontApi?.applyCanvasFont?.(buf, subSize, {weight: fontApi?.getCanvasFontWeight?.() ?? "400"}) ?? buf.textSize(subSize);
 		buf.fill(...THEME.GREEN_SUBTLE, subAlpha);
 		buf.text("Mise en route du système…", w / 2, h * 0.52);

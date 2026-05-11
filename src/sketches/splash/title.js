@@ -6,7 +6,7 @@
  *   createTitlePhase(sketch, artBuffer, fontApi) → { draw(now), isDone(), onPointerPressed(), reset() }
  */
 
-import {THEME, applyThemeCanvasFont, drawScanLines, drawTitleAberration, drawVignette} from "../../lib/utils/retro-theme.js";
+import {THEME, applyThemeCanvasFont, drawScanLines, drawTitleAberration, drawVignette, readingUiFontSize} from "../../lib/utils/retro-theme.js";
 
 const BG = [...THEME.BG];
 
@@ -482,13 +482,14 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 		const subtitleProgress = sketch.constrain((titleElapsed - TITLE_REVEAL_MS) / AUTHOR_FADE_MS, 0, 1);
 		const subtitleAlpha = Math.round(sketch.lerp(0, 255, subtitleProgress));
 		buf.textAlign(sketch.CENTER, sketch.CENTER);
-		fontApi?.applyCanvasFont?.(buf, Math.max(14, Math.round(w * 0.028)), {weight: fontApi?.getCanvasFontWeight?.() ?? "400"}) ?? buf.textSize(Math.max(14, Math.round(w * 0.022)));
+		const subtitlePx = readingUiFontSize(Math.max(14, Math.round(w * 0.028)));
+		fontApi?.applyCanvasFont?.(buf, subtitlePx, {weight: fontApi?.getCanvasFontWeight?.() ?? "400"}) ?? buf.textSize(subtitlePx);
 		buf.fill(...THEME.GREEN_SUBTLE, subtitleAlpha);
 		buf.text(AUTHOR_TEXT, titleX, titleY + titleSize * 1.0);
 		revealComplete = subtitleProgress >= 1;
 
 		if (revealComplete) {
-			const promptSize = Math.max(11, Math.round(w * 0.016));
+			const promptSize = readingUiFontSize(Math.max(11, Math.round(w * 0.016)));
 			fontApi?.applyCanvasFont?.(buf, promptSize, {weight: fontApi?.getCanvasFontWeight?.() ?? "400"}) ?? buf.textSize(promptSize);
 			const promptY = titleY + titleSize * 2.0;
 			const promptW = buf.textWidth(PROMPT_TEXT);
