@@ -212,7 +212,7 @@ export default function (container) {
 			}
 
 			// Delegate drawing to active phase
-			switch (phase) {
+			/* 	switch (phase) {
 				case PHASE.CLICK_TO_START:
 					clickToStart.draw(now);
 					hoveredCursor = clickToStart.isPointerOver(pointer.x, pointer.y);
@@ -239,7 +239,9 @@ export default function (container) {
 					drawExit();
 					break;
 			}
-
+ */
+			title.draw(now);
+			hoveredCursor = title.isPointerOver(pointer.x, pointer.y);
 			// Blit artBuffer onto visible canvas
 			drawCanvasCursor(artBuffer, pointer, {hovered: hoveredCursor});
 			sketch.clear();

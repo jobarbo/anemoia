@@ -5,7 +5,7 @@
 
 import {refreshGlobalAudioPlayer, tryPlayGlobalAudio} from "./global-audio-ui.js";
 
-export const WORLD_AMBIENT_SRC = "/assets/audio/machine_ambiant.wav";
+export const WORLD_AMBIENT_SRC = "/assets/audio/machine_ambiant.mp3";
 
 /** @type {ReadonlySet<string>} */
 export const WORLD_AMBIENT_ROUTES = new Set(["desktop", "overworld", "neighborhood", "story"]);

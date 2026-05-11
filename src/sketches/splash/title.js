@@ -6,7 +6,7 @@
  *   createTitlePhase(sketch, artBuffer, fontApi) → { draw(now), isDone(), onPointerPressed(), reset() }
  */
 
-import {THEME, drawScanLines, drawTitleAberration, drawVignette} from "../../lib/utils/retro-theme.js";
+import {THEME, applyThemeCanvasFont, drawScanLines, drawTitleAberration, drawVignette} from "../../lib/utils/retro-theme.js";
 
 const BG = [...THEME.BG];
 
@@ -27,12 +27,22 @@ const TITLE_TEXT = "ANÉMOIA";
 const AUTHOR_TEXT = "Olivier Laforest  ·  Jonathan Barbeau";
 const PROMPT_TEXT = "[ CLIQUER POUR CONTINUER ]";
 const SKY_PAN_MS = 16800;
+/** Délai (ms) avant le début de la révélation du titre ; plus petit = titre arrive plus tôt (peut devancer la fin du pan ciel si < SKY_PAN_MS). */
+const TITLE_ARRIVAL_MS = SKY_PAN_MS;
+/** Durée (ms) de la séquence d’apparition du titre (toutes les lettres à plein fondu). */
 const TITLE_REVEAL_MS = 3600;
+/** Durée (ms) du fondu 0→100 % pour chaque lettre (les débuts sont échelonnés sur TITLE_REVEAL_MS). */
+const TITLE_LETTER_FADE_MS = 480;
 const AUTHOR_FADE_MS = 900;
 const DONE_HOLD_MS = 0;
 const PARTICLE_DENSITY = 0.55;
 const PARTICLE_MIN = 1240;
 const PARTICLE_MAX = 2980;
+/** Vitesse verticale |speed| dans [min, max] ; signe aléatoire (monter ou descendre : p.y -= speed). */
+const PARTICLE_SPEED_MIN_ABS = 0.12;
+const PARTICLE_SPEED_MAX_ABS = 1.42;
+/** Marge hors canvas : au-delà, la particule est recyclée (haut, bas, gauche, droite). */
+const PARTICLE_RECYCLE_MARGIN = 14;
 const SUNSET_TOP = [10, 10, 6];
 const SUNSET_MID = [28, 20, 36];
 const SUNSET_HORIZON = [56, 28, 36];
@@ -262,22 +272,48 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 		}
 	}
 
-	function drawSkyline(buf, now, horizonShiftY = 0) {
+	/**
+	 * @param {import('p5').Graphics} buf
+	 * @param {number} now
+	 * @param {number} horizonShiftY - pan caméra (ville monte / horizon se déplace)
+	 * @param {number} skyReveal - 0→1, ease du pan : voile sur ciel fixe + zone au-dessus de la ville (bord bas = horizon caméra) + fond derrière les bâtiments
+	 */
+	function drawSkyline(buf, now, horizonShiftY = 0, skyReveal = 1) {
 		if (!skyline) return;
 		const {far, mid, horizonY, h} = skyline;
 		const shiftedHorizonY = horizonY + horizonShiftY;
 		const stripShift = shiftedHorizonY - horizonY;
 		buf.noStroke();
 
-		const skyGrad = buf.drawingContext.createLinearGradient(0, 0, 0, Math.max(1, shiftedHorizonY));
+		// Dégradé ciel sur toute la hauteur (fixe, ne suit pas le pan) ; stops calés pour garder l’horizon ~horizonY.
+		const skyGradH = Math.max(1, h);
+		const midStop = sketch.constrain((0.58 * horizonY) / skyGradH, 0.06, 0.78);
+		const horStop = sketch.constrain(horizonY / skyGradH, midStop + 0.02, 0.995);
+		const skyGrad = buf.drawingContext.createLinearGradient(0, 0, 0, skyGradH);
 		skyGrad.addColorStop(0, `rgba(${SUNSET_TOP[0]}, ${SUNSET_TOP[1]}, ${SUNSET_TOP[2]}, 1)`);
-		skyGrad.addColorStop(0.58, `rgba(${SUNSET_MID[0]}, ${SUNSET_MID[1]}, ${SUNSET_MID[2]}, 1)`);
+		skyGrad.addColorStop(midStop, `rgba(${SUNSET_MID[0]}, ${SUNSET_MID[1]}, ${SUNSET_MID[2]}, 1)`);
+		skyGrad.addColorStop(horStop, `rgba(${SUNSET_HORIZON[0]}, ${SUNSET_HORIZON[1]}, ${SUNSET_HORIZON[2]}, 1)`);
 		skyGrad.addColorStop(1, `rgba(${SUNSET_HORIZON[0]}, ${SUNSET_HORIZON[1]}, ${SUNSET_HORIZON[2]}, 1)`);
 		buf.drawingContext.fillStyle = skyGrad;
-		buf.drawingContext.fillRect(0, 0, skyline.w, Math.min(h, Math.max(0, shiftedHorizonY)));
+		buf.drawingContext.fillRect(0, 0, skyline.w, skyGradH);
 
+		const reveal = sketch.constrain(skyReveal, 0, 1);
+		const veilAlpha = Math.round(255 * (1 - reveal));
+
+		// Fond derrière les silhouettes : suit l’horizon caméra + même voile que le ciel (pas de bande noire fixe).
 		buf.fill(...SKYLINE_BASE);
 		buf.rect(0, shiftedHorizonY, skyline.w, h - shiftedHorizonY);
+		if (veilAlpha > 0) {
+			buf.fill(0, 0, 0, veilAlpha);
+			buf.rect(0, shiftedHorizonY, skyline.w, h - shiftedHorizonY);
+		}
+
+		// Voile unifié jusqu’à l’horizon caméra : ciel + espace au-dessus de la ville (bord bas = shiftedHorizonY, suit le pan).
+		const veilH = Math.min(h, Math.max(0, shiftedHorizonY));
+		if (veilAlpha > 0 && veilH > 0) {
+			buf.fill(0, 0, 0, veilAlpha);
+			buf.rect(0, 0, skyline.w, veilH);
+		}
 
 		buf.fill(...SKYLINE_FAR);
 		for (let i = 0; i < far.length; i++) {
@@ -312,12 +348,16 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 	}
 
 	function makeParticle(randomY, w, h) {
+		let speed = sketch.random(-PARTICLE_SPEED_MAX_ABS, PARTICLE_SPEED_MAX_ABS);
+		if (speed > -PARTICLE_SPEED_MIN_ABS && speed < PARTICLE_SPEED_MIN_ABS) {
+			speed = sketch.random() < 0.5 ? -PARTICLE_SPEED_MIN_ABS : PARTICLE_SPEED_MIN_ABS;
+		}
 		return {
 			x: sketch.random(0, w),
 			y: randomY ? sketch.random(0, h) : h + sketch.random(8, 56),
 			size: sketch.random(1.55, 2.6),
-			speed: sketch.random(0.12, 1.42),
-			drift: sketch.random(-0.2, 0.2),
+			speed: sketch.random(0.12, -3.42),
+			drift: sketch.random(-4.2, 2.2),
 			alpha: sketch.random(128, 255),
 		};
 	}
@@ -335,13 +375,15 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 		const w = buf.width;
 		const h = buf.height;
 		buf.noStroke();
+		const m = PARTICLE_RECYCLE_MARGIN;
 		for (let i = 0; i < particles.length; i++) {
-			const p = particles[i];
+			let p = particles[i];
 			p.y -= p.speed;
 			p.x += p.drift;
-			if (p.x < -8) p.x = w + sketch.random(1, 8);
-			if (p.x > w + 8) p.x = -sketch.random(1, 8);
-			if (p.y < -5) particles[i] = makeParticle(false, w, h);
+			if (p.x < -m || p.x > w + m || p.y < -m || p.y > h + m) {
+				p = makeParticle(true, w, h);
+				particles[i] = p;
+			}
 			buf.fill(160, 200, 230, p.alpha);
 			buf.circle(p.x, p.y, p.size);
 		}
@@ -399,25 +441,43 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 
 		buf.background(...BG);
 		const panProgress = sketch.constrain(elapsed / SKY_PAN_MS, 0, 1);
+		const panEase = easeOutCubic(panProgress);
 		const introStartShift = skyline ? Math.max(h * 0.42, h - skyline.horizonY + skyline.maxStateHeight + skyline.px * 24) : h * 0.42;
-		const horizonShiftY = sketch.lerp(introStartShift, 0, easeOutCubic(panProgress));
-		drawSkyline(buf, now, horizonShiftY);
+		const horizonShiftY = sketch.lerp(introStartShift, 0, panEase);
+		drawSkyline(buf, now, horizonShiftY, panEase);
 		updateAndDrawParticles(buf);
 
 		const titleSize = Math.max(34, Math.round(w * 0.12));
 		const titleX = w / 2;
 		const titleY = h * 0.35;
-		const titleElapsed = Math.max(0, elapsed - SKY_PAN_MS);
-		const revealProgress = sketch.constrain(titleElapsed / TITLE_REVEAL_MS, 0, 1);
-		const charCount = Math.max(1, Math.floor(TITLE_TEXT.length * revealProgress + 0.0001));
-		const visibleTitle = TITLE_TEXT.slice(0, charCount);
-		const titleAlpha = Math.round(sketch.lerp(0, 255, revealProgress));
-		const glowAlpha = Math.round(sketch.lerp(0, 95, revealProgress));
+		const titleElapsed = Math.max(0, elapsed - SKY_PAN_MS / 1.5);
 		const titleFamily = titleFontReady ? TITLE_FONT.family : (fontApi?.getCanvasFont?.() ?? "monospace");
 		const titleWeight = titleFontReady ? TITLE_FONT.weight : (fontApi?.getCanvasFontWeight?.() ?? "700");
 
-		//drawTitleAberration(buf, visibleTitle, titleX, titleY, titleSize, glowAlpha, sketch, titleFamily, titleWeight);
-		drawTitleAberration(buf, visibleTitle, titleX, titleY, titleSize, titleAlpha, sketch, titleFamily, titleWeight);
+		// Titre : chaque glyphe en fondu échelonné (ease sur l’alpha par lettre).
+		const chars = Array.from(TITLE_TEXT);
+		const letterCount = chars.length;
+		const fadeMs = TITLE_LETTER_FADE_MS;
+		const spanMs = Math.max(1, TITLE_REVEAL_MS - fadeMs);
+		applyThemeCanvasFont(buf, titleSize, sketch, {family: titleFamily, weight: titleWeight});
+		buf.textAlign(sketch.LEFT, sketch.CENTER);
+		const fullTitleW = buf.textWidth(TITLE_TEXT);
+		const leftEdge = titleX - fullTitleW / 2;
+		let prefix = "";
+		for (let i = 0; i < letterCount; i++) {
+			const ch = chars[i];
+			const wBefore = buf.textWidth(prefix);
+			prefix += ch;
+			const wAfter = buf.textWidth(prefix);
+			const charW = wAfter - wBefore;
+			const cx = leftEdge + wBefore + charW / 2;
+			const t0 = letterCount <= 1 ? 0 : (i / (letterCount - 1)) * spanMs;
+			const u = sketch.constrain((titleElapsed - t0) / fadeMs, 0, 1);
+			const letterAlpha = Math.round(sketch.lerp(0, 255, easeOutCubic(u)));
+			if (letterAlpha > 1) {
+				drawTitleAberration(buf, ch, cx, titleY, titleSize, letterAlpha, sketch, titleFamily, titleWeight);
+			}
+		}
 
 		const subtitleProgress = sketch.constrain((titleElapsed - TITLE_REVEAL_MS) / AUTHOR_FADE_MS, 0, 1);
 		const subtitleAlpha = Math.round(sketch.lerp(0, 255, subtitleProgress));
