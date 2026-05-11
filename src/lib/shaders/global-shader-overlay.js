@@ -115,7 +115,7 @@ const DEFAULT_EFFECTS = {
 		colorMode: 0,
 	},
 	zoom: {
-		enabled: false,
+		enabled: true,
 		zoomAmount: 0.83,
 		zoomSpeed: 0.8,
 		animateZoom: 0.0,
@@ -155,8 +155,8 @@ const DEFAULT_EFFECTS = {
 		filterMode: 1.0,
 	},
 	crtWarp: {
-		enabled: false,
-		warpAmount: 0.25,
+		enabled: true,
+		warpAmount: 0.0,
 		aspectCorrect: 0.0,
 		borderColor: 2.0,
 		vignette: 0.0,
