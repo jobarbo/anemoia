@@ -14,7 +14,7 @@
 	},
 	{
 		"id": "saint-sauveur",
-		"name": "Knuckle Ville",
+		"name": "Saint-Sauve-Toé",
 		"slug": "saint-sauveur",
 		"order": 2,
 		"description": "The vibrant neighborhood at the heart of the city.",
@@ -40,7 +40,7 @@
 	},
 	{
 		"id": "cité-universitaire",
-		"name": "The Institute",
+		"name": "L'institut",
 		"slug": "cité-universitaire",
 		"order": 4,
 		"description": "The student neighborhood of the city.",
@@ -53,7 +53,7 @@
 	},
 	{
 		"id": "lairet",
-		"name": "Loiret",
+		"name": "Les Rets",
 		"slug": "lairet",
 		"order": 5,
 		"description": "The historic neighborhood with a rich cultural heritage.",
@@ -66,7 +66,7 @@
 	},
 	{
 		"id": "maizerets",
-		"name": "Bog Ville",
+		"name": "Labyrinthia",
 		"slug": "maizerets",
 		"order": 6,
 		"description": "The suburban neighborhood with a rich history.",
@@ -79,7 +79,7 @@
 	},
 	{
 		"id": "st-rodrigue",
-		"name": "Sector 4-6",
+		"name": "Secteur 4-6",
 		"slug": "st-rodrigue",
 		"order": 7,
 		"description": "The suburban neighborhood with a rich history.",
@@ -105,7 +105,7 @@
 	},
 	{
 		"id": "saint-jean-baptiste",
-		"name": "Nine Casas",
+		"name": "Le Faubourg",
 		"slug": "saint-jean-baptiste",
 		"order": 9,
 		"description": "The suburban neighborhood with a rich history.",
@@ -118,7 +118,7 @@
 	},
 	{
 		"id": "montcalm",
-		"name": "Mt Calm",
+		"name": "Mt Calme",
 		"slug": "montcalm",
 		"order": 10,
 		"description": "The suburban neighborhood with a rich history.",
@@ -131,7 +131,7 @@
 	},
 	{
 		"id": "saint-sacrement",
-		"name": "Sector Null",
+		"name": "Petite Hollande",
 		"slug": "saint-sacrement",
 		"order": 11,
 		"description": "The suburban neighborhood with a rich history.",
@@ -157,7 +157,7 @@
 	},
 	{
 		"id": "Vieux-Québec–Cap-Blanc–Colline-Parlementaire ",
-		"name": "New Levis",
+		"name": "Nouveau Lévis",
 		"slug": "vieux-quebec",
 		"order": 13,
 		"description": "The historic neighborhood with a rich cultural heritage.",
@@ -170,7 +170,7 @@
 	},
 	{
 		"id": "saint-romuald",
-		"name": "Saint-Romuald",
+		"name": "Ste Rome des Chutes",
 		"slug": "saint-romuald",
 		"order": 29,
 		"description": "The future tramway project in Quebec City.",
@@ -183,7 +183,7 @@
 	},
 	{
 		"id": "levis",
-		"name": "Lévis",
+		"name": "Vieux Lévis",
 		"slug": "levis",
 		"order": 30,
 		"description": "The city across the river from Quebec City.",
