@@ -14,7 +14,7 @@
  */
 
 import {sceneNavigate} from "../../lib/router/scene-nav.js";
-import {THEME, drawTitleAberration, hitTest, applyThemeCanvasFont, readingUiFontSize} from "../../lib/utils/retro-theme.js";
+import {THEME, drawTitleAberration, hitTest, applyThemeCanvasFont, truncateCanvasTextToFitWidth} from "../../lib/utils/retro-theme.js";
 import {createCanvasCursor, drawCanvasCursor} from "../../lib/input/canvas-cursor.js";
 import {getOverworldMapData} from "../../lib/data/overworld-map-data.js";
 import {playUiClickSfx, playUiHoverSfxIfTargetChanged} from "../../lib/audio/ui-hover-sfx.js";
@@ -153,8 +153,16 @@ export default function (container) {
 			const totalW = w - mapPad * 2;
 			const mapH = h - mapY - footerH;
 			const sidebarGap = Math.max(10, w * 0.012);
-			const sidebarW = Math.max(190, totalW * 0.24);
-			const mapW = Math.max(220, totalW - sidebarW - sidebarGap);
+			const MIN_MAP_W = 220;
+			const MIN_SIDEBAR_W = 200;
+			/** Part de la bande carte+liste réservée à la liste (le reste = carte). */
+			const SIDEBAR_SHARE = 0.34;
+			let sidebarW = Math.max(MIN_SIDEBAR_W, Math.floor(totalW * SIDEBAR_SHARE));
+			let mapW = totalW - sidebarW - sidebarGap;
+			if (mapW < MIN_MAP_W) {
+				mapW = MIN_MAP_W;
+				sidebarW = Math.max(170, totalW - mapW - sidebarGap);
+			}
 			const sidebarX = mapX + mapW + sidebarGap;
 			mapBounds = {x: mapX, y: mapY, w: mapW, h: mapH};
 			sidebarBounds = {x: sidebarX, y: mapY, w: sidebarW, h: mapH};
@@ -600,6 +608,32 @@ function drawOverlayAnchor(buf, mapRect, overlay, isHovered, isSelected, geoBoun
 	}
 }
 
+/**
+ * Métriques partagées entre le dessin de la liste et le hit-test (évite le décalage).
+ *
+ * @param {{ x: number, y: number, w: number, h: number }} sidebarRect
+ * @param {number} rowCount
+ * @param {number} canvasW
+ */
+function overworldSidebarListLayout(sidebarRect, rowCount, canvasW) {
+	const {x, y, w, h} = sidebarRect;
+	const padX = w * 0.08;
+	const padY = h * 0.045;
+	const titleSize = Math.max(11, canvasW * 0.0105);
+	const contentTop = y + padY + titleSize * 1.25;
+	const contentBottom = y + h - padY;
+	const visibleRows = Math.max(1, rowCount);
+	const rowGap = Math.max(4, h * 0.008);
+	const rowH = Math.max(26, (contentBottom - contentTop - rowGap * (visibleRows - 1)) / visibleRows);
+	const itemW = w - padX * 2;
+	const labelSize = Math.max(16, canvasW * 0.0098);
+	const textX = x + padX + itemW * 0.06;
+	const innerRight = x + padX + itemW;
+	const textRightMargin = Math.max(8, padX * 0.55);
+	const labelMaxW = Math.max(24, innerRight - textX - textRightMargin);
+	return {padX, contentTop, rowGap, rowH, itemW, labelSize, textX, labelMaxW, rowLeft: x + padX, titleSize, padY};
+}
+
 function drawNeighborhoodSidebar(buf, sidebarRect, neighborhoods, selectedIndex, hoveredIndex, p) {
 	const {x, y, w, h} = sidebarRect;
 	buf.fill(...THEME.BG, 210);
@@ -607,24 +641,16 @@ function drawNeighborhoodSidebar(buf, sidebarRect, neighborhoods, selectedIndex,
 	buf.strokeWeight(2);
 	buf.rect(x, y, w, h, 16);
 
-	const padX = w * 0.08;
-	const padY = h * 0.045;
-	const titleSize = Math.max(11, buf.width * 0.0105);
-	applyThemeCanvasFont(buf, titleSize, p);
+	const lay = overworldSidebarListLayout(sidebarRect, neighborhoods.length, buf.width);
+
 	buf.noStroke();
+	applyThemeCanvasFont(buf, lay.titleSize, p);
 	buf.fill(255, 255, 255, 255);
 	buf.textAlign(p.LEFT, p.TOP);
-	buf.text("Quartiers", x + padX, y + padY * 0.55);
-
-	const contentTop = y + padY + titleSize * 1.25;
-	const contentBottom = y + h - padY;
-	const visibleRows = Math.max(1, neighborhoods.length);
-	const rowGap = Math.max(4, h * 0.008);
-	const rowH = Math.max(26, (contentBottom - contentTop - rowGap * (visibleRows - 1)) / visibleRows);
+	buf.text("Quartiers", x + lay.padX, y + lay.padY * 0.55);
 
 	for (let i = 0; i < neighborhoods.length; i++) {
-		const itemY = contentTop + i * (rowH + rowGap);
-		const itemW = w - padX * 2;
+		const itemY = lay.contentTop + i * (lay.rowH + lay.rowGap);
 		const enabled = neighborhoods[i]?.viewEnabled !== false;
 		const isHovered = i === hoveredIndex;
 		const isSelected = i === selectedIndex;
@@ -632,14 +658,16 @@ function drawNeighborhoodSidebar(buf, sidebarRect, neighborhoods, selectedIndex,
 		buf.stroke(...(enabled ? THEME.GREEN_PRIMARY : [120, 68, 68]), isHovered ? 190 : 95);
 		buf.strokeWeight(isSelected ? 2 : 2);
 		buf.fill(...(enabled ? THEME.BG : [40, 18, 18]), isHovered || isSelected ? 185 : 130);
-		buf.rect(x + padX, itemY, itemW, rowH, 7);
+		buf.rect(lay.rowLeft, itemY, lay.itemW, lay.rowH, 7);
 
 		const labelSize = readingUiFontSize(Math.max(16, buf.width * 0.0098));
 		applyThemeCanvasFont(buf, labelSize, p);
 		buf.noStroke();
 		buf.fill(...(enabled ? THEME.GREEN_MID : [255, 255, 255]), 255);
 		buf.textAlign(p.LEFT, p.CENTER);
-		buf.text(neighborhoods[i]?.name ?? `Quartier ${i + 1}`, x + padX + itemW * 0.06, itemY + rowH * 0.52);
+		const raw = neighborhoods[i]?.name ?? `Quartier ${i + 1}`;
+		const label = truncateCanvasTextToFitWidth(buf, raw, lay.labelMaxW);
+		buf.text(label, lay.textX, itemY + lay.rowH * 0.52);
 	}
 }
 
@@ -648,20 +676,11 @@ function findSidebarItemAtPointer(pointer, sidebarRect, neighborhoods, p) {
 	if (pointer.x < sidebarRect.x || pointer.x > sidebarRect.x + sidebarRect.w) return -1;
 	if (pointer.y < sidebarRect.y || pointer.y > sidebarRect.y + sidebarRect.h) return -1;
 
-	const {x, y, w, h} = sidebarRect;
-	const padX = w * 0.08;
-	const padY = h * 0.045;
-	const titleSize = Math.max(11, p.width * 0.0105);
-	const contentTop = y + padY + titleSize * 1.25;
-	const contentBottom = y + h - padY;
-	const visibleRows = Math.max(1, neighborhoods.length);
-	const rowGap = Math.max(4, h * 0.008);
-	const rowH = Math.max(26, (contentBottom - contentTop - rowGap * (visibleRows - 1)) / visibleRows);
+	const lay = overworldSidebarListLayout(sidebarRect, neighborhoods.length, p.width);
 
 	for (let i = 0; i < neighborhoods.length; i++) {
-		const itemY = contentTop + i * (rowH + rowGap);
-		const itemW = w - padX * 2;
-		if (hitTest(pointer.x, pointer.y, {x: x + padX, y: itemY, w: itemW, h: rowH})) return i;
+		const itemY = lay.contentTop + i * (lay.rowH + lay.rowGap);
+		if (hitTest(pointer.x, pointer.y, {x: lay.rowLeft, y: itemY, w: lay.itemW, h: lay.rowH})) return i;
 	}
 	return -1;
 }
