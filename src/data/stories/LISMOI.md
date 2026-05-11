@@ -17,12 +17,12 @@ La navigation est simple. Il a été conçu pour être utilisé seul, dans l'urg
 
 ## Navigation
 
-| Écran               | Ce que vous voyez                      | Comment procéder                                                    |
-| ------------------- | -------------------------------------- | ------------------------------------------------------------------- |
-| Bureau              | Menu principal du registrarium         | Cliquer sur un fichier                                              |
-| Carte des quartiers | Vue aérienne de la ville verticale     | Cliquer sur un quartier — ou utiliser les touches fléchées + Entrée |
-| Quartier            | Scène interactive                      | Cliquer sur les zones actives                                       |
-| Récit               | Texte défilant                         | Molette ou glisser — bouton retour en haut à gauche                 |
+| Écran               | Ce que vous voyez                  | Comment procéder                                                    |
+| ------------------- | ---------------------------------- | ------------------------------------------------------------------- |
+| Bureau              | Menu principal du registrarium     | Cliquer sur un fichier                                              |
+| Carte des quartiers | Vue aérienne de la ville verticale | Cliquer sur un quartier — ou utiliser les touches fléchées + Entrée |
+| Quartier            | Scène interactive                  | Cliquer sur les zones actives                                       |
+| Récit               | Texte défilant                     | Molette ou glisser — bouton retour en haut à gauche                 |
 
 ---
 
@@ -38,7 +38,8 @@ La navigation est simple. Il a été conçu pour être utilisé seul, dans l'urg
 
 L'Archiviste a commencé à tenir ce journal à une époque où lire, se rassembler ou pratiquer toute activité de loisir était interdit par Trudeyl Corp. Il a documenté non pour être lu, mais pour que l'oubli ne soit pas total.
 
-> « Si le manuscrit retrouvé est un lieu commun de la littérature, qu'en est-il alors de l'ordinateur retrouvé ? »
+> « Si le manuscrit retrouvé est un topos pour le moins éprouvé en littérature, qu’en
+> est-il de l’ordinateur retrouvé? »
 > — LOG 02
 
 ---

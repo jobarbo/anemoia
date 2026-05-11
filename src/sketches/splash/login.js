@@ -45,7 +45,7 @@ const STEPS = {
 	DONE: 4,
 };
 
-const USERNAME_STR = "Archivist";
+const USERNAME_STR = "Archiviste";
 const PASSWORD = "ketchup";
 const AUTH_BASE = "Authentification";
 const GRANTED_STR = "ACCÈS ACCORDÉ — Bienvenue, Archiviste.";
