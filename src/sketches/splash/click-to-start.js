@@ -3,7 +3,10 @@
  * débloque l’audio (politique autoplay des navigateurs).
  *
  * Interface:
- *   createClickToStartPhase(sketch, artBuffer, fontApi) → { draw, isDone, isPointerOver, onPointerPressed, onConfirm, reset }
+ *   createClickToStartPhase(sketch, artBuffer, fontApi, options?) → { draw, isDone, isPointerOver, onPointerPressed, onConfirm, reset, dispose }
+ *
+ * @param {{ hideNativeCursor?: HTMLElement }} [options] — si `hideNativeCursor` est le canvas (ou son parent),
+ *   `cursor: none` est appliqué pendant la phase pour masquer le pointeur système (le curseur dessiné reste dans l’art buffer).
  */
 
 import {THEME, readingUiFontSize} from "../../lib/utils/retro-theme.js";
@@ -15,12 +18,20 @@ const PROMPT = "[ CLIQUER POUR DÉMARRER ]";
  * @param {import('p5')} sketch
  * @param {import('p5').Graphics} artBuffer
  * @param {{ getCanvasFont?: () => string | import('p5').Font, getCanvasFontWeight?: () => string | number, applyCanvasFont?: (buf: import('p5').Graphics, size: number, options?: { weight?: string | number }) => void }} [fontApi]
+ * @param {{ hideNativeCursor?: HTMLElement }} [options]
  */
-export function createClickToStartPhase(sketch, artBuffer, fontApi) {
+export function createClickToStartPhase(sketch, artBuffer, fontApi, options = {}) {
+	const cursorEl = options.hideNativeCursor ?? null;
+
 	let confirmed = false;
+
+	function clearNativeCursor() {
+		if (cursorEl) cursorEl.style.cursor = "";
+	}
 
 	function reset() {
 		confirmed = false;
+		clearNativeCursor();
 	}
 
 	function isDone() {
@@ -36,14 +47,18 @@ export function createClickToStartPhase(sketch, artBuffer, fontApi) {
 	function onPointerPressed(x, y) {
 		if (!isPointerOver(x, y)) return false;
 		confirmed = true;
+		clearNativeCursor();
 		return true;
 	}
 
 	function onConfirm() {
 		confirmed = true;
+		clearNativeCursor();
 	}
 
 	function draw(now) {
+		if (cursorEl) cursorEl.style.cursor = confirmed ? "" : "none";
+
 		const buf = artBuffer;
 		const w = buf.width;
 		const h = buf.height;
@@ -61,5 +76,9 @@ export function createClickToStartPhase(sketch, artBuffer, fontApi) {
 		}
 	}
 
-	return {draw, isDone, isPointerOver, onPointerPressed, onConfirm, reset};
+	function dispose() {
+		clearNativeCursor();
+	}
+
+	return {draw, isDone, isPointerOver, onPointerPressed, onConfirm, reset, dispose};
 }

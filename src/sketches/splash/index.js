@@ -175,7 +175,7 @@ export default function (container) {
 				});
 			}
 			const fontApi = {getCanvasFont, getCanvasFontWeight, getCanvasFontVersion, applyCanvasFont};
-			clickToStart = createClickToStartPhase(sketch, artBuffer, fontApi);
+			clickToStart = createClickToStartPhase(sketch, artBuffer, fontApi, {hideNativeCursor: canvas.elt});
 			boot = createBootScreenPhase(sketch, artBuffer, fontApi);
 			bios = createBiosPhase(sketch, artBuffer, fontApi);
 			logo = createLogoPhase(sketch, artBuffer, fontApi);
@@ -319,6 +319,7 @@ export default function (container) {
 
 		if (typeof sketch.registerMethod === "function") {
 			sketch.registerMethod("remove", () => {
+				clickToStart?.dispose?.();
 				title?.stopAudio?.();
 				stopSplashAmbient();
 				canvasCursor?.destroy();
