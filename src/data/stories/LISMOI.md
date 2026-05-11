@@ -36,7 +36,7 @@ La navigation est simple. Il a été conçu pour être utilisé seul, dans l'urg
 
 ## À propos de l'Auteur
 
-L'Archiviste a commencé à tenir ce journal à une époque où lire, se rassembler ou pratiquer toute activité de loisir était interdit par Trudeyl Corp. Il a documenté non pour être lu, mais pour que l'oubli ne soit pas total.
+L'Archiviste a commencé à tenir ce journal à une époque où lire, se rassembler ou pratiquer toute activité de loisir était interdit par T-CORP Corp. Il a documenté non pour être lu, mais pour que l'oubli ne soit pas total.
 
 > « Si le manuscrit retrouvé est un topos pour le moins éprouvé en littérature, qu’en
 > est-il de l’ordinateur retrouvé? »

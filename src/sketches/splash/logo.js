@@ -191,7 +191,7 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 		buf.textAlign(sketch.CENTER, sketch.CENTER);
 		fontApi?.applyCanvasFont?.(buf, subSz) ?? (buf.textFont(canvasFont), buf.textSize(subSz));
 		buf.fill(188, 216, 255, 220);
-		buf.text("CERT. PAR TRUDEYL CORP", cx, markY + subtitleOffsetY);
+		buf.text("CERT. PAR T-CORP CORP", cx, markY + subtitleOffsetY);
 
 		// ── Version info (below box) ───────────────────────────────────────────
 		const infoSz = Math.max(10, Math.round(w * 0.013));

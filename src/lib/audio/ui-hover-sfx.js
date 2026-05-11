@@ -9,12 +9,12 @@ import {playSfx} from "./sfx.js";
 /** Subtle tick; swap for a dedicated asset if you add one under `public/`. */
 export const UI_HOVER_SFX_SRC = "/assets/audio/mouse_hover.mp3";
 
-export const UI_HOVER_SFX_VOLUME = 0.11;
+export const UI_HOVER_SFX_VOLUME = 0.25;
 
 /** Sharper than hover; served from `public/`. */
 export const UI_CLICK_SFX_SRC = "/assets/audio/mouse_click2.mp3";
 
-export const UI_CLICK_SFX_VOLUME = 0.16;
+export const UI_CLICK_SFX_VOLUME = 0.25;
 
 /** @type {number} */
 let lastThrottledClickMs = 0;

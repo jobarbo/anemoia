@@ -318,7 +318,7 @@ export function layoutNavSidebarToggleRail(canvasH, topInset = 0) {
 	const availH = Math.max(0, canvasH - topInset);
 	const btnH = Math.min(NAV_TOGGLE_BTN_H, availH * 0.18);
 	const btnY = topInset + (availH - btnH) / 2;
-	return {x: 20, y: btnY, w: NAV_TOGGLE_BTN_W, h: btnH};
+	return {x: 18, y: btnY, w: NAV_TOGGLE_BTN_W, h: btnH};
 }
 
 /**
@@ -405,10 +405,4 @@ export function drawNavSidebarCollapseTab(buf, rect, hovered, p) {
 	buf.rect(-armLen, -armH / 2, armLen * 2, armH, 2);
 	buf.rect(-armH / 2, -armLen, armH, armLen * 2, 2);
 	buf.pop();
-	// "[N]" hint
-	const hintSz = Math.max(7, rect.h * 0.2);
-	applyThemeCanvasFont(buf, hintSz, p);
-	buf.textAlign(p.CENTER, p.CENTER);
-	buf.fill(...THEME.GREEN_SUBTLE, hovered ? 210 : 140);
-	buf.text("[N]", cx, rect.y + rect.h - hintSz * 0.9);
 }

@@ -6,6 +6,6 @@ order: 15
 date: Busedi, Macabrase 6, Année 4 Après REM
 ---
 
-Une rumeur loufoque, mais persistante, parvient à mes oreilles : Trudeyl Corp.
+Une rumeur loufoque, mais persistante, parvient à mes oreilles : T-CORP Corp.
 aurait lancé un programme biomédical destiné à modifier le code génétique de
 leurs clients. Dans quel but?
