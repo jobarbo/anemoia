@@ -86,8 +86,8 @@ function computeInternalRenderSize(viewportW, viewportH, settings) {
 const DEFAULT_EFFECTS = {
 	pixelGrid: {
 		enabled: true,
-		gridCols: 480.0,
-		gridRows: 480.0,
+		gridCols: 400.0,
+		gridRows: 400.0,
 		cellRatio: 1.0,
 		mode: 1.0,
 		diffuse: 0.0,
