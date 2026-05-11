@@ -3,7 +3,7 @@
  * Scene router owns lifecycle so src/currentTime persist across navigations.
  */
 
-import {refreshGlobalAudioPlayer, tryPlayGlobalAudio} from "./global-audio-ui.js";
+import {tryPlayGlobalAudio} from "./global-audio-ui.js";
 
 export const WORLD_AMBIENT_SRC = "/assets/audio/machine_ambiant.mp3";
 
@@ -33,6 +33,5 @@ export function syncWorldAmbient(route) {
 	}
 	audio.loop = true;
 	audio.volume = WORLD_AMBIENT_VOLUME;
-	refreshGlobalAudioPlayer();
 	tryPlayGlobalAudio(audio);
 }

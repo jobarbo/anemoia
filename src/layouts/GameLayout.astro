@@ -1,6 +1,5 @@
 ---
 import "../styles/global.scss";
-import AudioPlayer from "../components/ui/AudioPlayer.astro";
 import {THEME_FONT} from "../lib/utils/retro-theme.js";
 
 const {title = "Anemoia", audioSrc} = Astro.props;
@@ -63,9 +62,6 @@ const googleFontCssUrl = THEME_FONT.provider === "google" ? THEME_FONT.googleCss
 		</script>
 		<slot />
 		<audio id='global-audio' loop transition:persist='global-audio' {...audioAttrs}></audio>
-		<div data-html2canvas-ignore='true'>
-			<AudioPlayer />
-		</div>
 		<!-- GlobalShaderOverlay is bootstrapped in index.astro (SPA mode) -->
 	</body>
 </html>

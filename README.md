@@ -34,7 +34,7 @@ Application code is written in **vanilla JavaScript** (no TypeScript) to keep it
 │   ├── components/
 │   │   ├── scene/            # SceneRenderer, SceneLayer, InteractiveZone
 │   │   ├── effects/          # SketchCanvas (p5)
-│   │   └── ui/               # AudioPlayer, BackButton
+│   │   └── ui/               # BackButton
 │   ├── content/
 │   │   └── config.ts         # Content collection schemas
 │   ├── data/
