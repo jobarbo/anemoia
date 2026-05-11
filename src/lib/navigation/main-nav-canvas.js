@@ -29,8 +29,7 @@ export function getVisibleNavLinks(neighborhoodSlug, options = {}) {
 		if (!l.needsNeighborhood) return true;
 		if (omitSelf) return false;
 		if (!slug.length) return false;
-		const linked =
-			typeof explicitLinked === "boolean" ? explicitLinked : Boolean(getNeighborhood(slug));
+		const linked = typeof explicitLinked === "boolean" ? explicitLinked : Boolean(getNeighborhood(slug));
 		return linked;
 	});
 }
@@ -301,16 +300,22 @@ export function pointerInMainNavStoriesClip(px, py, rect, ctx, p) {
 	return Boolean(clip && hitTest(px, py, rect) && hitTest(px, py, clip));
 }
 
-/** Vertical strip to reopen the nav when the sidebar is collapsed (px). */
-export const NAV_SIDEBAR_TOGGLE_RAIL_PX = 20;
+/** Width of the floating open-nav button (px). Used for hit-testing. */
+export const NAV_SIDEBAR_TOGGLE_RAIL_PX = 40;
+
+const NAV_TOGGLE_BTN_W = 40;
+const NAV_TOGGLE_BTN_H = 120;
 
 /**
+ * Returns a rect for the floating "open nav" pill button anchored to the left edge.
  * @param {number} canvasH
- * @param {number} [topInset=0] - e.g. story top bar height so the rail clears the close control
+ * @param {number} [topInset=0]
  */
 export function layoutNavSidebarToggleRail(canvasH, topInset = 0) {
-	const h = Math.max(0, canvasH - topInset);
-	return {x: 0, y: topInset, w: NAV_SIDEBAR_TOGGLE_RAIL_PX, h};
+	const availH = Math.max(0, canvasH - topInset);
+	const btnH = Math.min(NAV_TOGGLE_BTN_H, availH * 0.18);
+	const btnY = topInset + (availH - btnH) / 2;
+	return {x: 20, y: btnY, w: NAV_TOGGLE_BTN_W, h: btnH};
 }
 
 /**
@@ -331,26 +336,27 @@ export function layoutNavSidebarCollapseTab(sidebarRect) {
  * @param {import('p5')} p
  */
 export function drawNavSidebarToggleRail(buf, rect, hovered, p) {
+	const r = rect.h * 0.38;
+	// Drop shadow for depth
 	buf.noStroke();
-	buf.fill(...THEME.BG, hovered ? 215 : 168);
-	buf.rect(rect.x, rect.y, rect.w, rect.h);
-	buf.stroke(...THEME.GREEN_PRIMARY, hovered ? 235 : 155);
+	buf.fill(0, 0, 0, hovered ? 90 : 60);
+	buf.rect(rect.x + 3, rect.y + 4, rect.w, rect.h, 0, r, r, 0);
+	// Button body — solid fill anchored to left edge (flat left, rounded right)
 	buf.strokeWeight(2);
-	buf.line(rect.x + rect.w - 1, rect.y, rect.x + rect.w - 1, rect.y + rect.h);
+	buf.stroke(...THEME.GREEN_PRIMARY, hovered ? 255 : 190);
+	buf.fill(...THEME.BG, hovered ? 240 : 210);
+	buf.rect(rect.x, rect.y, rect.w, rect.h, r, r, r, r);
 	buf.noStroke();
-	const cx = rect.x + rect.w * 0.48;
-	const midY = rect.y + rect.h * 0.4;
-	const glyphSz = Math.max(11, Math.min(17, rect.w * 0.72));
-	applyThemeCanvasFont(buf, glyphSz, p);
-	buf.textAlign(p.CENTER, p.CENTER);
-	buf.fill(...THEME.GREEN_MID, hovered ? 255 : 210);
-	buf.text("›", cx, midY - glyphSz * 0.78);
-	buf.text("›", cx, midY);
-	buf.text("›", cx, midY + glyphSz * 0.78);
-	const hintSz = Math.max(7, rect.w * 0.32);
-	applyThemeCanvasFont(buf, hintSz, p);
-	buf.fill(...THEME.GREEN_SUBTLE, hovered ? 230 : 165);
-	buf.text("N", cx, rect.y + rect.h - Math.max(14, hintSz * 2.4));
+	// Three horizontal bars (hamburger icon)
+	const cx = rect.x + rect.w * 0.54;
+	const cy = rect.y + rect.h * 0.5;
+	const barW = rect.w * 0.52;
+	const barH = Math.max(2, rect.h * 0.025);
+	const gap = rect.h * 0.085;
+	buf.fill(...THEME.GREEN_MID, hovered ? 255 : 220);
+	buf.rect(cx - barW / 2, cy - gap - barH / 2, barW, barH, 2);
+	buf.rect(cx - barW / 2, cy - barH / 2, barW, barH, 2);
+	buf.rect(cx - barW / 2, cy + gap - barH / 2, barW, barH, 2);
 }
 
 /**
@@ -371,4 +377,3 @@ export function drawNavSidebarCollapseTab(buf, rect, hovered, p) {
 	buf.textAlign(p.CENTER, p.CENTER);
 	buf.text("«", rect.x + rect.w * 0.44, rect.y + rect.h * 0.52);
 }
-

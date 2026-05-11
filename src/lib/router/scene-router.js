@@ -104,8 +104,6 @@ export class SceneRouter {
 
 		// Update container data attribute so the overlay knows which composite mode to use
 		this._container.dataset.gameScreen = route;
-		// Remove leftover mode attributes from previous scene
-		delete this._container.dataset.domSnapshot;
 
 		// Update history
 		if (pushHistory) {

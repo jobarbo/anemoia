@@ -75,4 +75,4 @@ Certaines polices sont chargées via **Google Fonts** (réseaux `fonts.googleapi
 
 ### Bibliothèques et outils open source
 
-Le site est construit avec des logiciels open source, notamment **Astro**, **p5.js**, **GSAP**, **Locomotive Scroll**, **Sass**, **html-to-image**, **ml5.js** (reconnaissance faciale côté navigateur, avec des modèles pouvant provenir de l'écosystème **TensorFlow.js**), etc. Ils sont utilisés conformément aux licences de chaque projet (fichiers `LICENSE` des dépôts et métadonnées npm du dépôt de développement).
+Le site est construit avec des logiciels open source, notamment **Astro**, **p5.js**, **GSAP**, **Locomotive Scroll**, **Sass**, **ml5.js** (reconnaissance faciale côté navigateur, avec des modèles pouvant provenir de l'écosystème **TensorFlow.js**), etc. Ils sont utilisés conformément aux licences de chaque projet (fichiers `LICENSE` des dépôts et métadonnées npm du dépôt de développement).

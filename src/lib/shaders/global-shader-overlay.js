@@ -12,11 +12,8 @@
  *   - Scene (neighborhood): .scene__layer-container sorted by z-index; img/canvas/video per layer.
  *     getBoundingClientRect() includes CSS parallax transforms.
  *   - Flat (splash, …): img/canvas/video under [data-game-screen] in document order.
- *   - DOM snapshot ([data-dom-snapshot], e.g. overworld): periodic html-to-image render of the
- *     screen root so HTML/CSS (map, text) reach the shader. Throttled; excludes
- *     [data-composite-exclude] / [data-html2canvas-ignore] (e.g. back link stays sharp above).
  *
- * Limitation without [data-dom-snapshot]: only <img>, <canvas>, <video> pixels are captured.
+ * Only <img>, <canvas>, <video> pixels are composited (no full-DOM raster).
  *
  * Composite runs every COMPOSITE_EVERY_N_FRAMES frames inside sketch.draw().
  *
@@ -26,13 +23,10 @@
  *       → ShaderEffects pipeline → overlay canvas (position:fixed, z-index from CSS)
  */
 import p5 from "p5";
-import {toCanvas} from "html-to-image";
 import {drawElementLikeObjectFit} from "../utils/canvas-object-fit-draw.js";
 import {DEFAULT_MAX_RENDER_PIXELS} from "../utils/render-size.js";
 import {ShaderEffects} from "./shader-effects.js";
 
-/** Min delay between successful DOM snapshots (html-to-image is heavy). */
-const DOM_SNAPSHOT_INTERVAL_MS = 1000;
 /**
  * @param {number} value
  * @param {number} min
@@ -87,20 +81,6 @@ function computeInternalRenderSize(viewportW, viewportH, settings) {
 		width: Math.max(1, Math.round(width)),
 		height: Math.max(1, Math.round(height)),
 	};
-}
-
-/**
- * @param {HTMLElement} domNode
- * @returns {boolean}
- */
-function domCompositeFilter(domNode) {
-	if (domNode.nodeType !== Node.ELEMENT_NODE) return true;
-	const el = /** @type {HTMLElement} */ (domNode);
-	const tag = el.tagName;
-	if (tag === "SCRIPT" || tag === "STYLE" || tag === "NOSCRIPT") return false;
-	if (el.hasAttribute("data-composite-exclude")) return false;
-	if (el.closest("[data-html2canvas-ignore]")) return false;
-	return true;
 }
 
 const DEFAULT_EFFECTS = {
@@ -274,15 +254,14 @@ function compositeFlatRaster(container, ctx, w, h) {
 }
 
 /**
- * Fills capture buffer with body background, then scene layers, DOM snapshot, or flat rasters.
+ * Fills capture buffer with body background, then scene layers or flat rasters.
  *
  * @param {HTMLElement} container - [data-game-screen] root
  * @param {CanvasRenderingContext2D} ctx
  * @param {number} w
  * @param {number} h
- * @param {HTMLCanvasElement|null} domSnapshotCanvas - from html-to-image when [data-dom-snapshot]
  */
-function compositeGameScreen(container, ctx, captureW, captureH, viewportW, viewportH, domSnapshotCanvas) {
+function compositeGameScreen(container, ctx, captureW, captureH, viewportW, viewportH) {
 	// Always clear to black — body can be themed separately; light clears caused visible flashes
 	// when swapping scenes before the next canvas frame is captured.
 	ctx.fillStyle = "#000000";
@@ -295,8 +274,6 @@ function compositeGameScreen(container, ctx, captureW, captureH, viewportW, view
 	ctx.scale(scaleX, scaleY);
 	if (container.querySelector(".scene__layer-container")) {
 		compositeLayerContainers(container, ctx, viewportW, viewportH);
-	} else if (container.hasAttribute("data-dom-snapshot") && domSnapshotCanvas) {
-		ctx.drawImage(domSnapshotCanvas, 0, 0, viewportW, viewportH);
 	} else {
 		compositeFlatRaster(container, ctx, viewportW, viewportH);
 	}
@@ -446,12 +423,6 @@ export class GlobalShaderOverlay {
 		this._frameCount = 0;
 		/** @type {boolean} True after first composite completes */
 		this._captureReady = false;
-		/** @type {HTMLCanvasElement|null} Last html-to-image capture for [data-dom-snapshot] screens */
-		this._domSnapshotCanvas = null;
-		/** @type {boolean} */
-		this._domSnapshotInFlight = false;
-		/** @type {number} performance.now() when a DOM snapshot was last *started* (throttles retries) */
-		this._lastDomSnapshotStartedAt = 0;
 		/** @type {number} 0 = fully visible, 1 = fully black (used for scene transitions) */
 		this._transitionAlpha = 0;
 		/** @type {boolean} */
@@ -522,8 +493,6 @@ export class GlobalShaderOverlay {
 				self._frameCount++;
 				self._updateFpsHud(performance.now());
 
-				scheduleDomSnapshotIfNeeded(self);
-
 				// Run compositor every N frames — fast enough for smooth-looking updates,
 				// light enough (5-20ms) to not interfere with the 60fps shader loop
 				if (self._frameCount % COMPOSITE_EVERY_N_FRAMES === 0) {
@@ -532,7 +501,7 @@ export class GlobalShaderOverlay {
 					const vw = window.innerWidth;
 					const vh = window.innerHeight;
 
-					compositeGameScreen(self._scrollContainer, self._rawComposite.drawingContext, cw, ch, vw, vh, self._domSnapshotCanvas);
+					compositeGameScreen(self._scrollContainer, self._rawComposite.drawingContext, cw, ch, vw, vh);
 
 					if (self._crtTransition) {
 						const tr = self._crtTransition;
@@ -579,8 +548,6 @@ export class GlobalShaderOverlay {
 				self._rawComposite.resizeCanvas(internalSize.width, internalSize.height);
 				self._webglBuffer.resizeCanvas(internalSize.width, internalSize.height);
 				sketch.resizeCanvas(w, h);
-				self._domSnapshotCanvas = null;
-				self._lastDomSnapshotStartedAt = 0;
 				shaders.reinitializePipeline();
 			};
 		};
@@ -596,10 +563,6 @@ export class GlobalShaderOverlay {
 	 */
 	setContainer(newContainer) {
 		this._scrollContainer = newContainer;
-		// Reset DOM snapshot state — irrelevant for canvas-only scenes
-		this._domSnapshotCanvas = null;
-		this._domSnapshotInFlight = false;
-		this._lastDomSnapshotStartedAt = 0;
 		this._captureReady = false;
 	}
 
@@ -803,48 +766,8 @@ export class GlobalShaderOverlay {
 		this._webglBuffer = null;
 		this._scrollContainer = null;
 		this._captureReady = false;
-		this._domSnapshotCanvas = null;
-		this._domSnapshotInFlight = false;
 		this._shaderEffects = null;
 		window.removeEventListener("keydown", this._onKeyDown);
 		this._removeFpsHud();
 	}
-}
-
-/**
- * @param {InstanceType<typeof GlobalShaderOverlay>} overlay
- */
-function scheduleDomSnapshotIfNeeded(overlay) {
-	const el = overlay._scrollContainer;
-	if (!el?.hasAttribute("data-dom-snapshot") || overlay._domSnapshotInFlight) return;
-
-	const now = performance.now();
-	if (now - overlay._lastDomSnapshotStartedAt < DOM_SNAPSHOT_INTERVAL_MS) return;
-
-	const w = window.innerWidth;
-	const h = window.innerHeight;
-
-	overlay._lastDomSnapshotStartedAt = now;
-	overlay._domSnapshotInFlight = true;
-
-	toCanvas(el, {
-		width: w,
-		height: h,
-		canvasWidth: w,
-		canvasHeight: h,
-		pixelRatio: 1,
-		cacheBust: true,
-		filter: domCompositeFilter,
-	})
-		.then((canvas) => {
-			if (!overlay._destroyed) {
-				overlay._domSnapshotCanvas = canvas;
-			}
-		})
-		.catch(() => {
-			/* keep previous frame on failure */
-		})
-		.finally(() => {
-			overlay._domSnapshotInFlight = false;
-		});
 }
