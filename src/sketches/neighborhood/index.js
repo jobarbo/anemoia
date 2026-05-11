@@ -536,7 +536,6 @@ export default function (container) {
 			artBuffer.resizeCanvas(w, h);
 			artBuffer.pixelDensity(1);
 		};
-
 	};
 }
 

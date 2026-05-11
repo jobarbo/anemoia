@@ -619,6 +619,7 @@ export class ShaderEffects {
 	}
 
 	destroy() {
+		console.log("[ShaderEffects] destroy — shaderPipeline:", this.shaderPipeline, "buffers:", this.shaderPipeline?.buffers?.length ?? "n/a");
 		if (this.shaderPipeline && typeof this.shaderPipeline.destroy === "function") {
 			this.shaderPipeline.destroy();
 		}

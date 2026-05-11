@@ -4,6 +4,19 @@
  */
 import {ShaderEffects} from "../../../lib/shaders/shader-effects.js";
 
+function loseP5Graphics(graphics) {
+	if (!graphics) return;
+	try {
+		const gl = graphics.drawingContext;
+		if (gl) {
+			const ext = gl.getExtension("WEBGL_lose_context");
+			if (ext) ext.loseContext();
+		}
+	} catch {
+		// ignore
+	}
+}
+
 export default function (container) {
 	const shaders = new ShaderEffects({
 		effects: {
@@ -13,7 +26,7 @@ export default function (container) {
 	const particles = [];
 	let mainCanvas;
 
-	return (sketch) => {
+	const sketchFn = (sketch) => {
 		sketch.setup = async () => {
 			await shaders.loadShaders(sketch);
 
@@ -68,4 +81,12 @@ export default function (container) {
 			shaders.reinitializePipeline();
 		};
 	};
+
+	const destroy = () => {
+		console.log("[snow sketch] destroy — calling shaders.destroy() + loseContext");
+		shaders.destroy();
+		loseP5Graphics(mainCanvas);
+	};
+
+	return {sketch: sketchFn, destroy};
 }

@@ -65,14 +65,26 @@ export class ShaderPipeline {
 	}
 
 	_disposeBuffers() {
+		console.log(`[ShaderPipeline] _disposeBuffers — ${this.buffers.length} buffer(s)`);
 		for (const buf of this.buffers) {
 			if (!buf) continue;
 			try {
+				const gl = buf.drawingContext;
+				console.log("[ShaderPipeline] buf.drawingContext:", gl);
+				if (gl) {
+					const ext = gl.getExtension("WEBGL_lose_context");
+					if (ext) {
+						console.log("[ShaderPipeline] loseContext on ping-pong buffer");
+						ext.loseContext();
+					} else {
+						console.log("[ShaderPipeline] WEBGL_lose_context not available on buffer");
+					}
+				}
 				if (typeof buf.remove === "function") {
 					buf.remove();
 				}
-			} catch {
-				// Ignore disposal errors; we'll recreate fresh buffers below.
+			} catch (e) {
+				console.warn("[ShaderPipeline] buffer dispose error:", e);
 			}
 		}
 		this.buffers = [];

@@ -159,6 +159,9 @@ async function initMl5Source(onMove) {
 		if (typeof model.stop === "function") {
 			model.stop();
 		}
+		if (typeof model.dispose === "function") {
+			model.dispose();
+		}
 		stream.getTracks().forEach((track) => track.stop());
 		video.srcObject = null;
 	};

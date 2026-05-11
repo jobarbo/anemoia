@@ -1,5 +1,18 @@
 import {ShaderEffects} from "../../../lib/shaders/shader-effects.js";
 
+function loseP5Graphics(graphics) {
+	if (!graphics) return;
+	try {
+		const gl = graphics.drawingContext;
+		if (gl) {
+			const ext = gl.getExtension("WEBGL_lose_context");
+			if (ext) ext.loseContext();
+		}
+	} catch {
+		// ignore
+	}
+}
+
 const DEFAULT_EFFECTS = {
 	pixelSort: {
 		enabled: true,
@@ -76,7 +89,7 @@ export default function (container) {
 	let imageReady = imagePath.length === 0;
 	let emittedReady = false;
 
-	return (sketch) => {
+	const sketchFn = (sketch) => {
 		sketch.setup = () => {
 			const {width: displayWidth, height: displayHeight} = getContainerSize(container);
 			const {width, height} = getRenderSize(displayWidth, displayHeight, effects);
@@ -140,4 +153,12 @@ export default function (container) {
 			shaders.reinitializePipeline();
 		};
 	};
+
+	const destroy = () => {
+		console.log("[shader sketch] destroy — calling shaders.destroy() + loseContext");
+		shaders.destroy();
+		loseP5Graphics(mainCanvas);
+	};
+
+	return {sketch: sketchFn, destroy};
 }

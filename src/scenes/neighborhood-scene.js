@@ -208,7 +208,11 @@ export async function mount(container, params, data) {
 		const createSketch = sketchMod.default;
 		if (typeof createSketch !== "function") continue;
 		try {
-			sketchInstances.push(new p5(createSketch(sketchEl), sketchEl));
+			console.log(`[neighborhood] mounting sketch "${sketchName}"`);
+			const result = createSketch(sketchEl);
+			const sketchFn = typeof result === "function" ? result : result.sketch;
+			const sketchDestroy = typeof result === "function" ? null : result.destroy;
+			sketchInstances.push({p5: new p5(sketchFn, sketchEl), destroy: sketchDestroy});
 		} catch (error) {
 			console.error(`[neighborhood] sketch mount failed for "${sketchName}"`, error);
 		}
@@ -264,9 +268,30 @@ export async function mount(container, params, data) {
 			const nhRoot = scene.querySelector('[data-sketch-container][data-sketch="neighborhood"]');
 			const nhTeardown = nhRoot && nhRoot.__anemoiaNeighborhoodP5Teardown;
 			if (typeof nhTeardown === "function") nhTeardown();
-			for (const instance of sketchInstances) {
+			console.log(`[neighborhood] unmount — disposing ${sketchInstances.length} sketch(es)`);
+			for (const {p5: instance, destroy} of sketchInstances) {
+				if (typeof destroy === "function") destroy();
+				try {
+					const gl = instance.drawingContext;
+					if (gl && typeof gl.getExtension === "function") {
+						const ext = gl.getExtension("WEBGL_lose_context");
+						if (ext) {
+							console.log("[neighborhood] loseContext on p5 main canvas");
+							ext.loseContext();
+						} else {
+							console.log("[neighborhood] WEBGL_lose_context extension not available on main canvas");
+						}
+					} else {
+						console.log("[neighborhood] drawingContext:", gl, "(not WEBGL or already gone)");
+					}
+				} catch (e) {
+					console.warn("[neighborhood] loseContext error:", e);
+				}
+				console.log("[neighborhood] calling p5.remove()");
 				await instance.remove();
+				console.log("[neighborhood] p5.remove() done");
 			}
+			console.log("[neighborhood] unmount complete");
 		},
 	};
 }
