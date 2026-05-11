@@ -406,6 +406,24 @@ export class ShaderEffects {
 					uRgbGain: "rgbGain",
 				},
 			},
+
+			// Horizontal line displacement glitch (random gated shifts per scanline).
+			glitchDisplacement: {
+				enabled: false,
+				timeMultiplier: 1.0,
+				intensity: 12.0,
+				lineDensity: 120.0,
+				speed: 4.0,
+				threshold: 0.92,
+				uniforms: {
+					uTime: "shaderTime * timeMultiplier",
+					uResolution: "[width, height]",
+					uIntensity: "intensity",
+					uLineDensity: "lineDensity",
+					uSpeed: "speed",
+					uThreshold: "threshold",
+				},
+			},
 			crtDisplay: {
 				enabled: false,
 				brightness: 0.99, // Brightness boost (0.0 = none, higher = brighter)
@@ -499,6 +517,7 @@ export class ShaderEffects {
 			this.shaderManager.loadShader("blur", "blur/fragment.frag", "blur/vertex.vert"),
 			this.shaderManager.loadShader("zoom", "zoom/fragment.frag", "zoom/vertex.vert"),
 			this.shaderManager.loadShader("crtWarp", "crt-warp/fragment.frag", "crt-warp/vertex.vert"),
+			this.shaderManager.loadShader("glitchDisplacement", "glitch-displacement/fragment.frag", "glitch-displacement/vertex.vert"),
 		]);
 
 		return this;

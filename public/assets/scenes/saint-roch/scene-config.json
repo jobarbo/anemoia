@@ -16,25 +16,58 @@
 		}
 	],
 	"layerEffects": {
-		"appartement-arago": [
+		"fenetre-dep": [
 			{
 				"sketch": "shader",
 				"mode": "recopie",
 				"zOffset": 2,
 				"effects": {
-					"pixelSort": {
+					"glitchDisplacement": {
 						"enabled": true,
-						"angle": 0.0,
-						"threshold": 0.0,
-						"sortAmount": 0.3,
-						"sampleCount": 8.0,
-						"invert": 1.0,
-						"sortMode": 2.0,
-						"timeMultiplier": 1.3,
-						"resolutionScale": 0.3
+						"timeMultiplier": 0.1,
+						"intensity": 100.6,
+						"lineDensity": 4.0,
+						"speed": 100.0,
+						"threshold": 0.85
+					}
+				}
+			}
+		],
+		"fenetre": [
+			{
+				"sketch": "shader",
+				"mode": "recopie",
+				"zOffset": 2,
+				"effects": {
+					"glitchDisplacement": {
+						"enabled": true,
+						"timeMultiplier": 0.1,
+						"intensity": 100.6,
+						"lineDensity": 4.0,
+						"speed": 100.0,
+						"threshold": 0.85
 					}
 				}
 			}
 		]
+	},
+	"layers": {
+		"fenetre": {
+			"interactive": true,
+			"interaction": {
+				"type": "navigate",
+				"target": "/story/narcisse-moderne",
+				"hoverImage": null
+			}
+		},
+
+		"fenetre-dep": {
+			"interactive": true,
+			"interaction": {
+				"type": "navigate",
+				"target": "/story/femme-aluminium",
+				"hoverImage": null
+			}
+		}
 	}
 }

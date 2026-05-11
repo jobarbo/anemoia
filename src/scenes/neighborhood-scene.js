@@ -23,6 +23,7 @@ import {DEBUG_DISABLE_PARALLAX, initMouseParallax, initScrollParallax} from "../
 import {initHeadTrackingParallax} from "../lib/input/head-tracking.js";
 import {installPointerRemap} from "../lib/input/input-remap.js";
 import {getSketchLoader} from "../sketches/index.js";
+import {buildLayerStacks, getStackContainerZIndex, getStackParallaxSpeed} from "../lib/scene/layer-stacks.js";
 
 const DEFAULT_SCENE_SKETCHES = [{sketch: "snow", slot: "foreground"}];
 
@@ -50,7 +51,8 @@ export async function mount(container, params, data) {
 	scene.style.cssText = `width:100%;height:auto;aspect-ratio:${manifest.canvas.width}/${manifest.canvas.height};`;
 
 	const layerMap = Object.fromEntries(manifest.layers.map((l) => [l.name, l]));
-	const totalLayers = manifest.layers.length;
+	const layerStacks = buildLayerStacks(manifest.layers);
+	const totalStacks = layerStacks.length;
 
 	// Slotted canvas placeholder (snow sketch goes here)
 	const slotted = document.createElement("div");
@@ -96,38 +98,41 @@ export async function mount(container, params, data) {
 
 	const scenePath = `/assets/scenes/${slug}/layers`;
 
-	// Build layer containers (mirrors SceneRenderer.astro layer loop)
-	manifest.layers.forEach((layer, index) => {
-		const layerDepth = totalLayers > 1 ? index / (totalLayers - 1) : 0.5;
-		const parentLayer = layer.clipped && layer.clippedTo ? layerMap[layer.clippedTo] : null;
+	// Build layer containers (mirrors SceneRenderer.astro stack loop)
+	layerStacks.forEach((stack, stackIndex) => {
+		const layerDepth = totalStacks > 1 ? stackIndex / (totalStacks - 1) : 0.5;
+		const containerZ = getStackContainerZIndex(stack.members);
+		const parallaxSpeed = getStackParallaxSpeed(stack.members);
 
 		const layerContainer = document.createElement("div");
 		layerContainer.className = "scene__layer-container";
-		layerContainer.style.zIndex = layer.zIndex;
-		layerContainer.dataset.parallaxSpeed = layer.parallaxSpeed ?? 0;
-		layerContainer.dataset.parallaxDepth = layerDepth;
+		layerContainer.style.zIndex = String(containerZ);
+		layerContainer.dataset.parallaxSpeed = String(parallaxSpeed ?? 0);
+		layerContainer.dataset.parallaxDepth = String(layerDepth);
 
-		// Media element (img or video), possibly clipped
-		const mediaEl = createLayerMedia(layer, parentLayer, scenePath);
-		layerContainer.appendChild(mediaEl);
-		const layerEffects = Array.isArray(manifest.layerEffects?.[layer.name]) ? manifest.layerEffects[layer.name] : [];
-		for (const effect of layerEffects) {
-			if (!effect || effect.enabled === false) continue;
-			if (typeof effect.sketch !== "string" || effect.sketch.length === 0) continue;
-			if (layer.type === "video" || layer.clipped) continue;
-			const mode = effect.mode === "overlay" ? "overlay" : "recopie";
-			const sketchLayerContainer = document.createElement("div");
-			sketchLayerContainer.className = "sketch-canvas";
-			sketchLayerContainer.dataset.sketchContainer = "";
-			sketchLayerContainer.dataset.sketch = effect.sketch;
-			sketchLayerContainer.dataset.slot = layer.name;
-			sketchLayerContainer.dataset.sketchData = JSON.stringify({
-				imagePath: layer.file.startsWith("/") || layer.file.startsWith("http") ? layer.file : `${scenePath}/${layer.file}`,
-				mode,
-				effects: resolveLayerEffectShaders(effect),
-			});
-			const zOffset = Number.isFinite(effect.zOffset) ? effect.zOffset : 2;
-			sketchLayerContainer.style.cssText = `
+		for (const layer of stack.members) {
+			const parentLayer = layer.clipped && layer.clippedTo ? layerMap[layer.clippedTo] : null;
+
+			const mediaEl = createLayerMedia(layer, parentLayer, scenePath, layer.zIndex);
+			layerContainer.appendChild(mediaEl);
+			const layerEffects = Array.isArray(manifest.layerEffects?.[layer.name]) ? manifest.layerEffects[layer.name] : [];
+			for (const effect of layerEffects) {
+				if (!effect || effect.enabled === false) continue;
+				if (typeof effect.sketch !== "string" || effect.sketch.length === 0) continue;
+				if (layer.type === "video" || layer.clipped) continue;
+				const mode = effect.mode === "overlay" ? "overlay" : "recopie";
+				const sketchLayerContainer = document.createElement("div");
+				sketchLayerContainer.className = "sketch-canvas";
+				sketchLayerContainer.dataset.sketchContainer = "";
+				sketchLayerContainer.dataset.sketch = effect.sketch;
+				sketchLayerContainer.dataset.slot = layer.name;
+				sketchLayerContainer.dataset.sketchData = JSON.stringify({
+					imagePath: layer.file.startsWith("/") || layer.file.startsWith("http") ? layer.file : `${scenePath}/${layer.file}`,
+					mode,
+					effects: resolveLayerEffectShaders(effect),
+				});
+				const zOffset = Number.isFinite(effect.zOffset) ? effect.zOffset : 2;
+				sketchLayerContainer.style.cssText = `
 				left: var(--layer-center-left);
 				top: var(--layer-center-top);
 				width: var(--layer-width);
@@ -139,37 +144,36 @@ export async function mount(container, params, data) {
 				--layer-width: ${layer.position.width}%;
 				--layer-height: ${layer.position.height}%;
 			`;
-			if (mode === "overlay") {
-				sketchLayerContainer.style.opacity = String(typeof effect.opacity === "number" ? effect.opacity : 0.7);
-				sketchLayerContainer.style.mixBlendMode = effect.mixBlendMode ?? "screen";
-			} else {
-				// Keep source layer visible until sketch reports it is ready.
-				sketchLayerContainer.style.opacity = "0";
-				sketchLayerContainer.style.mixBlendMode = effect.mixBlendMode ?? "normal";
-				const recopieOpacity = String(typeof effect.opacity === "number" ? effect.opacity : 1);
-				sketchLayerContainer.addEventListener(
-					"layer-sketch-ready",
-					() => {
-						mediaEl.style.opacity = "0";
-						sketchLayerContainer.style.opacity = recopieOpacity;
-					},
-					{once: true},
-				);
+				if (mode === "overlay") {
+					sketchLayerContainer.style.opacity = String(typeof effect.opacity === "number" ? effect.opacity : 0.7);
+					sketchLayerContainer.style.mixBlendMode = effect.mixBlendMode ?? "screen";
+				} else {
+					sketchLayerContainer.style.opacity = "0";
+					sketchLayerContainer.style.mixBlendMode = effect.mixBlendMode ?? "normal";
+					const recopieOpacity = String(typeof effect.opacity === "number" ? effect.opacity : 1);
+					sketchLayerContainer.addEventListener(
+						"layer-sketch-ready",
+						() => {
+							mediaEl.style.opacity = "0";
+							sketchLayerContainer.style.opacity = recopieOpacity;
+						},
+						{once: true},
+					);
+				}
+				slotted.appendChild(sketchLayerContainer);
 			}
-			slotted.appendChild(sketchLayerContainer);
-		}
 
-		// Interactive zone
-		if (layer.interactive && layer.interaction) {
-			layerContainer.appendChild(createInteractiveZone(layer, slug));
-		}
+			const outlet = document.createElement("div");
+			outlet.className = "scene__layer-slot-outlet";
+			outlet.dataset.slotOutlet = layer.name;
+			outlet.style.cssText = "position:absolute;inset:0;pointer-events:none;";
+			layerContainer.appendChild(outlet);
 
-		// Slot outlet for canvas sketches
-		const outlet = document.createElement("div");
-		outlet.className = "scene__layer-slot-outlet";
-		outlet.dataset.slotOutlet = layer.name;
-		outlet.style.cssText = "position:absolute;inset:0;pointer-events:none;";
-		layerContainer.appendChild(outlet);
+			// After slot outlets (layer shaders) so zones paint above recopie/overlay canvases.
+			if (layer.interactive && layer.interaction) {
+				layerContainer.appendChild(createInteractiveZone(layer, slug));
+			}
+		}
 
 		scene.appendChild(layerContainer);
 	});
@@ -253,11 +257,16 @@ export async function mount(container, params, data) {
 	const cleanupPointerRemap = installPointerRemap(container);
 
 	return {
-		unmount() {
+		async unmount() {
 			sceneDisposed = true;
 			cleanupParallax();
 			cleanupPointerRemap();
-			for (const instance of sketchInstances) instance.remove();
+			const nhRoot = scene.querySelector('[data-sketch-container][data-sketch="neighborhood"]');
+			const nhTeardown = nhRoot && nhRoot.__anemoiaNeighborhoodP5Teardown;
+			if (typeof nhTeardown === "function") nhTeardown();
+			for (const instance of sketchInstances) {
+				await instance.remove();
+			}
 		},
 	};
 }
@@ -306,8 +315,9 @@ function applySceneEffectsOverride(overrides) {
 
 // ── DOM helpers ───────────────────────────────────────────────────────────────
 
-function createLayerMedia(layer, parentLayer, scenePath) {
+function createLayerMedia(layer, parentLayer, scenePath, innerStackZIndex) {
 	const imagePath = layer.file.startsWith("/") || layer.file.startsWith("http") ? layer.file : `${scenePath}/${layer.file}`;
+	const stackZ = Number.isFinite(innerStackZIndex) ? `; z-index: ${innerStackZIndex}` : "";
 
 	const style = `
 		--layer-center-left: ${layer.position.centerLeft}%;
@@ -315,7 +325,7 @@ function createLayerMedia(layer, parentLayer, scenePath) {
 		--layer-width: ${layer.position.width}%;
 		--layer-height: ${layer.position.height}%;
 		--layer-opacity: ${typeof layer.opacity === "number" ? layer.opacity : 1};
-		--layer-blend: ${layer.blendMode ?? "normal"};
+		--layer-blend: ${layer.blendMode ?? "normal"}${stackZ}
 	`;
 
 	const isClipped = Boolean(layer.clipped && parentLayer);
@@ -348,12 +358,14 @@ function createLayerMedia(layer, parentLayer, scenePath) {
 
 	const wrapper = document.createElement("div");
 	wrapper.className = "clipped-wrapper";
+	const clipZ = Number.isFinite(innerStackZIndex) ? `z-index: ${innerStackZIndex};` : "";
 	wrapper.style.cssText = `
 		position: absolute;
 		left: ${parentLeftCorner}%;
 		top: ${parentTopCorner}%;
 		width: ${parentLayer.position.width}%;
 		height: ${parentLayer.position.height}%;
+		${clipZ}
 		overflow: hidden;
 		-webkit-mask-image: url(${clipMaskPath});
 		mask-image: url(${clipMaskPath});
@@ -405,7 +417,7 @@ function createInteractiveZone(layer, currentSlug) {
 		--layer-center-top: ${layer.position.centerTop}%;
 		--layer-width: ${layer.position.width}%;
 		--layer-height: ${layer.position.height}%;
-		--layer-z: ${layer.zIndex + 1};
+		--layer-z: ${(layer.zIndex ?? 0) + 500};
 	`;
 
 	const isNav = layer.interaction.type === "navigate";

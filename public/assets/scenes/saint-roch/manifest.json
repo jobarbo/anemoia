@@ -9,7 +9,7 @@
       "file": "skybox.png",
       "zIndex": 0,
       "position": {
-        "centerLeft": 49.192708333333336,
+        "centerLeft": 54.088541666666664,
         "centerTop": 50,
         "width": 108.38541666666666,
         "height": 100
@@ -274,12 +274,30 @@
       "interactive": false,
       "blendMode": "normal",
       "opacity": 1,
-      "clipped": false
+      "clipped": false,
+      "sceneGroupId": "appartement-dep"
+    },
+    {
+      "name": "fenetre-dep",
+      "file": "fenetre-dep.png",
+      "zIndex": 17,
+      "position": {
+        "centerLeft": 27.65625,
+        "centerTop": 80.72142857142856,
+        "width": 6.875000000000001,
+        "height": 3.0142857142857142
+      },
+      "parallaxSpeed": 0.49694372890423405,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false,
+      "sceneGroupId": "appartement-dep"
     },
     {
       "name": "appartement-arago",
       "file": "appartement-arago.png",
-      "zIndex": 17,
+      "zIndex": 18,
       "position": {
         "centerLeft": 46.770833333333336,
         "centerTop": 86.37857142857143,
@@ -290,12 +308,30 @@
       "interactive": false,
       "blendMode": "normal",
       "opacity": 1,
-      "clipped": false
+      "clipped": false,
+      "sceneGroupId": "appartement-arago"
+    },
+    {
+      "name": "fenetre",
+      "file": "fenetre.png",
+      "zIndex": 19,
+      "position": {
+        "centerLeft": 49.947916666666664,
+        "centerTop": 88.32142857142857,
+        "width": 5.208333333333334,
+        "height": 3.0714285714285716
+      },
+      "parallaxSpeed": 0.5475622714724542,
+      "interactive": false,
+      "blendMode": "normal",
+      "opacity": 1,
+      "clipped": false,
+      "sceneGroupId": "appartement-arago"
     },
     {
       "name": "velos",
       "file": "velos.png",
-      "zIndex": 18,
+      "zIndex": 20,
       "position": {
         "centerLeft": 49.86979166666667,
         "centerTop": 98.44285714285715,

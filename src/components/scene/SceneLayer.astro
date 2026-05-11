@@ -6,11 +6,15 @@ interface Props {
 	parentLayer?: SceneLayerType | null;
 	scenePath: string;
 	layerDepth?: number;
+	/** Stacking order inside a multi-layer `sceneGroupId` stack (typically manifest zIndex). */
+	innerStackZIndex?: number;
 }
 
 const {layer, scenePath} = Astro.props as Props;
 const {parentLayer} = Astro.props as Props;
 const {layerDepth = 0.5} = Astro.props as Props;
+const {innerStackZIndex} = Astro.props as Props;
+const stackZ = typeof innerStackZIndex === "number" ? `; z-index: ${innerStackZIndex}` : "";
 
 const clipMaskPath = layer.clipped && parentLayer ? (parentLayer.file.startsWith("/") || parentLayer.file.startsWith("http") ? parentLayer.file : `${scenePath}/${parentLayer.file}`) : null;
 
@@ -20,7 +24,7 @@ const style = `
 	--layer-width: ${layer.position.width}%;
 	--layer-height: ${layer.position.height}%;
 	--layer-opacity: ${typeof layer.opacity === "number" ? layer.opacity : 1};
-	--layer-blend: ${layer.blendMode ?? "normal"};
+	--layer-blend: ${layer.blendMode ?? "normal"}${stackZ}
 `;
 
 // Handle both standard file names (appended to scenePath) and absolute/imported paths (starting with /)
@@ -48,6 +52,7 @@ const clipWrapperStyle = isClipped
 	top: ${parentTopCorner}%;
 	width: ${parentLayer.position.width}%;
 	height: ${parentLayer.position.height}%;
+	${typeof innerStackZIndex === "number" ? `z-index: ${innerStackZIndex};` : ""}
 	overflow: hidden;
 	-webkit-mask-image: url(${clipMaskPath});
 	mask-image: url(${clipMaskPath});
