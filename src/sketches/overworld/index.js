@@ -14,7 +14,14 @@
  */
 
 import {sceneNavigate} from "../../lib/router/scene-nav.js";
-import {THEME, drawTitleAberration, hitTest, applyThemeCanvasFont, truncateCanvasTextToFitWidth} from "../../lib/utils/retro-theme.js";
+import {
+	THEME,
+	drawTitleAberration,
+	hitTest,
+	applyThemeCanvasFont,
+	readingUiFontSize,
+	truncateCanvasTextToFitWidth,
+} from "../../lib/utils/retro-theme.js";
 import {createCanvasCursor, drawCanvasCursor} from "../../lib/input/canvas-cursor.js";
 import {getOverworldMapData} from "../../lib/data/overworld-map-data.js";
 import {playUiClickSfx, playUiHoverSfxIfTargetChanged} from "../../lib/audio/ui-hover-sfx.js";
