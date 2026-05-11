@@ -11,9 +11,9 @@ import {THEME, drawScanLines, drawTitleAberration, drawVignette} from "../../lib
 const BG = [...THEME.BG];
 
 const TITLE_FONT = {
-	family: "Offside",
-	weight: "700",
-	cssUrl: "https://fonts.googleapis.com/css2?family=Offside&display=swap",
+	family: "Saira Stencil",
+	weight: "500",
+	cssUrl: "https://fonts.googleapis.com/css2?family=Saira+Stencil:ital,wght@0,100..900;1,100..900&display=swap",
 };
 
 /** Served from `public/assets/scenes/splash/` (Astro root URL). */
@@ -26,8 +26,8 @@ const TITLE_AUDIO_VOLUME = 0.85;
 const TITLE_TEXT = "ANÉMOIA";
 const AUTHOR_TEXT = "Olivier Laforest  ·  Jonathan Barbeau";
 const PROMPT_TEXT = "[ CLIQUER POUR CONTINUER ]";
-const SKY_PAN_MS = 4400;
-const TITLE_REVEAL_MS = 1600;
+const SKY_PAN_MS = 16800;
+const TITLE_REVEAL_MS = 3600;
 const AUTHOR_FADE_MS = 900;
 const DONE_HOLD_MS = 0;
 const PARTICLE_DENSITY = 0.55;
@@ -416,7 +416,7 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 		const titleFamily = titleFontReady ? TITLE_FONT.family : (fontApi?.getCanvasFont?.() ?? "monospace");
 		const titleWeight = titleFontReady ? TITLE_FONT.weight : (fontApi?.getCanvasFontWeight?.() ?? "700");
 
-		drawTitleAberration(buf, visibleTitle, titleX, titleY + 2, titleSize, glowAlpha, sketch, titleFamily, titleWeight);
+		//drawTitleAberration(buf, visibleTitle, titleX, titleY, titleSize, glowAlpha, sketch, titleFamily, titleWeight);
 		drawTitleAberration(buf, visibleTitle, titleX, titleY, titleSize, titleAlpha, sketch, titleFamily, titleWeight);
 
 		const subtitleProgress = sketch.constrain((titleElapsed - TITLE_REVEAL_MS) / AUTHOR_FADE_MS, 0, 1);

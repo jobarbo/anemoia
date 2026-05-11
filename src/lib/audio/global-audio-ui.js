@@ -1,6 +1,6 @@
 /**
  * Shared UI for #global-audio: toggle icons and player visibility.
- * Used by AudioPlayer (astro:page-load) and neighborhood scene handleAudio (SPA).
+ * Used by AudioPlayer (astro:page-load) and world-ambient sync (SPA).
  */
 
 export function syncGlobalAudioToggleIcons(playing) {

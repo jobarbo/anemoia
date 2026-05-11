@@ -19,6 +19,7 @@
  */
 
 import {ensureTransitionSfxPackLoaded, playRandomTransitionSfx} from "../audio/transition-sfx.js";
+import {syncWorldAmbient} from "../audio/world-ambient.js";
 import {getNeighborhoods, getStory} from "../data/scene-data.js";
 
 /** Vertical phosphor “tube off / on” timing — feels like old CRT input switching */
@@ -135,6 +136,8 @@ export class SceneRouter {
 		this._overlay.setContainer(this._container);
 
 		this._current = {route, params, unmount: unmountFn};
+
+		syncWorldAmbient(route);
 
 		if (hadScene) {
 			await this._overlay.crtSceneTransition("in", CRT_IN_MS);

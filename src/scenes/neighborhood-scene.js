@@ -19,7 +19,6 @@ import p5 from "p5";
 import {fetchNeighborhoodManifest} from "../lib/data/scene-data.js";
 import {DEBUG_DISABLE_PARALLAX, initMouseParallax, initScrollParallax} from "../lib/input/parallax.js";
 import {initHeadTrackingParallax} from "../lib/input/head-tracking.js";
-import {refreshGlobalAudioPlayer, tryPlayGlobalAudio} from "../lib/audio/global-audio-ui.js";
 import {installPointerRemap} from "../lib/input/input-remap.js";
 import {getSketchLoader} from "../sketches/index.js";
 
@@ -244,9 +243,6 @@ export async function mount(container, params, data) {
 			});
 	}
 
-	// ── Audio ──────────────────────────────────────────────────────────────────
-	handleAudio(neighborhood.audioSrc ?? null);
-
 	// ── Pointer remapping (aligns click areas with CRT-warped visuals) ──────────
 	const cleanupPointerRemap = installPointerRemap(container);
 
@@ -256,7 +252,6 @@ export async function mount(container, params, data) {
 			cleanupParallax();
 			cleanupPointerRemap();
 			for (const instance of sketchInstances) instance.remove();
-			handleAudio(null);
 		},
 	};
 }
@@ -545,21 +540,3 @@ function preloadImageUrl(url) {
 	});
 }
 
-// ── Audio helpers ─────────────────────────────────────────────────────────────
-
-function handleAudio(src) {
-	const audio = /** @type {HTMLAudioElement|null} */ (document.getElementById("global-audio"));
-	if (!audio) return;
-	if (!src) {
-		audio.pause();
-		audio.src = "";
-		refreshGlobalAudioPlayer();
-		return;
-	}
-	if (audio.src !== new URL(src, location.href).href) {
-		audio.src = src;
-	}
-	audio.loop = true;
-	tryPlayGlobalAudio(audio);
-	refreshGlobalAudioPlayer();
-}
