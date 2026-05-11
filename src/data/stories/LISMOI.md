@@ -48,6 +48,10 @@ L'Archiviste a commencé à tenir ce journal à une époque où lire, se rassemb
 
 Ce qui suit complète les crédits des contenus créés pour ce projet. D'autres droits (musique, récits, visuels originaux) restent ceux des auteurs.
 
+### Partenaires
+
+![SODEC — Québec](/assets/media/quebec.svg) ![Rhizome](/assets/media/rhizome.svg)
+
 ### OpenStreetMap et Nominatim
 
 Les contours de la carte, les limites de quartiers et le géocodage (recherche de lieux) s'appuient sur les données **OpenStreetMap** et, pour l'interrogation en ligne, le service **Nominatim** de la Fondation OpenStreetMap.

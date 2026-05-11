@@ -95,7 +95,7 @@ const DEFAULT_EFFECTS = {
 		gapBrightness: 1.0,
 	},
 	chromatic: {
-		enabled: false,
+		enabled: true,
 		amount: 0.0025,
 		timeMultiplier: 0.0,
 	},
@@ -146,13 +146,13 @@ const DEFAULT_EFFECTS = {
 	crtDisplay: {
 		enabled: true,
 		brightness: 0.99,
-		cellSize: 1,
-		gapOpacity: 0.0,
+		cellSize: 2,
+		gapOpacity: 0.46,
 		rgbOpacity: 0.0,
 		rgbGain: [1.0, 1.0, 1.0],
 		dotRadius: 0.41,
 		dotFalloff: 0.4,
-		filterMode: 0.0,
+		filterMode: 1.0,
 	},
 	crtWarp: {
 		enabled: true,

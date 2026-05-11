@@ -16,6 +16,7 @@
  *   - h1 → GREEN_PRIMARY + chromatic aberration, large
  *   - h2 → GREEN_MID, medium
  *   - p  → GREEN_SUBTLE, body size
+ *   - figures → row of images from markdown (![](url) only lines), scaled to content width
  *   - Smooth scroll (mouse wheel + touch) with lerp
  *   - GSAP-driven per-block reveal: opacity + offsetY animate in when block enters viewport
  *   - Sidebar navigation (Bureau, Carte, quartier, récits) repliable : fermée au chargement,
@@ -96,7 +97,7 @@ export default function (container) {
 			e.preventDefault();
 		}
 
-		sketch.setup = () => {
+		sketch.setup = async () => {
 			sketch.pixelDensity(1);
 			const w = window.innerWidth;
 			const h = window.innerHeight;
@@ -109,6 +110,8 @@ export default function (container) {
 			artBuffer.noStroke();
 			artBuffer.textFont(THEME.FONT);
 			window.addEventListener("keydown", onWindowKeyToggleNav);
+
+			await loadFigureImagesForBlocks(sketch, allBlocks);
 
 			blockState = allBlocks.map(() => ({opacity: 0, offsetY: 40, triggered: false}));
 			computeLayout();
@@ -402,6 +405,39 @@ export default function (container) {
 					cursorY += tableH + blockGap;
 					continue;
 				}
+
+				if (block.type === "figures") {
+					const imgs = block._figureImages ?? [];
+					const gap = contentW * 0.06;
+					let rowH = h * 0.09;
+					const measureRow = (rh) => {
+						const sizes = imgs.map((img) => {
+							if (!img || img.height <= 0) return {w: 0, h: rh};
+							const r = rh / img.height;
+							return {w: img.width * r, h: rh};
+						});
+						const tw = sizes.reduce((a, s) => a + s.w, 0) + gap * Math.max(0, imgs.length - 1);
+						return {sizes, tw};
+					};
+					let {sizes, tw} = measureRow(rowH);
+					if (tw > contentW && tw > 0) {
+						rowH *= contentW / tw;
+						({sizes, tw} = measureRow(rowH));
+					}
+					const startLX = Math.max(0, (contentW - tw) / 2);
+					let lx = startLX;
+					/** @type {Array<{img: import("p5").Image; lx: number; w: number; h: number}>} */
+					const figures = [];
+					for (let fi = 0; fi < imgs.length; fi++) {
+						const s = sizes[fi];
+						figures.push({img: imgs[fi], lx, w: s.w, h: s.h});
+						lx += s.w + gap;
+					}
+					blockLayout.push({y: cursorY, h: rowH, lines: [], sz, indent: 0, figures});
+					cursorY += rowH + blockGap;
+					continue;
+				}
+
 				const isLi = block.type === "li";
 				const indent = isLi ? sz * 1.6 : 0;
 				const lineScale = block.type === "p" || isLi ? 1.55 : 1.3;
@@ -512,6 +548,20 @@ export default function (container) {
 				return;
 			}
 
+			if (block.type === "figures") {
+				const {figures} = layout;
+				if (figures?.length) {
+					buf.push();
+					buf.tint(255, 255, 255, alpha);
+					for (const {img, lx, w, h} of figures) {
+						if (img?.width > 0) buf.image(img, x + lx, y, w, h);
+					}
+					buf.noTint();
+					buf.pop();
+				}
+				return;
+			}
+
 			const isLi = block.type === "li";
 			const lineH = layout.sz * (block.type === "p" || isLi ? 1.55 : 1.3);
 			const indent = layout.indent ?? 0;
@@ -572,9 +622,51 @@ export default function (container) {
 
 // ── Typography helpers ────────────────────────────────────────────────────────
 
+/**
+ * p5 v2 `loadImage()` decodes via `createImageBitmap`, which often fails on SVG.
+ * Decode with a classic HTMLImageElement, then copy into a p5.Image.
+ *
+ * @param {import("p5")} p
+ * @param {string} url
+ * @returns {Promise<import("p5").Image | null>}
+ */
+async function loadUrlIntoP5Image(p, url) {
+	try {
+		const img = new Image();
+		img.crossOrigin = "anonymous";
+		await new Promise((resolve, reject) => {
+			img.onload = () => resolve();
+			img.onerror = () => reject(new Error(`Failed to load image: ${url}`));
+			img.src = url;
+		});
+		const ow = img.naturalWidth || img.width;
+		const oh = img.naturalHeight || img.height;
+		if (!(ow > 0 && oh > 0)) return null;
+		const pImg = p.createImage(ow, oh);
+		pImg.drawingContext.drawImage(img, 0, 0);
+		pImg.modified = true;
+		return pImg;
+	} catch {
+		return null;
+	}
+}
+
+/**
+ * @param {import("p5")} p
+ * @param {Array<{ type?: string, srcs?: string[] }>} blocks
+ */
+async function loadFigureImagesForBlocks(p, blocks) {
+	for (const block of blocks) {
+		if (block.type === "figures" && Array.isArray(block.srcs)) {
+			block._figureImages = await Promise.all(block.srcs.map((src) => loadUrlIntoP5Image(p, src)));
+		}
+	}
+}
+
 function fontSizeForType(type, canvasW) {
 	if (type === "h1") return canvasW * 0.048;
 	if (type === "h2") return canvasW * 0.028;
+	if (type === "figures") return canvasW * 0.02;
 	return canvasW * 0.02;
 }
 

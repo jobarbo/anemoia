@@ -83,6 +83,17 @@ function parseMarkdownBlocks(md) {
 			continue;
 		}
 
+		// Credit / partner logos: line is only markdown images (e.g. two SVGs side by side).
+		if (/^(?:!\[[^\]]*\]\([^)]+\)\s*)+$/.test(line)) {
+			flushPara();
+			const srcs = [];
+			const imgRe = /!\[[^\]]*\]\(([^)]+)\)/g;
+			let im;
+			while ((im = imgRe.exec(line)) !== null) srcs.push(im[1]);
+			if (srcs.length) blocks.push({type: "figures", srcs});
+			continue;
+		}
+
 		const cleaned = line
 			.replace(/!\[.*?\]\(.*?\)/g, "")
 			.replace(/\[(.+?)\]\(.*?\)/g, "$1")
