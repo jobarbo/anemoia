@@ -627,7 +627,7 @@ function overworldSidebarListLayout(sidebarRect, rowCount, canvasW) {
 	const rowH = Math.max(26, (contentBottom - contentTop - rowGap * (visibleRows - 1)) / visibleRows);
 	const itemW = w - padX * 2;
 	/** Taille des noms dans la liste — augmente le plancher (ex. 18) ou le ratio (ex. 0.0115) pour grossir. */
-	const labelSize = readingUiFontSize(Math.max(28, canvasW * 0.0098));
+	const labelSize = readingUiFontSize(Math.max(1, canvasW * 0.0158));
 	const textX = x + padX + itemW * 0.06;
 	const innerRight = x + padX + itemW;
 	const textRightMargin = Math.max(8, padX * 0.55);
