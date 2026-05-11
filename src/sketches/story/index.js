@@ -409,7 +409,7 @@ export default function (container) {
 				if (block.type === "figures") {
 					const imgs = block._figureImages ?? [];
 					const gap = contentW * 0.06;
-					let rowH = h * 0.09;
+					let rowH = h * 0.14;
 					const measureRow = (rh) => {
 						const sizes = imgs.map((img) => {
 							if (!img || img.height <= 0) return {w: 0, h: rh};
