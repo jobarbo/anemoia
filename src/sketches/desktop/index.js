@@ -503,7 +503,7 @@ function drawInteractivePanel(buf, w, h, hoveredAction, panelState, p) {
 
 	applyThemeCanvasFont(buf, panelTitleSz, p);
 	buf.textAlign(p.LEFT, p.TOP);
-	buf.fill(...THEME.GREEN_SUBTLE, 255);
+	buf.fill(255, 255, 255, 255);
 	buf.noStroke();
 	buf.text("menu_principal", pathTextX, pathBoxY + panelH * 0.018);
 
@@ -630,7 +630,7 @@ function drawInteractivePanel(buf, w, h, hoveredAction, panelState, p) {
 				const statusSz = Math.max(9, optionSz * 0.68);
 				applyThemeCanvasFont(buf, statusSz, p);
 				buf.textAlign(p.RIGHT, p.CENTER);
-				buf.fill(228, 146, 146, 230);
+				buf.fill(255, 255, 255, 255);
 				buf.text(statusLabel, rowBoxX + rowBoxW - panelW * 0.02, y);
 				applyThemeCanvasFont(buf, optionSz, p);
 				buf.textAlign(p.LEFT, p.CENTER);
@@ -638,8 +638,8 @@ function drawInteractivePanel(buf, w, h, hoveredAction, panelState, p) {
 		}
 
 		buf.noStroke();
-		const rowActive = isInteractive && hoveredAction === row.action;
-		const rowTextColor = isDisabled ? [214, 154, 154] : rowActive ? THEME.GREEN_MID : THEME.GREEN_SUBTLE;
+		const rowHoveredLabel = isInteractive && !isDisabled && hoveredAction === row.action;
+		const rowTextColor = rowHoveredLabel ? THEME.GREEN_MID : [255, 255, 255];
 		buf.fill(...rowTextColor, 255);
 
 		const labelTextX = labelX + (isDisabled ? panelW * 0.055 : 0);
