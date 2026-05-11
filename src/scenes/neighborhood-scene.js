@@ -221,6 +221,8 @@ export async function mount(container, params, data) {
 		initHeadTrackingParallax(layers, {
 			allowDeviceOrientationFallback: true,
 			allowMouseFallback: true,
+			// Head tracking must NOT drive vertical scroll — only the mouse wheel scrolls the container.
+			// Layer parallax (--parallax-x/y) still follows head input; --parallax-scroll-y stays bound to scrollTop.
 			scrollContainer: null,
 		})
 			.then((cleanup) => {

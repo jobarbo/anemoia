@@ -44,17 +44,7 @@ import {playUiClickSfx, playUiHoverSfxIfTargetChanged} from "../../lib/audio/ui-
 
 export default function (container) {
 	const raw = container.dataset.sketchData;
-	const {
-		id: storyId = "",
-		title = "",
-		date = null,
-		neighborhood = "",
-		neighborhoodName = "",
-		navStories = [],
-		neighborhoodLinked,
-		returnTo = "neighborhood",
-		blocks = [],
-	} = raw ? JSON.parse(raw) : {};
+	const {id: storyId = "", title = "", date = null, neighborhood = "", neighborhoodName = "", navStories = [], neighborhoodLinked, returnTo = "neighborhood", blocks = []} = raw ? JSON.parse(raw) : {};
 	const titleBlocks = title ? [{type: "h1", text: title}, ...(date ? [{type: "h2", text: date}] : [])] : [];
 	const allBlocks = [...titleBlocks, ...blocks];
 

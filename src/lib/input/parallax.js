@@ -209,6 +209,8 @@ export function initMouseParallax(layers) {
  */
 export function initScrollParallax(layers, scrollContainer) {
 	const depthCurve = readSceneScrollDepthCurve(layers);
+	/** Scene root: its border box can grow after assets while the scrollport stays 100vh — observe both. */
+	const sceneRoot = layers[0]?.closest("[data-scene-renderer]");
 	let rafId = null;
 	let destroyed = false;
 
@@ -220,11 +222,9 @@ export function initScrollParallax(layers, scrollContainer) {
 
 		layers.forEach((layer) => {
 			const offsetY = computeScrollLayerOffsetY(layer, scrollNormalizedY, depthCurve);
-			try {
-				gsap.set(layer, {"--parallax-scroll-y": `${offsetY}px`});
-			} catch {
-				setLayerParallaxValue(layer, "--parallax-scroll-y", offsetY);
-			}
+			// Avoid gsap.set here: head/mouse parallax uses gsap.to(..., { overwrite: "auto" }) on the same
+			// nodes and can stomp co-managed custom props; direct setProperty stacks safely with those tweens.
+			setLayerParallaxValue(layer, "--parallax-scroll-y", offsetY);
 		});
 	};
 
@@ -240,6 +240,9 @@ export function initScrollParallax(layers, scrollContainer) {
 	if (typeof ResizeObserver !== "undefined") {
 		resizeObserver = new ResizeObserver(scheduleApplyScrollOffsets);
 		resizeObserver.observe(scrollContainer);
+		if (sceneRoot instanceof Element) {
+			resizeObserver.observe(sceneRoot);
+		}
 	}
 
 	applyScrollOffsets();
@@ -254,11 +257,7 @@ export function initScrollParallax(layers, scrollContainer) {
 		window.removeEventListener("resize", scheduleApplyScrollOffsets);
 		resizeObserver?.disconnect();
 		layers.forEach((layer) => {
-			try {
-				gsap.set(layer, {"--parallax-scroll-y": "0px"});
-			} catch {
-				setLayerParallaxValue(layer, "--parallax-scroll-y", 0);
-			}
+			setLayerParallaxValue(layer, "--parallax-scroll-y", 0);
 		});
 	};
 }
