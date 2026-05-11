@@ -95,7 +95,7 @@ const DEFAULT_EFFECTS = {
 		gapBrightness: 1.0,
 	},
 	chromatic: {
-		enabled: true,
+		enabled: false,
 		amount: 0.0025,
 		timeMultiplier: 0.0,
 	},
@@ -115,7 +115,7 @@ const DEFAULT_EFFECTS = {
 		colorMode: 0,
 	},
 	zoom: {
-		enabled: true,
+		enabled: false,
 		zoomAmount: 0.83,
 		zoomSpeed: 0.8,
 		animateZoom: 0.0,
@@ -144,7 +144,7 @@ const DEFAULT_EFFECTS = {
 		blurMin: 0.0,
 	},
 	crtDisplay: {
-		enabled: true,
+		enabled: false,
 		brightness: 0.99,
 		cellSize: 2,
 		gapOpacity: 0.46,
@@ -155,7 +155,7 @@ const DEFAULT_EFFECTS = {
 		filterMode: 1.0,
 	},
 	crtWarp: {
-		enabled: true,
+		enabled: false,
 		warpAmount: 0.25,
 		aspectCorrect: 0.0,
 		borderColor: 2.0,
