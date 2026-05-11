@@ -7,6 +7,9 @@ import {refreshGlobalAudioPlayer, tryPlayGlobalAudio} from "./global-audio-ui.js
 
 export const WORLD_AMBIENT_SRC = "/assets/audio/machine_ambiant.mp3";
 
+/** Gain for machine ambient on `#global-audio` (0–1). */
+export const WORLD_AMBIENT_VOLUME = 0.35;
+
 /** @type {ReadonlySet<string>} */
 export const WORLD_AMBIENT_ROUTES = new Set(["desktop", "overworld", "neighborhood", "story"]);
 
@@ -29,6 +32,7 @@ export function syncWorldAmbient(route) {
 		audio.src = WORLD_AMBIENT_SRC;
 	}
 	audio.loop = true;
+	audio.volume = WORLD_AMBIENT_VOLUME;
 	refreshGlobalAudioPlayer();
 	tryPlayGlobalAudio(audio);
 }

@@ -185,6 +185,8 @@ export class ShaderEffects {
 					uFlicker: "flicker",
 					uFlickerSpacing: "flickerSpacing",
 					uTime: "shaderTime * timeMultiplier",
+					uRealTime: "shaderTime",
+					uSeed: "shaderSeed",
 				},
 			},
 

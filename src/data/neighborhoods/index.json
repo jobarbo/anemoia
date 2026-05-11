@@ -8,7 +8,7 @@
 		"viewEnabled": true,
 		"scenePath": "/assets/scenes/saint-roch/manifest.json",
 		"audioSrc": "/assets/scenes/saint-roch/ambient.mp3",
-		"stories": ["la-memoire"],
+		"stories": ["femme-aluminium", "narcisse-moderne"],
 		"apiSearchTerms": ["Saint-Roch, Quebec City, Quebec, Canada"],
 		"position": {"x": 45, "y": 60}
 	},
@@ -21,7 +21,7 @@
 		"viewEnabled": false,
 		"scenePath": "/assets/scenes/saint-sauveur/manifest.json",
 		"audioSrc": "/assets/scenes/saint-sauveur/ambient.mp3",
-		"stories": ["la-memoire"],
+		"stories": [],
 		"apiSearchTerms": ["Saint-Sauveur, Quebec City, Quebec, Canada"],
 		"position": {"x": 45, "y": 60}
 	},

@@ -23,7 +23,7 @@
 
 import gsap from "gsap";
 import {sceneNavigate} from "../../lib/router/scene-nav.js";
-import {THEME, drawTitleAberration, hitTest, applyThemeCanvasFont} from "../../lib/utils/retro-theme.js";
+import {THEME, hitTest, applyThemeCanvasFont} from "../../lib/utils/retro-theme.js";
 import {createCanvasCursor, drawCanvasCursor} from "../../lib/input/canvas-cursor.js";
 
 export default function (container) {
@@ -347,15 +347,20 @@ export default function (container) {
 				buf.textAlign(p.LEFT, p.TOP);
 				applyThemeCanvasFont(buf, layout.sz, p, {weight: "700"});
 				buf.fill(...THEME.GREEN_PRIMARY, alpha);
-				buf.text(block.text, x, y);
+				const h1LineH = layout.sz * 1.3;
+				let lineY = y;
+				for (const line of layout.lines) {
+					buf.text(line, x, lineY);
+					lineY += h1LineH;
+				}
 				buf.textStyle(p.NORMAL);
 				return;
 			}
 
-			const color = block.type === "h2" ? THEME.GREEN_MID : THEME.GREEN_SUBTLE;
+			const color = block.type === "h2" ? THEME.GREEN_MID : THEME.GREEN_MID;
 
 			if (isLi) {
-				buf.fill(...THEME.GREEN_MID, Math.round(alpha * 0.75));
+				buf.fill(255, 255, 255, alpha);
 				buf.text("—", x, y);
 			}
 
@@ -393,7 +398,7 @@ export default function (container) {
 function fontSizeForType(type, canvasW) {
 	if (type === "h1") return canvasW * 0.048;
 	if (type === "h2") return canvasW * 0.028;
-	return canvasW * 0.018;
+	return canvasW * 0.02;
 }
 
 /**
@@ -437,7 +442,28 @@ function drawDesktopBackground(buf, w, h) {
 }
 
 function drawWindowTopBar(buf, w, h, closeHovered, title, p) {
-	const barH = h * 0.07;
+	const minBarH = h * 0.07;
+	const maxBarH = h * 0.14;
+	const btnX = w * 0.022;
+	const titlePadR = w * 0.02;
+	/** Worst-case button width so wrapped lines never collide with the close control when the bar grows. */
+	const wrapTitleMaxW = Math.max(80, w - btnX - maxBarH * 0.58 - w * 0.018 - titlePadR);
+
+	let titleFont = Math.max(12, w * 0.014);
+	applyThemeCanvasFont(buf, titleFont, p);
+	let titleLines = wrapText(buf, title || "Visionneuse de récit", wrapTitleMaxW);
+	const lineGap = 1.2;
+	let lineH = titleFont * lineGap;
+	let barH = Math.max(minBarH, Math.min(titleLines.length * lineH + titleFont * 0.45, maxBarH));
+
+	while (titleLines.length * lineH > barH * 0.92 && titleFont > 9) {
+		titleFont -= 0.5;
+		applyThemeCanvasFont(buf, titleFont, p);
+		titleLines = wrapText(buf, title || "Visionneuse de récit", wrapTitleMaxW);
+		lineH = titleFont * lineGap;
+		barH = Math.max(minBarH, Math.min(titleLines.length * lineH + titleFont * 0.45, maxBarH));
+	}
+
 	const ctx = buf.drawingContext;
 	const grad = ctx.createLinearGradient(0, 0, 0, barH);
 	grad.addColorStop(0, "rgba(95, 48, 28, 0.97)");
@@ -457,7 +483,6 @@ function drawWindowTopBar(buf, w, h, closeHovered, title, p) {
 	buf.noStroke();
 
 	const btnSize = barH * 0.58;
-	const btnX = w * 0.022;
 	const btnY = (barH - btnSize) * 0.5;
 	buf.stroke(...THEME.GREEN_MID, closeHovered ? 240 : 180);
 	buf.strokeWeight(2);
@@ -469,10 +494,15 @@ function drawWindowTopBar(buf, w, h, closeHovered, title, p) {
 	buf.textAlign(p.CENTER, p.CENTER);
 	buf.text("X", btnX + btnSize * 0.5, btnY + btnSize * 0.52);
 
-	applyThemeCanvasFont(buf, Math.max(12, w * 0.014), p);
-	buf.fill(...THEME.GREEN_SUBTLE, 240);
-	buf.textAlign(p.CENTER, p.CENTER);
-	buf.text(title || "Visionneuse de récit", w * 0.5, barH * 0.5);
+	applyThemeCanvasFont(buf, titleFont, p);
+	buf.fill(...THEME.GREEN_SUBTLE, 255);
+	buf.textAlign(p.LEFT, p.TOP);
+	const drawTitleX = btnX + btnSize + w * 0.018;
+	const titleBlockH = titleLines.length * lineH;
+	const titleStartY = Math.max(2, (barH - titleBlockH) * 0.5);
+	for (let i = 0; i < titleLines.length; i++) {
+		buf.text(titleLines[i], drawTitleX, titleStartY + i * lineH);
+	}
 
 	return {
 		closeRect: {x: btnX, y: btnY, w: btnSize, h: btnSize},

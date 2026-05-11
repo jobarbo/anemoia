@@ -106,7 +106,7 @@ function getDefaultManifest(_sceneSlug, firstStorySlug) {
 				interactive: true,
 				interaction: {
 					type: "navigate",
-					target: `/story/${firstStorySlug ?? "la-memoire"}`,
+					target: `/story/${firstStorySlug ?? "femme-aluminium"}`,
 					hoverImage: null,
 				},
 			},
