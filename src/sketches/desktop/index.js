@@ -11,7 +11,7 @@
 import {sceneNavigate} from "../../lib/router/scene-nav.js";
 import {getNeighborhood, getNeighborhoods, getStory, getStoriesByNeighborhood} from "../../lib/data/scene-data.js";
 import {prefetchOverworldMapData} from "../../lib/data/overworld-map-data.js";
-import {THEME, applyThemeCanvasFont, hitTest} from "../../lib/utils/retro-theme.js";
+import {THEME, applyThemeCanvasFont, hitTest, truncateCanvasTextToFitWidth} from "../../lib/utils/retro-theme.js";
 import {createCanvasCursor, drawCanvasCursor} from "../../lib/input/canvas-cursor.js";
 
 export default function (container) {
@@ -638,13 +638,19 @@ function drawInteractivePanel(buf, w, h, hoveredAction, panelState, p) {
 		buf.fill(...rowTextColor, 255);
 
 		const labelTextX = labelX + (isDisabled ? panelW * 0.055 : 0);
-		buf.text(row.label, labelTextX, y);
+		let labelReserveRight = panelW * 0.035;
+		if (statusLabel) labelReserveRight += panelW * 0.2;
+		if (row.icon === "map") labelReserveRight += optionSz * 2.95;
+		/** Marge fixe : le libellé doit rester avant le bord du bouton / zone liste */
+		const labelMaxW = Math.max(28, listViewportRight - labelTextX - labelReserveRight - 10);
+		const displayLabel = truncateCanvasTextToFitWidth(buf, row.label, labelMaxW);
+		buf.text(displayLabel, labelTextX, y);
 
 		// Draw icon to the right if present
 		if (row.icon === "map") {
 			const iconSize = optionSz * 0.9;
 			const iconPadding = optionSz * 0.83;
-			const textWidth = buf.textWidth(row.label);
+			const textWidth = buf.textWidth(displayLabel);
 			const iconX = labelTextX + textWidth + iconPadding;
 			const iconY = y;
 

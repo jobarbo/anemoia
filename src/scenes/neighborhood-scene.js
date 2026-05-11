@@ -16,7 +16,7 @@ const BASE_SCENE_EFFECTS = {
 /** @type {Partial<import('../lib/shaders/global-shader-overlay.js').DEFAULT_EFFECTS>} */
 export const SCENE_EFFECTS = JSON.parse(JSON.stringify(BASE_SCENE_EFFECTS));
 import p5 from "p5";
-import {fetchNeighborhoodManifest} from "../lib/data/scene-data.js";
+import {fetchNeighborhoodManifest, getStoriesByNeighborhood} from "../lib/data/scene-data.js";
 import {DEBUG_DISABLE_PARALLAX, initMouseParallax, initScrollParallax} from "../lib/input/parallax.js";
 import {initHeadTrackingParallax} from "../lib/input/head-tracking.js";
 import {installPointerRemap} from "../lib/input/input-remap.js";
@@ -84,9 +84,11 @@ export async function mount(container, params, data) {
 	neighborhoodOverlayContainer.dataset.slot = "foreground";
 	neighborhoodOverlayContainer.dataset.interactive = "true";
 	neighborhoodOverlayContainer.style.pointerEvents = "auto";
+	const navStories = getStoriesByNeighborhood(slug).map((s) => ({slug: s.id, title: s.title}));
 	neighborhoodOverlayContainer.dataset.sketchData = JSON.stringify({
 		slug,
 		name: neighborhood.name ?? slug,
+		navStories,
 	});
 	slotted.appendChild(neighborhoodOverlayContainer);
 

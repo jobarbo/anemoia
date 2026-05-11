@@ -224,3 +224,45 @@ export function drawButton(buf, label, x, y, size, hovered, p) {
 export function hitTest(px, py, rect) {
 	return px >= rect.x && px <= rect.x + rect.w && py >= rect.y && py <= rect.y + rect.h;
 }
+
+const CANVAS_TEXT_ELLIPSIS = "...";
+
+/**
+ * Shortens text so the drawn line stays inside maxWidthPx (inner margin so ellipsis stays inside the container).
+ * Call after {@link applyThemeCanvasFont} so measurements match the drawn string.
+ *
+ * @param {p5.Graphics} buf
+ * @param {string} text
+ * @param {number} maxWidthPx
+ */
+export function truncateCanvasTextToFitWidth(buf, text, maxWidthPx) {
+	const raw = String(text ?? "").trim();
+	if (!raw.length) return "";
+	/** Marge entre mesure textWidth et rendu réel (sous-pixels, arrondi du glyphe «…»). */
+	const epsilon = Math.min(10, Math.max(4, maxWidthPx * 0.045));
+	const budget = Math.max(0, maxWidthPx - epsilon);
+	if (budget <= 0) return CANVAS_TEXT_ELLIPSIS;
+	if (buf.textWidth(raw) <= budget) return raw;
+	if (buf.textWidth(CANVAS_TEXT_ELLIPSIS) > budget) {
+		return raw.slice(0, 1);
+	}
+	let best = 0;
+	let lo = 0;
+	let hi = raw.length;
+	while (lo <= hi) {
+		const mid = (lo + hi) >> 1;
+		const tw = buf.textWidth(raw.slice(0, mid) + CANVAS_TEXT_ELLIPSIS);
+		if (tw <= budget) {
+			best = mid;
+			lo = mid + 1;
+		} else {
+			hi = mid - 1;
+		}
+	}
+	let out = best === 0 ? CANVAS_TEXT_ELLIPSIS : raw.slice(0, best) + CANVAS_TEXT_ELLIPSIS;
+	while (out.length > CANVAS_TEXT_ELLIPSIS.length && buf.textWidth(out) > budget) {
+		best -= 1;
+		out = best <= 0 ? CANVAS_TEXT_ELLIPSIS : raw.slice(0, best) + CANVAS_TEXT_ELLIPSIS;
+	}
+	return out;
+}

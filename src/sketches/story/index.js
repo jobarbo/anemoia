@@ -3,9 +3,12 @@
  *
  * Receives content via container[data-sketch-data]:
  *   {
+ *     id: string,
  *     title: string,
- *     neighborhood: string,  // slug for back navigation
- *     blocks: Array<{ type: 'h1'|'h2'|'p', text: string }>
+ *     neighborhood: string,
+ *     neighborhoodName?: string,
+ *     navStories?: Array<{ slug: string, title: string }>,
+ *     blocks: Array<...>
  *   }
  *
  * Rendering:
@@ -15,20 +18,42 @@
  *   - p  → GREEN_SUBTLE, body size
  *   - Smooth scroll (mouse wheel + touch) with lerp
  *   - GSAP-driven per-block reveal: opacity + offsetY animate in when block enters viewport
- *   - "[ RETOUR AU QUARTIER ]" back nav (top-left corner)
+ *   - Sidebar navigation (Bureau, Carte, quartier, récits) repliable : fermée au chargement,
+ *     rail gauche ou touche N pour ouvrir, bouton pour replier
  *   - Scan lines + vignette on each frame
  *
  * Captured frame-perfectly by GlobalShaderOverlay via flat mode.
  */
 
 import gsap from "gsap";
+import {
+	computeMainNavSidebarRect,
+	drawMainNavSidebar,
+	drawNavSidebarCollapseTab,
+	drawNavSidebarToggleRail,
+	hitMainNavSidebar,
+	layoutNavSidebarCollapseTab,
+	layoutNavSidebarToggleRail,
+	measureMainNavStoryList,
+	pointerInMainNavStoriesClip,
+} from "../../lib/navigation/main-nav-canvas.js";
 import {sceneNavigate} from "../../lib/router/scene-nav.js";
 import {THEME, hitTest, applyThemeCanvasFont} from "../../lib/utils/retro-theme.js";
 import {createCanvasCursor, drawCanvasCursor} from "../../lib/input/canvas-cursor.js";
 
 export default function (container) {
 	const raw = container.dataset.sketchData;
-	const {title = "", date = null, neighborhood = "", returnTo = "neighborhood", blocks = []} = raw ? JSON.parse(raw) : {};
+	const {
+		id: storyId = "",
+		title = "",
+		date = null,
+		neighborhood = "",
+		neighborhoodName = "",
+		navStories = [],
+		neighborhoodLinked,
+		returnTo = "neighborhood",
+		blocks = [],
+	} = raw ? JSON.parse(raw) : {};
 	const titleBlocks = title ? [{type: "h1", text: title}, ...(date ? [{type: "h2", text: date}] : [])] : [];
 	const allBlocks = [...titleBlocks, ...blocks];
 
@@ -57,17 +82,40 @@ export default function (container) {
 		let closeRect = null;
 		let closeHovered = false;
 
+		/** Main nav sidebar — scroll list of récits */
+		let storyNavScrollY = 0;
+		let hoveredLinkId = null;
+		let hoveredStorySlug = null;
+		/** false = bandeau replié au départ (rail + touche N pour ouvrir) */
+		let sidebarPanelOpen = false;
+		let collapseTabHovered = false;
+		let toggleRailHovered = false;
+
+		function onWindowKeyToggleNav(e) {
+			if (e.code !== "KeyN" || e.repeat) return;
+			if (e.ctrlKey || e.metaKey || e.altKey) return;
+			const t = e.target;
+			if (t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement || t instanceof HTMLSelectElement) return;
+			if (canvasCursor?.isLocked?.()) return;
+			if (!artBuffer) return;
+			sidebarPanelOpen = !sidebarPanelOpen;
+			computeLayout();
+			e.preventDefault();
+		}
+
 		sketch.setup = () => {
 			sketch.pixelDensity(1);
 			const w = window.innerWidth;
 			const h = window.innerHeight;
 			const canvas = sketch.createCanvas(w, h);
 			canvas.parent(container);
+			canvas.elt.tabIndex = 0;
 			canvasCursor = createCanvasCursor({canvasEl: canvas.elt});
 			artBuffer = sketch.createGraphics(w, h);
 			artBuffer.pixelDensity(1);
 			artBuffer.noStroke();
 			artBuffer.textFont(THEME.FONT);
+			window.addEventListener("keydown", onWindowKeyToggleNav);
 
 			blockState = allBlocks.map(() => ({opacity: 0, offsetY: 40, triggered: false}));
 			computeLayout();
@@ -87,12 +135,42 @@ export default function (container) {
 			// ── Background ────────────────────────────────────────────────────────
 			drawDesktopBackground(artBuffer, w, h);
 			const topBar = drawWindowTopBar(artBuffer, w, h, closeHovered, title, sketch);
+			const topBarH = topBar.height;
 			closeRect = topBar.closeRect;
 			closeHovered = closeRect ? hitTest(pointer.x, pointer.y, closeRect) : false;
 
-			// ── Content blocks ────────────────────────────────────────────────────
-			const contentX = w * 0.12;
-			const contentW = w * 0.76;
+			const frame = contentFrameMetrics(w, h, topBarH);
+			const {contentX, contentW} = frame;
+
+			if (sidebarPanelOpen) {
+				const sidebarRect = computeMainNavSidebarRect(w, topBarH, h);
+				const navCtx = {
+					neighborhoodSlug: neighborhood,
+					neighborhoodName,
+					neighborhoodLinked,
+					stories: navStories,
+					currentStorySlug: storyId || null,
+					storyScrollY: storyNavScrollY,
+					hoveredLinkId,
+					hoveredStorySlug,
+				};
+				const navDraw = drawMainNavSidebar(artBuffer, sidebarRect, navCtx, sketch);
+				storyNavScrollY = navDraw.storyScrollY;
+
+				const navHit = hitMainNavSidebar(pointer.x, pointer.y, sidebarRect, navCtx, sketch);
+				hoveredLinkId = navHit?.kind === "link" ? navHit.id : null;
+				hoveredStorySlug = navHit?.kind === "story" ? navHit.slug : null;
+
+				const collapseR = layoutNavSidebarCollapseTab(sidebarRect);
+				collapseTabHovered = hitTest(pointer.x, pointer.y, collapseR);
+				drawNavSidebarCollapseTab(artBuffer, collapseR, collapseTabHovered, sketch);
+			} else {
+				hoveredLinkId = null;
+				hoveredStorySlug = null;
+				const rail = layoutNavSidebarToggleRail(h, topBarH);
+				toggleRailHovered = hitTest(pointer.x, pointer.y, rail);
+				drawNavSidebarToggleRail(artBuffer, rail, toggleRailHovered, sketch);
+			}
 
 			for (let i = 0; i < allBlocks.length; i++) {
 				const block = allBlocks[i];
@@ -109,10 +187,13 @@ export default function (container) {
 			}
 
 			// Scrollbar indicator
-			drawScrollbar(artBuffer, scrollY, maxScroll);
+			drawScrollbar(artBuffer, scrollY, maxScroll, contentX + contentW);
 
 			// Blit to output
-			drawCanvasCursor(artBuffer, pointer, {hovered: closeHovered});
+			const sidebarHover = Boolean(hoveredLinkId || hoveredStorySlug);
+			drawCanvasCursor(artBuffer, pointer, {
+				hovered: closeHovered || sidebarHover || collapseTabHovered || toggleRailHovered,
+			});
 			sketch.clear();
 			sketch.image(artBuffer, 0, 0);
 		};
@@ -120,12 +201,74 @@ export default function (container) {
 		// ── Input ─────────────────────────────────────────────────────────────────
 
 		sketch.mouseWheel = (e) => {
+			const w = artBuffer.width;
+			const h = artBuffer.height;
+			const topBarH = measureStoryWindowTopBarHeight(artBuffer, w, h, title, sketch);
+			const pointer = canvasCursor.beginFrame({mouseX: sketch.mouseX, mouseY: sketch.mouseY, width: w, height: h});
+			if (sidebarPanelOpen) {
+				const sidebarRect = computeMainNavSidebarRect(w, topBarH, h);
+				const navCtx = {
+					neighborhoodSlug: neighborhood,
+					neighborhoodName,
+					neighborhoodLinked,
+					stories: navStories,
+					currentStorySlug: storyId || null,
+					storyScrollY: storyNavScrollY,
+				};
+				if (pointerInMainNavStoriesClip(pointer.x, pointer.y, sidebarRect, navCtx, sketch)) {
+					const sm = measureMainNavStoryList(sidebarRect, navCtx, w);
+					storyNavScrollY = sketch.constrain(storyNavScrollY + e.delta, 0, sm.storyScrollMax);
+					return false;
+				}
+				if (hitTest(pointer.x, pointer.y, sidebarRect)) {
+					return false;
+				}
+			}
 			targetScrollY = sketch.constrain(targetScrollY + e.delta, 0, maxScroll);
 			return false; // prevent page scroll
 		};
 
 		sketch.mousePressed = () => {
 			const pointer = canvasCursor.beginFrame({mouseX: sketch.mouseX, mouseY: sketch.mouseY, width: artBuffer.width, height: artBuffer.height});
+			const w = artBuffer.width;
+			const h = artBuffer.height;
+			const topBarH = measureStoryWindowTopBarHeight(artBuffer, w, h, title, sketch);
+
+			if (sidebarPanelOpen) {
+				const sidebarRect = computeMainNavSidebarRect(w, topBarH, h);
+				const collapseR = layoutNavSidebarCollapseTab(sidebarRect);
+				if (hitTest(pointer.x, pointer.y, collapseR)) {
+					sidebarPanelOpen = false;
+					computeLayout();
+					return;
+				}
+				const navCtx = {
+					neighborhoodSlug: neighborhood,
+					neighborhoodName,
+					neighborhoodLinked,
+					stories: navStories,
+					currentStorySlug: storyId || null,
+					storyScrollY: storyNavScrollY,
+				};
+				const hit = hitMainNavSidebar(pointer.x, pointer.y, sidebarRect, navCtx, sketch);
+				if (hit?.kind === "link") {
+					if (hit.id === "desktop") sceneNavigate("desktop");
+					else if (hit.id === "overworld") sceneNavigate("overworld");
+					else if (hit.id === "neighborhood" && neighborhood) sceneNavigate("neighborhood", {slug: neighborhood});
+					return;
+				}
+				if (hit?.kind === "story") {
+					if (hit.slug && hit.slug !== storyId) sceneNavigate("story", {slug: hit.slug});
+					return;
+				}
+			} else {
+				const rail = layoutNavSidebarToggleRail(h, topBarH);
+				if (hitTest(pointer.x, pointer.y, rail)) {
+					sidebarPanelOpen = true;
+					computeLayout();
+					return;
+				}
+			}
 			if (closeRect && hitTest(pointer.x, pointer.y, closeRect)) {
 				if (returnTo === "desktop") {
 					sceneNavigate("desktop");
@@ -175,8 +318,26 @@ export default function (container) {
 
 		if (typeof sketch.registerMethod === "function") {
 			sketch.registerMethod("remove", () => {
+				window.removeEventListener("keydown", onWindowKeyToggleNav);
 				canvasCursor?.destroy();
 			});
+		}
+
+		/**
+		 * @param {number} w
+		 * @param {number} h
+		 * @param {number} topBarH
+		 * @returns {{ contentX: number, contentW: number }}
+		 */
+		function contentFrameMetrics(w, h, topBarH) {
+			if (!sidebarPanelOpen) {
+				return {contentX: w * 0.12, contentW: w * 0.76};
+			}
+			const sidebarRect = computeMainNavSidebarRect(w, topBarH, h);
+			const contentGap = Math.max(10, w * 0.018);
+			const contentX = sidebarRect.x + sidebarRect.w + contentGap;
+			const contentW = Math.max(120, w - contentX - w * 0.04);
+			return {contentX, contentW};
 		}
 
 		// ── Layout computation ────────────────────────────────────────────────────
@@ -184,8 +345,9 @@ export default function (container) {
 		function computeLayout() {
 			const w = artBuffer.width;
 			const h = artBuffer.height;
-			const contentW = w * 0.76;
-			const topPad = h * 0.19;
+			const topBarH = measureStoryWindowTopBarHeight(artBuffer, w, h, title, sketch);
+			const {contentX, contentW} = contentFrameMetrics(w, h, topBarH);
+			const topPad = topBarH + h * 0.06;
 			const blockGap = h * 0.06;
 
 			blockLayout = [];
@@ -374,12 +536,12 @@ export default function (container) {
 
 		// ── Scrollbar ─────────────────────────────────────────────────────────────
 
-		function drawScrollbar(buf, sy, max) {
+		function drawScrollbar(buf, sy, max, contentRight) {
 			if (max <= 0) return;
 			const w = buf.width;
 			const h = buf.height;
 			const barH = h * 0.6;
-			const barX = w - w * 0.025;
+			const barX = Math.min(w - w * 0.025, contentRight + w * 0.012);
 			const barY = h * 0.2;
 			const thumbH = Math.max(20, barH * (h / (h + max)));
 			const thumbY = barY + (sy / max) * (barH - thumbH);
@@ -441,12 +603,21 @@ function drawDesktopBackground(buf, w, h) {
 	}
 }
 
-function drawWindowTopBar(buf, w, h, closeHovered, title, p) {
+/**
+ * @returns {number}
+ */
+function measureStoryWindowTopBarHeight(buf, w, h, title, p) {
+	return measureStoryWindowTopBarMetrics(buf, w, h, title, p).barH;
+}
+
+/**
+ * @returns {{ barH: number, titleFont: number, titleLines: string[], lineH: number, btnX: number, btnSize: number, btnY: number }}
+ */
+function measureStoryWindowTopBarMetrics(buf, w, h, title, p) {
 	const minBarH = h * 0.07;
 	const maxBarH = h * 0.14;
 	const btnX = w * 0.022;
 	const titlePadR = w * 0.02;
-	/** Worst-case button width so wrapped lines never collide with the close control when the bar grows. */
 	const wrapTitleMaxW = Math.max(80, w - btnX - maxBarH * 0.58 - w * 0.018 - titlePadR);
 
 	let titleFont = Math.max(12, w * 0.014);
@@ -463,6 +634,15 @@ function drawWindowTopBar(buf, w, h, closeHovered, title, p) {
 		lineH = titleFont * lineGap;
 		barH = Math.max(minBarH, Math.min(titleLines.length * lineH + titleFont * 0.45, maxBarH));
 	}
+
+	const btnSize = barH * 0.58;
+	const btnY = (barH - btnSize) * 0.5;
+	return {barH, titleFont, titleLines, lineH, btnX, btnSize, btnY};
+}
+
+function drawWindowTopBar(buf, w, h, closeHovered, title, p) {
+	const m = measureStoryWindowTopBarMetrics(buf, w, h, title, p);
+	const {barH, titleFont, titleLines, lineH, btnX, btnSize, btnY} = m;
 
 	const ctx = buf.drawingContext;
 	const grad = ctx.createLinearGradient(0, 0, 0, barH);
@@ -482,8 +662,6 @@ function drawWindowTopBar(buf, w, h, closeHovered, title, p) {
 	buf.line(0, barH - 3, w, barH - 3);
 	buf.noStroke();
 
-	const btnSize = barH * 0.58;
-	const btnY = (barH - btnSize) * 0.5;
 	buf.stroke(...THEME.GREEN_MID, closeHovered ? 240 : 180);
 	buf.strokeWeight(2);
 	buf.fill(...THEME.GREEN_PRIMARY, closeHovered ? 120 : 70);
@@ -506,5 +684,6 @@ function drawWindowTopBar(buf, w, h, closeHovered, title, p) {
 
 	return {
 		closeRect: {x: btnX, y: btnY, w: btnSize, h: btnSize},
+		height: barH,
 	};
 }
