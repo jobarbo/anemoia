@@ -164,9 +164,11 @@ export default function (container) {
 				const collapseR = layoutNavSidebarCollapseTab(sidebarRect);
 				collapseTabHovered = hitTest(pointer.x, pointer.y, collapseR);
 				drawNavSidebarCollapseTab(artBuffer, collapseR, collapseTabHovered, sketch);
+				toggleRailHovered = false;
 			} else {
 				hoveredLinkId = null;
 				hoveredStorySlug = null;
+				collapseTabHovered = false;
 				const rail = layoutNavSidebarToggleRail(h, topBarH);
 				toggleRailHovered = hitTest(pointer.x, pointer.y, rail);
 				drawNavSidebarToggleRail(artBuffer, rail, toggleRailHovered, sketch);

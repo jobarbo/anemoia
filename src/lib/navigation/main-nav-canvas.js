@@ -48,7 +48,7 @@ function navLinksForContext(ctx) {
  * @param {number} canvasH
  */
 export function computeMainNavSidebarRect(canvasW, topInset, canvasH) {
-	const sidebarW = Math.max(200, Math.min(300, canvasW * 0.22));
+	const sidebarW = Math.max(240, Math.min(380, canvasW * 0.28));
 	const h = Math.max(0, canvasH - topInset);
 	return {x: 0, y: topInset, w: sidebarW, h};
 }
@@ -58,7 +58,7 @@ export function computeMainNavSidebarRect(canvasW, topInset, canvasH) {
  * @returns {number}
  */
 export function computeMainNavSidebarWidth(canvasW) {
-	return Math.max(200, Math.min(300, canvasW * 0.22));
+	return Math.max(240, Math.min(380, canvasW * 0.28));
 }
 
 /**
@@ -319,14 +319,14 @@ export function layoutNavSidebarToggleRail(canvasH, topInset = 0) {
 }
 
 /**
- * Small control drawn over the top-right of the open sidebar to collapse it.
+ * Button in the top-right corner of the open sidebar to collapse it.
  *
  * @param {{ x: number, y: number, w: number, h: number }} sidebarRect
  */
 export function layoutNavSidebarCollapseTab(sidebarRect) {
-	const chipW = Math.min(44, sidebarRect.w * 0.26);
-	const chipH = Math.min(26, Math.max(20, sidebarRect.h * 0.036));
-	return {x: sidebarRect.x + sidebarRect.w - chipW - 5, y: sidebarRect.y + 8, w: chipW, h: chipH};
+	const btnW = Math.min(52, sidebarRect.w * 0.22);
+	const btnH = Math.min(40, Math.max(32, sidebarRect.h * 0.06));
+	return {x: sidebarRect.x + sidebarRect.w - btnW - 6, y: sidebarRect.y + 6, w: btnW, h: btnH};
 }
 
 /**
@@ -366,14 +366,33 @@ export function drawNavSidebarToggleRail(buf, rect, hovered, p) {
  * @param {import('p5')} p
  */
 export function drawNavSidebarCollapseTab(buf, rect, hovered, p) {
-	buf.stroke(...THEME.GREEN_PRIMARY, hovered ? 210 : 125);
-	buf.strokeWeight(2);
-	buf.fill(...THEME.BG, hovered ? 195 : 125);
-	buf.rect(rect.x, rect.y, rect.w, rect.h, 5);
+	const r = 6;
+	// Drop shadow
 	buf.noStroke();
-	const sz = Math.max(10, rect.h * 0.52);
-	applyThemeCanvasFont(buf, sz, p);
-	buf.fill(...THEME.GREEN_SUBTLE, hovered ? 255 : 225);
+	buf.fill(0, 0, 0, hovered ? 80 : 50);
+	buf.rect(rect.x + 2, rect.y + 3, rect.w, rect.h, r);
+	// Button body
+	buf.strokeWeight(2);
+	buf.stroke(...THEME.GREEN_PRIMARY, hovered ? 255 : 190);
+	buf.fill(...THEME.BG, hovered ? 240 : 210);
+	buf.rect(rect.x, rect.y, rect.w, rect.h, r);
+	buf.noStroke();
+	// × close icon
+	const cx = rect.x + rect.w * 0.5;
+	const cy = rect.y + rect.h * 0.46;
+	const armLen = Math.min(rect.w, rect.h) * 0.28;
+	const armH = Math.max(2, Math.min(rect.w, rect.h) * 0.11);
+	buf.fill(...THEME.GREEN_MID, hovered ? 255 : 220);
+	buf.push();
+	buf.translate(cx, cy);
+	buf.rotate(Math.PI / 4);
+	buf.rect(-armLen, -armH / 2, armLen * 2, armH, 2);
+	buf.rect(-armH / 2, -armLen, armH, armLen * 2, 2);
+	buf.pop();
+	// "[N]" hint
+	const hintSz = Math.max(7, rect.h * 0.2);
+	applyThemeCanvasFont(buf, hintSz, p);
 	buf.textAlign(p.CENTER, p.CENTER);
-	buf.text("«", rect.x + rect.w * 0.44, rect.y + rect.h * 0.52);
+	buf.fill(...THEME.GREEN_SUBTLE, hovered ? 210 : 140);
+	buf.text("[N]", cx, rect.y + rect.h - hintSz * 0.9);
 }
