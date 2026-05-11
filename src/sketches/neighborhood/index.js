@@ -321,6 +321,9 @@ export default function (container) {
 				return;
 			}
 			if (pointerInGameCutout(px, py, lay)) {
+				// Canvas has pointer-events: none so createCanvasCursor never receives
+				// pointerdown; request pointer lock from the same window gesture.
+				canvasCursor?.engagePointerLockFromUserGesture?.(e);
 				if (tryForwardSceneZoneClickAtArtBufferPx(px, py, w, h)) {
 					e.preventDefault();
 					e.stopImmediatePropagation();

@@ -162,8 +162,14 @@ export function createCanvasCursor(options) {
 		hasPosition = true;
 	}
 
-	/** @param {PointerEvent} e */
-	function onCanvasPointerDown(e) {
+	/**
+	 * Pointer lock + cursor sync from a user gesture. Used by `pointerdown` on
+	 * the canvas, and by sketches that set `pointer-events: none` on the canvas
+	 * and handle hits on `window` instead (e.g. neighborhood).
+	 *
+	 * @param {PointerEvent} e
+	 */
+	function engagePointerLockFromUserGesture(e) {
 		if (!finePointer) return;
 		// Skip non-mouse pointer events (touch, pen) on hybrid devices.
 		if (e.pointerType && e.pointerType !== "mouse") return;
@@ -179,6 +185,11 @@ export function createCanvasCursor(options) {
 		writePointerLockPreference(true);
 		if (document.pointerLockElement === canvasEl) return;
 		requestPointerLockSafely();
+	}
+
+	/** @param {PointerEvent} e */
+	function onCanvasPointerDown(e) {
+		engagePointerLockFromUserGesture(e);
 	}
 
 	/** @param {MouseEvent} e */
@@ -259,6 +270,8 @@ export function createCanvasCursor(options) {
 		isLocked() {
 			return state.locked;
 		},
+
+		engagePointerLockFromUserGesture,
 
 		destroy() {
 			persistPosition();
