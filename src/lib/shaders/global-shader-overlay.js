@@ -144,7 +144,7 @@ const DEFAULT_EFFECTS = {
 		blurMin: 0.0,
 	},
 	crtDisplay: {
-		enabled: false,
+		enabled: true,
 		brightness: 0.99,
 		cellSize: 2,
 		gapOpacity: 0.46,
@@ -152,7 +152,7 @@ const DEFAULT_EFFECTS = {
 		rgbGain: [1.0, 1.0, 1.0],
 		dotRadius: 0.41,
 		dotFalloff: 0.4,
-		filterMode: 1.0,
+		filterMode: 0.0,
 	},
 	crtWarp: {
 		enabled: true,
