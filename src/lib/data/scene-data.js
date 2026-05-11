@@ -32,7 +32,7 @@ let _cache = null;
  *   title: string,
  *   date?: string,
  *   neighborhood: string,
- *   returnTo?: 'desktop' | 'neighborhood',
+ *   returnTo?: 'desktop' | 'neighborhood' (frontmatter only; story close uses history.back),
  *   audioSrc?: string,
  *   order: number,
  *   blocks: Array<{ type: 'h1'|'h2'|'p', text: string }>

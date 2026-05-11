@@ -12,3 +12,12 @@ export function sceneNavigate(route, params = {}) {
 		m.getSceneRouter()?.navigateTo(route, params);
 	});
 }
+
+/**
+ * Returns to the previous history entry (same stack as {@link SceneRouter}'s `pushState`).
+ * Used e.g. for the story reader close control so it mirrors the real navigation stack,
+ * not frontmatter `returnTo`.
+ */
+export function sceneHistoryBack() {
+	history.back();
+}

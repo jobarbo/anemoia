@@ -12,9 +12,9 @@ export const UI_HOVER_SFX_SRC = "/assets/audio/mouse_hover.mp3";
 export const UI_HOVER_SFX_VOLUME = 0.11;
 
 /** Sharper than hover; served from `public/`. */
-export const UI_CLICK_SFX_SRC = "/assets/audio/mouse_click.mp3";
+export const UI_CLICK_SFX_SRC = "/assets/audio/mouse_click2.mp3";
 
-export const UI_CLICK_SFX_VOLUME = 0.68;
+export const UI_CLICK_SFX_VOLUME = 0.16;
 
 /** @type {number} */
 let lastThrottledClickMs = 0;
