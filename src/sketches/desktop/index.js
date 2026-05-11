@@ -13,6 +13,7 @@ import {getNeighborhood, getNeighborhoods, getStory, getStoriesByNeighborhood} f
 import {prefetchOverworldMapData} from "../../lib/data/overworld-map-data.js";
 import {THEME, applyThemeCanvasFont, hitTest, truncateCanvasTextToFitWidth} from "../../lib/utils/retro-theme.js";
 import {createCanvasCursor, drawCanvasCursor} from "../../lib/input/canvas-cursor.js";
+import {playUiClickSfx, playUiHoverSfxIfTargetChanged} from "../../lib/audio/ui-hover-sfx.js";
 
 export default function (container) {
 	return (sketch) => {
@@ -20,6 +21,8 @@ export default function (container) {
 		let canvasCursor;
 		let interactiveRows = [];
 		let hoveredRowAction = null;
+		/** @type {string|null} */
+		let desktopUiHoverPrevKey = null;
 		let openGroups = new Set();
 		let listScrollY = 0;
 		let targetListScrollY = 0;
@@ -88,6 +91,7 @@ export default function (container) {
 			listScrollY += (targetListScrollY - listScrollY) * THEME.SCROLL_LERP;
 			listScrollY = pClamp(listScrollY, 0, listMaxScroll);
 			hoveredRowAction = interactiveRows.find((row) => hitTest(pointer.x, pointer.y, row.rect))?.action ?? null;
+			desktopUiHoverPrevKey = playUiHoverSfxIfTargetChanged(desktopUiHoverPrevKey, hoveredRowAction);
 
 			drawDesktopBackground(artBuffer, w, h, sketch);
 			drawTopBar(artBuffer, w, h, sketch);
@@ -158,6 +162,7 @@ export default function (container) {
 			const pointer = canvasCursor.beginFrame({mouseX: sketch.mouseX, mouseY: sketch.mouseY, width: artBuffer.width, height: artBuffer.height});
 			const clickedRow = interactiveRows.find((row) => hitTest(pointer.x, pointer.y, row.rect));
 			if (!clickedRow) return;
+			playUiClickSfx();
 			if (clickedRow.action.startsWith("toggle:")) {
 				const groupId = clickedRow.action.slice("toggle:".length);
 				if (openGroups.has(groupId)) openGroups.delete(groupId);

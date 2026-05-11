@@ -21,6 +21,7 @@ import {
 import {THEME, applyThemeCanvasFont, drawButton, hitTest} from "../../lib/utils/retro-theme.js";
 import {sceneNavigate} from "../../lib/router/scene-nav.js";
 import {createCanvasCursor, drawCanvasCursor} from "../../lib/input/canvas-cursor.js";
+import {playUiClickSfx, playUiHoverSfxIfTargetChanged} from "../../lib/audio/ui-hover-sfx.js";
 
 const CUTOUT_DIM_ALPHA = 80;
 const CUTOUT_DIM_RGB = [0, 0, 0];
@@ -42,6 +43,8 @@ export default function (container) {
 		/** @type {{ x: number, y: number, w: number, h: number } | null} */
 		let backRect = null;
 		let backHovered = false;
+		/** @type {string|null} */
+		let neighborhoodUiHoverPrevKey = null;
 
 		function framePadFor(w, h) {
 			return Math.max(24, Math.round(Math.min(w, h) * 0.065));
@@ -144,6 +147,17 @@ export default function (container) {
 			artBuffer.fill(...THEME.GREEN_SUBTLE, 255);
 			artBuffer.text("SCÈNE DE QUARTIER ACTIVE", w - innerPadX, innerPadY / 2);
 
+			{
+				let hotKey = null;
+				if (backHovered) hotKey = "back";
+				else if (sidebarPanelOpen) {
+					if (collapseTabHovered) hotKey = "collapse";
+					else if (hoveredLinkId) hotKey = `link:${hoveredLinkId}`;
+					else if (hoveredStorySlug) hotKey = `story:${hoveredStorySlug}`;
+				} else if (toggleRailHovered) hotKey = "rail";
+				neighborhoodUiHoverPrevKey = playUiHoverSfxIfTargetChanged(neighborhoodUiHoverPrevKey, hotKey);
+			}
+
 			sketch.clear();
 			const sidebarHover = Boolean(hoveredLinkId || hoveredStorySlug);
 			drawCanvasCursor(artBuffer, pointer, {
@@ -162,6 +176,7 @@ export default function (container) {
 			const cutoutLeft = sidebarPanelOpen ? sidebarW + navGap : framePad;
 
 			if (backRect && hitTest(pointer.x, pointer.y, backRect)) {
+				playUiClickSfx();
 				sceneNavigate("overworld");
 				return;
 			}
@@ -170,6 +185,7 @@ export default function (container) {
 				const sidebarRect = {x: 0, y: 0, w: sidebarW, h};
 				const collapseR = layoutNavSidebarCollapseTab(sidebarRect);
 				if (hitTest(pointer.x, pointer.y, collapseR)) {
+					playUiClickSfx();
 					sidebarPanelOpen = false;
 					return;
 				}
@@ -183,16 +199,23 @@ export default function (container) {
 				};
 				const hit = hitMainNavSidebar(pointer.x, pointer.y, sidebarRect, navCtx, sketch);
 				if (hit?.kind === "link") {
-					if (hit.id === "desktop") sceneNavigate("desktop");
-					else if (hit.id === "overworld") sceneNavigate("overworld");
+					if (hit.id === "desktop") {
+						playUiClickSfx();
+						sceneNavigate("desktop");
+					} else if (hit.id === "overworld") {
+						playUiClickSfx();
+						sceneNavigate("overworld");
+					}
 					return;
 				}
 				if (hit?.kind === "story" && hit.slug) {
+					playUiClickSfx();
 					sceneNavigate("story", {slug: hit.slug});
 				}
 			} else {
 				const rail = layoutNavSidebarToggleRail(h, 0);
 				if (hitTest(pointer.x, pointer.y, rail)) {
+					playUiClickSfx();
 					sidebarPanelOpen = true;
 				}
 			}

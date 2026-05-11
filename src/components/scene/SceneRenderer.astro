@@ -51,6 +51,7 @@ const totalLayers = manifest.layers.length;
 <script>
 	import {DEBUG_DISABLE_PARALLAX, initMouseParallax, initScrollParallax} from "../../lib/input/parallax.js";
 	import {initHeadTrackingParallax} from "../../lib/input/head-tracking.js";
+	import {playUiClickSfx, playUiHoverSfx} from "../../lib/audio/ui-hover-sfx.js";
 
 	const parallaxCleanupByScene = new WeakMap();
 	const initTokenByScene = new WeakMap();
@@ -106,6 +107,14 @@ const totalLayers = manifest.layers.length;
 		};
 	}
 
+	function attachInteractiveZoneHoverSfx(scene: Element) {
+		for (const z of scene.querySelectorAll(".zone:not([data-ui-hover-sfx])")) {
+			z.setAttribute("data-ui-hover-sfx", "");
+			z.addEventListener("pointerenter", () => playUiHoverSfx());
+			z.addEventListener("click", () => playUiClickSfx());
+		}
+	}
+
 	function initializeParallax(scene: Element, layers: NodeListOf<Element>) {
 		cleanupParallax(scene);
 
@@ -156,6 +165,7 @@ const totalLayers = manifest.layers.length;
 	document.addEventListener("astro:page-load", () => {
 		document.querySelectorAll("[data-scene-renderer]").forEach((scene) => {
 			distributeSlottedContent(scene);
+			attachInteractiveZoneHoverSfx(scene);
 			const layers = scene.querySelectorAll(".scene__layer-container");
 			if (layers.length > 0) {
 				initializeParallax(scene, layers as NodeListOf<Element>);

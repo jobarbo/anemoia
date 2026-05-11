@@ -17,6 +17,8 @@ const BASE_SCENE_EFFECTS = {
 export const SCENE_EFFECTS = JSON.parse(JSON.stringify(BASE_SCENE_EFFECTS));
 import p5 from "p5";
 import {fetchNeighborhoodManifest, getStoriesByNeighborhood} from "../lib/data/scene-data.js";
+import {sceneNavigate} from "../lib/router/scene-nav.js";
+import {playUiClickSfx, playUiHoverSfx} from "../lib/audio/ui-hover-sfx.js";
 import {DEBUG_DISABLE_PARALLAX, initMouseParallax, initScrollParallax} from "../lib/input/parallax.js";
 import {initHeadTrackingParallax} from "../lib/input/head-tracking.js";
 import {installPointerRemap} from "../lib/input/input-remap.js";
@@ -421,8 +423,11 @@ function createInteractiveZone(layer, currentSlug) {
 			a.appendChild(img);
 		}
 
+		a.addEventListener("pointerenter", () => playUiHoverSfx());
+
 		a.addEventListener("click", (e) => {
 			e.preventDefault();
+			playUiClickSfx();
 			const target = layer.interaction.target;
 			// Detect story navigation (/story/:slug)
 			const storyMatch = target.match(/^\/story\/([^/]+)/);
@@ -440,6 +445,8 @@ function createInteractiveZone(layer, currentSlug) {
 	btn.className = "zone zone--state";
 	btn.dataset.zoneType = "state";
 	btn.style.cssText = style;
+	btn.addEventListener("pointerenter", () => playUiHoverSfx());
+	btn.addEventListener("click", () => playUiClickSfx());
 	return btn;
 }
 

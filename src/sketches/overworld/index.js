@@ -17,6 +17,7 @@ import {sceneNavigate} from "../../lib/router/scene-nav.js";
 import {THEME, drawTitleAberration, hitTest, applyThemeCanvasFont} from "../../lib/utils/retro-theme.js";
 import {createCanvasCursor, drawCanvasCursor} from "../../lib/input/canvas-cursor.js";
 import {getOverworldMapData} from "../../lib/data/overworld-map-data.js";
+import {playUiClickSfx, playUiHoverSfxIfTargetChanged} from "../../lib/audio/ui-hover-sfx.js";
 
 export default function (container) {
 	const raw = container.dataset.sketchData;
@@ -49,6 +50,8 @@ export default function (container) {
 		let cityGeoBounds = null;
 		let neighborhoodOverlays = [];
 		let hoveredNeighborhoodKey = null;
+		/** @type {string|null} */
+		let overworldUiHoverPrevKey = null;
 
 		// ── Zoom and Pan state ─────────────────────────────────────────────────────
 		let zoomLevel = 1.0; // 1.0 = 100%, 2.0 = 200%, etc.
@@ -175,6 +178,15 @@ export default function (container) {
 			const effectiveHoveredIndex = hoveredSidebarIndex >= 0 ? hoveredSidebarIndex : hoveredMapIndex;
 			hoveredNeighborhoodKey = effectiveHoveredIndex >= 0 ? getNeighborhoodKey(neighborhoods[effectiveHoveredIndex]) : null;
 
+			{
+				let hotKey = null;
+				if (closeHovered) hotKey = "close";
+				else if (hoveredSidebarIndex >= 0) hotKey = `sb:${hoveredSidebarIndex}`;
+				else if (hoveredOverlay) hotKey = `ov:${hoveredOverlay.neighborhoodKey}`;
+				else if (hoveredPin >= 0) hotKey = `pin:${hoveredPin}`;
+				overworldUiHoverPrevKey = playUiHoverSfxIfTargetChanged(overworldUiHoverPrevKey, hotKey);
+			}
+
 			// ── Map background & grid (no zoom) ────────────────────────────────────
 			drawMapBackground(artBuffer, mapX, mapY, mapW, mapH);
 
@@ -262,24 +274,27 @@ export default function (container) {
 		sketch.mousePressed = () => {
 			pointer = canvasCursor.beginFrame({mouseX: sketch.mouseX, mouseY: sketch.mouseY, width: artBuffer.width, height: artBuffer.height});
 			if (closeRect && hitTest(pointer.x, pointer.y, closeRect)) {
+				playUiClickSfx();
 				sceneNavigate("desktop");
 				return;
 			}
 			const sidebarHit = findSidebarItemAtPointer(pointer, sidebarBounds, neighborhoods, sketch);
 			if (sidebarHit >= 0) {
 				if (navigateToNeighborhoodAtIndex(sidebarHit)) {
+					playUiClickSfx();
 					selectedPin = sidebarHit;
 				}
 				return;
 			}
 			const overlayHit = findNeighborhoodOverlayAtMouse();
 			if (overlayHit) {
-				navigateToNeighborhoodByKey(overlayHit.neighborhoodKey);
+				if (navigateToNeighborhoodByKey(overlayHit.neighborhoodKey)) playUiClickSfx();
 				return;
 			}
 			const pinIndex = findPinAtMouse();
 			if (pinIndex >= 0) {
 				if (navigateToNeighborhoodAtIndex(pinIndex)) {
+					playUiClickSfx();
 					selectedPin = pinIndex;
 				}
 			}

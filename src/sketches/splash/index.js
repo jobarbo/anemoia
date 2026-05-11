@@ -23,6 +23,7 @@ import {createLoginPhase} from "./login.js";
 import {createTitlePhase} from "./title.js";
 import {THEME_FONT, applyThemeCanvasFont} from "../../lib/utils/retro-theme.js";
 import {createCanvasCursor, drawCanvasCursor} from "../../lib/input/canvas-cursor.js";
+import {playUiClickSfx, playUiHoverSfxIfTargetChanged} from "../../lib/audio/ui-hover-sfx.js";
 
 const PHASE = {CLICK_TO_START: 0, BOOT: 1, LOGO: 2, BIOS: 3, LOGIN: 4, TITLE: 5, EXIT: 6};
 
@@ -109,6 +110,8 @@ export default function (container) {
 
 	return (sketch) => {
 		let pointer = {x: 0, y: 0};
+		/** @type {string|null} */
+		let splashUiHoverPrevKey = null;
 		/** @type {HTMLAudioElement[]} */
 		let splashBackgroundAudios = [];
 
@@ -196,6 +199,7 @@ export default function (container) {
 
 		sketch.draw = () => {
 			const now = sketch.millis();
+			const phaseAtStart = phase;
 			pointer = canvasCursor.beginFrame({mouseX: sketch.mouseX, mouseY: sketch.mouseY, width: artBuffer.width, height: artBuffer.height});
 			let hoveredCursor = phase === PHASE.TITLE;
 
@@ -210,6 +214,8 @@ export default function (container) {
 				stopSplashAmbient();
 				phase = PHASE.EXIT;
 			}
+
+			if (phase !== phaseAtStart) splashUiHoverPrevKey = null;
 
 			// Delegate drawing to active phase
 			switch (phase) {
@@ -240,6 +246,15 @@ export default function (container) {
 					break;
 			}
 
+			{
+				let uiHoverHotKey = null;
+				if (phase === PHASE.CLICK_TO_START && clickToStart.isPointerOver(pointer.x, pointer.y)) uiHoverHotKey = "cts";
+				else if (phase === PHASE.BOOT && boot.isPointerOver(pointer.x, pointer.y)) uiHoverHotKey = "boot";
+				else if (phase === PHASE.LOGO && logo.isPointerOver(pointer.x, pointer.y)) uiHoverHotKey = "logo";
+				else if (phase === PHASE.TITLE && title.isPointerOver(pointer.x, pointer.y)) uiHoverHotKey = "title";
+				splashUiHoverPrevKey = playUiHoverSfxIfTargetChanged(splashUiHoverPrevKey, uiHoverHotKey);
+			}
+
 			// Blit artBuffer onto visible canvas
 			drawCanvasCursor(artBuffer, pointer, {hovered: hoveredCursor});
 			sketch.clear();
@@ -257,21 +272,38 @@ export default function (container) {
 
 		sketch.mousePressed = () => {
 			tryPlaySplashAmbient();
-			if (phase === PHASE.CLICK_TO_START) clickToStart.onPointerPressed(pointer.x, pointer.y);
-			if (phase === PHASE.BOOT) boot.onPointerPressed(pointer.x, pointer.y);
-			if (phase === PHASE.LOGO) logo.onPointerPressed(pointer.x, pointer.y);
-			if (phase === PHASE.TITLE) title.onPointerPressed(pointer.x, pointer.y);
+			let handled = false;
+			if (phase === PHASE.CLICK_TO_START) handled = clickToStart.onPointerPressed(pointer.x, pointer.y);
+			else if (phase === PHASE.BOOT) handled = boot.onPointerPressed(pointer.x, pointer.y);
+			else if (phase === PHASE.LOGO) handled = logo.onPointerPressed(pointer.x, pointer.y);
+			else if (phase === PHASE.TITLE) handled = title.onPointerPressed(pointer.x, pointer.y);
+			if (handled) playUiClickSfx();
 			return false;
 		};
 
 		sketch.keyPressed = () => {
 			tryPlaySplashAmbient();
-			const isConfirmKey = sketch.keyCode === sketch.ENTER || sketch.keyCode === sketch.RETURN || sketch.keyCode === 13 || sketch.key === "Enter" || sketch.key === "Return";
-			if (phase === PHASE.CLICK_TO_START && isConfirmKey) clickToStart.onConfirm();
-			if (phase === PHASE.BOOT && isConfirmKey) boot.onConfirm();
-			if (phase === PHASE.LOGO && isConfirmKey) logo.onConfirm();
-			if (phase === PHASE.LOGIN) login.onKeyPressed(sketch.keyCode, sketch.key);
-			if (phase === PHASE.TITLE && isConfirmKey) title.onConfirm();
+			const isConfirmKey =
+				sketch.keyCode === sketch.ENTER ||
+				sketch.keyCode === sketch.RETURN ||
+				sketch.keyCode === 13 ||
+				sketch.key === "Enter" ||
+				sketch.key === "Return";
+			if (phase === PHASE.CLICK_TO_START && isConfirmKey) {
+				clickToStart.onConfirm();
+				playUiClickSfx({throttleMs: 220});
+			} else if (phase === PHASE.BOOT && isConfirmKey) {
+				boot.onConfirm();
+				playUiClickSfx({throttleMs: 220});
+			} else if (phase === PHASE.LOGO && isConfirmKey) {
+				logo.onConfirm();
+				playUiClickSfx({throttleMs: 220});
+			} else if (phase === PHASE.LOGIN) {
+				login.onKeyPressed(sketch.keyCode, sketch.key);
+			} else if (phase === PHASE.TITLE && isConfirmKey) {
+				title.onConfirm();
+				playUiClickSfx({throttleMs: 220});
+			}
 			return false; // prevent default browser scroll
 		};
 

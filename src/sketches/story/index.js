@@ -40,6 +40,7 @@ import {
 import {sceneNavigate} from "../../lib/router/scene-nav.js";
 import {THEME, hitTest, applyThemeCanvasFont} from "../../lib/utils/retro-theme.js";
 import {createCanvasCursor, drawCanvasCursor} from "../../lib/input/canvas-cursor.js";
+import {playUiClickSfx, playUiHoverSfxIfTargetChanged} from "../../lib/audio/ui-hover-sfx.js";
 
 export default function (container) {
 	const raw = container.dataset.sketchData;
@@ -90,6 +91,8 @@ export default function (container) {
 		let sidebarPanelOpen = false;
 		let collapseTabHovered = false;
 		let toggleRailHovered = false;
+		/** @type {string|null} */
+		let storyUiHoverPrevKey = null;
 
 		function onWindowKeyToggleNav(e) {
 			if (e.code !== "KeyN" || e.repeat) return;
@@ -191,6 +194,17 @@ export default function (container) {
 			// Scrollbar indicator
 			drawScrollbar(artBuffer, scrollY, maxScroll, contentX + contentW);
 
+			{
+				let hotKey = null;
+				if (closeHovered) hotKey = "close";
+				else if (sidebarPanelOpen) {
+					if (collapseTabHovered) hotKey = "collapse";
+					else if (hoveredLinkId) hotKey = `link:${hoveredLinkId}`;
+					else if (hoveredStorySlug) hotKey = `story:${hoveredStorySlug}`;
+				} else if (toggleRailHovered) hotKey = "rail";
+				storyUiHoverPrevKey = playUiHoverSfxIfTargetChanged(storyUiHoverPrevKey, hotKey);
+			}
+
 			// Blit to output
 			const sidebarHover = Boolean(hoveredLinkId || hoveredStorySlug);
 			drawCanvasCursor(artBuffer, pointer, {
@@ -240,6 +254,7 @@ export default function (container) {
 				const sidebarRect = computeMainNavSidebarRect(w, topBarH, h);
 				const collapseR = layoutNavSidebarCollapseTab(sidebarRect);
 				if (hitTest(pointer.x, pointer.y, collapseR)) {
+					playUiClickSfx();
 					sidebarPanelOpen = false;
 					computeLayout();
 					return;
@@ -254,24 +269,36 @@ export default function (container) {
 				};
 				const hit = hitMainNavSidebar(pointer.x, pointer.y, sidebarRect, navCtx, sketch);
 				if (hit?.kind === "link") {
-					if (hit.id === "desktop") sceneNavigate("desktop");
-					else if (hit.id === "overworld") sceneNavigate("overworld");
-					else if (hit.id === "neighborhood" && neighborhood) sceneNavigate("neighborhood", {slug: neighborhood});
+					if (hit.id === "desktop") {
+						playUiClickSfx();
+						sceneNavigate("desktop");
+					} else if (hit.id === "overworld") {
+						playUiClickSfx();
+						sceneNavigate("overworld");
+					} else if (hit.id === "neighborhood" && neighborhood) {
+						playUiClickSfx();
+						sceneNavigate("neighborhood", {slug: neighborhood});
+					}
 					return;
 				}
 				if (hit?.kind === "story") {
-					if (hit.slug && hit.slug !== storyId) sceneNavigate("story", {slug: hit.slug});
+					if (hit.slug && hit.slug !== storyId) {
+						playUiClickSfx();
+						sceneNavigate("story", {slug: hit.slug});
+					}
 					return;
 				}
 			} else {
 				const rail = layoutNavSidebarToggleRail(h, topBarH);
 				if (hitTest(pointer.x, pointer.y, rail)) {
+					playUiClickSfx();
 					sidebarPanelOpen = true;
 					computeLayout();
 					return;
 				}
 			}
 			if (closeRect && hitTest(pointer.x, pointer.y, closeRect)) {
+				playUiClickSfx();
 				if (returnTo === "desktop") {
 					sceneNavigate("desktop");
 				} else {
