@@ -4,6 +4,9 @@
  * Le router client monte la scène depuis location.pathname.
  */
 import GameShell from "../components/GameShell.astro";
+
+const path = Astro.url.pathname;
+const locale = path === "/en" || path.startsWith("/en/") ? "en" : "fr";
 ---
 
-<GameShell />
+<GameShell locale={locale} />

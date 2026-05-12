@@ -1,4 +1,6 @@
 import staticMapCache from "../../data/map-cache.json";
+import {nominatimAcceptLanguageHeader} from "../i18n/nominatim-lang.js";
+import {getLocale} from "./scene-data.js";
 
 const OVERWORLD_MAP_CACHE_KEY = "anemoia.overworldMapData.v2";
 const OVERWORLD_MAP_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
@@ -276,12 +278,13 @@ function getNeighborhoodKey(neighborhood) {
 
 async function loadQuebecOutlineRaw() {
 	try {
+		const loc = getLocale();
 		const endpoint = "/api/nominatim.json?mode=search&format=jsonv2&polygon_geojson=1&limit=1&q=";
 		const query = "La Cité-Limoilou, Quebec, Canada";
-		const url = `${endpoint}${encodeURIComponent(query)}`;
+		const url = `${endpoint}${encodeURIComponent(query)}&lang=${encodeURIComponent(loc)}`;
 		const res = await fetch(url, {
 			headers: {
-				"Accept-Language": "fr-CA,fr,en",
+				"Accept-Language": nominatimAcceptLanguageHeader(loc),
 			},
 		});
 		if (!res.ok) return {geojson: null, bounds: null};
@@ -333,6 +336,7 @@ async function fetchNeighborhoodPolygonGeoJson(neighborhoodName, neighborhood) {
 		{label: "unfiltered", featuretype: null},
 	];
 
+	const loc = getLocale();
 	for (let attemptIndex = 0; attemptIndex < attempts.length; attemptIndex++) {
 		const attempt = attempts[attemptIndex];
 		const params = new URLSearchParams({
@@ -341,12 +345,13 @@ async function fetchNeighborhoodPolygonGeoJson(neighborhoodName, neighborhood) {
 			polygon_geojson: "1",
 			limit: "8",
 			q,
+			lang: loc,
 		});
 		if (attempt.featuretype) params.set("featuretype", attempt.featuretype);
 
 		const res = await fetch(`${baseUrl}?${params.toString()}`, {
 			headers: {
-				"Accept-Language": "fr-CA,fr,en",
+				"Accept-Language": nominatimAcceptLanguageHeader(loc),
 			},
 		});
 		if (shouldDebugNeighborhood(neighborhood)) {

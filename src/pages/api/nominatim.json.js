@@ -79,7 +79,11 @@ export async function GET({request}) {
 		outbound.searchParams.set("lon", lon);
 	}
 
-	const cacheKey = outbound.toString();
+	const langParam = reqUrl.searchParams.get("lang");
+	const acceptLang =
+		langParam === "en" ? "en-CA,en,fr" : langParam === "fr" ? "fr-CA,fr,en" : request.headers.get("accept-language") || "fr-CA,fr,en";
+	const cacheKey = `${acceptLang}::${outbound.toString()}`;
+
 	const cached = getCached(cacheKey);
 	if (cached) return cachedJson(cached.status, cached.body);
 
@@ -90,7 +94,6 @@ export async function GET({request}) {
 	}
 
 	try {
-		const acceptLang = request.headers.get("accept-language") || "fr-CA,fr,en";
 		const pending = (async () => {
 			await throttleUpstream();
 			const upstream = await fetch(outbound.toString(), {

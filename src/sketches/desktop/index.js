@@ -9,7 +9,9 @@
  */
 
 import {sceneNavigate} from "../../lib/router/scene-nav.js";
-import {getNeighborhood, getNeighborhoods, getStory, getStoriesByNeighborhood} from "../../lib/data/scene-data.js";
+import {getLocale, getNeighborhood, getNeighborhoods, getStory, getStoriesByNeighborhood} from "../../lib/data/scene-data.js";
+import {nominatimAcceptLanguageHeader} from "../../lib/i18n/nominatim-lang.js";
+import {desktopStrings, weatherConditionLabel} from "../../lib/i18n/ui-strings.js";
 import {prefetchOverworldMapData} from "../../lib/data/overworld-map-data.js";
 import {THEME, applyThemeCanvasFont, hitTest, readingUiFontSize, truncateCanvasTextToFitWidth} from "../../lib/utils/retro-theme.js";
 import {createCanvasCursor, drawCanvasCursor} from "../../lib/input/canvas-cursor.js";
@@ -30,8 +32,8 @@ export default function (container) {
 		let listViewportRect = null;
 		let listTouchActive = false;
 		let listLastTouchY = null;
-		let locationLabel = "Localisation...";
-		let weatherLabel = "Météo : --";
+		let locationLabel = desktopStrings(getLocale()).locationPending;
+		let weatherLabel = desktopStrings(getLocale()).weatherDefault;
 		let systemStats = buildSystemStats();
 		let blinkStartMs = -1;
 		let blinkDurationMs = 150;
@@ -323,19 +325,20 @@ function drawBottomNav(buf, w, h, locationLabel, weatherLabel, p) {
 	buf.textAlign(p.LEFT, p.CENTER);
 	buf.text(text, w * 0.485, barY + barH * 0.5);
 	buf.textAlign(p.RIGHT, p.CENTER);
-	buf.text("Gestionnaire de fichiers", w * 0.97, barY + barH * 0.5);
+	buf.text(desktopStrings(getLocale()).fileManager, w * 0.97, barY + barH * 0.5);
 }
 
 function splitWeatherLabel(label) {
+	const fallback = desktopStrings(getLocale()).weatherDefault;
 	const raw = String(label ?? "").trim();
-	if (!raw) return {icon: WEATHER_ICON_NA, text: "Météo : --"};
+	if (!raw) return {icon: WEATHER_ICON_NA, text: fallback};
 	const firstSpace = raw.indexOf(" ");
 	if (firstSpace <= 0) return {icon: WEATHER_ICON_NA, text: raw};
 	const maybeIcon = raw.slice(0, firstSpace);
 	const rest = raw.slice(firstSpace + 1).trim();
 	return {
 		icon: maybeIcon,
-		text: rest || "Météo : --",
+		text: rest || fallback,
 	};
 }
 
@@ -393,6 +396,7 @@ function drawTrudeylMark(buf, x, y, size) {
 
 /** Labels + depths + route ids for the file-manager tree (dynamic — driven by story frontmatter). */
 function buildDesktopTreeRows(opts = {}) {
+	const dui = desktopStrings(getLocale());
 	const openGroups = opts.openGroups instanceof Set ? opts.openGroups : new Set();
 	let storyRowKey = 0;
 	const nextStoryAction = (slug) => `story:${slug}#${storyRowKey++}`;
@@ -410,7 +414,7 @@ function buildDesktopTreeRows(opts = {}) {
 			action: nextStoryAction(story.id),
 		})),
 		{
-			label: `${archivesExpanded ? "[-]" : "[+]"} Les archives`,
+			label: dui.archivesToggle(archivesExpanded),
 			depth: 0,
 			interactive: true,
 			action: `toggle:${archivesGroupId}`,
@@ -426,7 +430,7 @@ function buildDesktopTreeRows(opts = {}) {
 			});
 		}
 	}
-	rows.push({label: "Les Villes Verticales", depth: 0, interactive: true, action: "overworld", icon: "map"});
+	rows.push({label: dui.verticalCities, depth: 0, interactive: true, action: "overworld", icon: "map"});
 	const sortedNeighborhoods = [...getNeighborhoods()].sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
 	for (const n of sortedNeighborhoods) {
 		const viewEnabled = isNeighborhoodViewEnabled(n);
@@ -440,7 +444,7 @@ function buildDesktopTreeRows(opts = {}) {
 			depth: 1,
 			interactive: viewEnabled,
 			disabled: !viewEnabled,
-			statusLabel: viewEnabled ? "" : "ACCÈS BLOQUÉ",
+			statusLabel: viewEnabled ? "" : dui.accessDenied,
 			action: hasChildren ? `toggle:${groupId}` : `neighborhood:${n.slug}`,
 		});
 		if (hasChildren && isOpen) {
@@ -505,7 +509,7 @@ function drawInteractivePanel(buf, w, h, hoveredAction, panelState, p) {
 	buf.textAlign(p.LEFT, p.TOP);
 	buf.fill(...THEME.GREEN_SUBTLE, 255);
 	buf.noStroke();
-	buf.text("menu_principal", pathTextX, pathBoxY + panelH * 0.018);
+	buf.text(desktopStrings(getLocale()).menuMain, pathTextX, pathBoxY + panelH * 0.018);
 
 	const treeStartY = panelY + panelH * 0.24;
 	const rowH = panelH * 0.1;
@@ -712,16 +716,17 @@ function drawInteractivePanel(buf, w, h, hoveredAction, panelState, p) {
 }
 
 function buildSystemStats() {
+	const dui = desktopStrings(getLocale());
 	const cores = navigator.hardwareConcurrency ?? null;
 	const ramGb = navigator.deviceMemory ?? null;
 	const res = `${screen.width}×${screen.height}`;
 	const lang = (navigator.language ?? "--").toUpperCase();
 
 	const stats = [];
-	if (cores !== null) stats.push({label: "CŒURS CPU", value: `${cores} FILS`});
-	if (ramGb !== null) stats.push({label: "RAM TOTALE", value: `${ramGb} GB`});
-	stats.push({label: "AFFICHAGE", value: res});
-	stats.push({label: "RÉGION", value: lang});
+	if (cores !== null) stats.push({label: dui.statsCpuCores, value: `${cores} ${dui.statsCpuThreads}`});
+	if (ramGb !== null) stats.push({label: dui.statsRamTotal, value: `${ramGb} GB`});
+	stats.push({label: dui.statsDisplay, value: res});
+	stats.push({label: dui.statsRegion, value: lang});
 	return stats;
 }
 
@@ -729,12 +734,7 @@ function drawSystemCard(buf, w, h, p, blink, gazeXNorm, gazeYNorm, systemStats) 
 	const stats =
 		Array.isArray(systemStats) && systemStats.length > 0
 			? systemStats
-			: [
-					{label: "HORL. CPU", value: "64 MHZ"},
-					{label: "RAM TOTALE", value: "10 MB"},
-					{label: "RAM LIBRE", value: "5 MB"},
-					{label: "MODE E/S", value: "MIDI"},
-				];
+			: desktopStrings(getLocale()).statsFallback;
 	const cardY = h * 0.23;
 	const cardRight = w * 0.95;
 	const cardGapY = Math.max(14, h * 0.03);
@@ -873,8 +873,9 @@ function drawAngledPanel(buf, x, y, w, h, opts) {
 }
 
 async function startLiveContext(onUpdate) {
+	const dui = desktopStrings(getLocale());
 	if (!navigator.geolocation) {
-		onUpdate("Localisation indisponible", "Météo indisponible");
+		onUpdate(dui.locationUnavailable, dui.weatherUnavailable);
 		return;
 	}
 
@@ -887,25 +888,26 @@ async function startLiveContext(onUpdate) {
 	}).catch(() => null);
 
 	if (!position) {
-		onUpdate("Localisation indisponible", "Météo indisponible");
+		onUpdate(dui.locationUnavailable, dui.weatherUnavailable);
 		return;
 	}
 
 	const lat = position.coords.latitude;
 	const lon = position.coords.longitude;
-	const roundedLocation = `Localisation ${lat.toFixed(2)}, ${lon.toFixed(2)}`;
+	const roundedLocation = dui.locationRounded(lat, lon);
 
 	const place = await fetchPlaceLabel(lat, lon);
-	onUpdate(place ?? roundedLocation, "Chargement de la météo...");
+	onUpdate(place ?? roundedLocation, dui.weatherLoading);
 
 	const weather = await fetchWeatherLabel(lat, lon);
-	onUpdate(place ?? roundedLocation, weather ?? "Météo indisponible");
+	onUpdate(place ?? roundedLocation, weather ?? dui.weatherUnavailable);
 }
 
 async function fetchPlaceLabel(lat, lon) {
 	try {
-		const url = `/api/nominatim.json?mode=reverse&format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
-		const res = await fetch(url, {headers: {"Accept-Language": "en-CA,en"}});
+		const loc = getLocale();
+		const url = `/api/nominatim.json?mode=reverse&format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}&lang=${encodeURIComponent(loc)}`;
+		const res = await fetch(url, {headers: {"Accept-Language": nominatimAcceptLanguageHeader(loc)}});
 		if (!res.ok) return null;
 		const data = await res.json();
 		const addr = data?.address ?? {};
@@ -940,39 +942,38 @@ async function fetchWeatherLabel(lat, lon) {
 
 function weatherCodeToUi(code) {
 	// Codepoints: Weather Icons font by Erik Flowers (PUA \uF000+)
-	// wi-day-sunny \uF00D · wi-day-sunny-overcast \uF00C · wi-day-cloudy \uF002
-	// wi-cloudy \uF013 · wi-fog \uF014 · wi-sprinkle \uF01C · wi-rain-mix \uF017
-	// wi-rain \uF019 · wi-snow \uF01B · wi-snowflake-cold \uF076 · wi-showers \uF01A
-	// wi-snow-wind \uF064 · wi-thunderstorm \uF01E · wi-hail \uF015 · wi-na \uF07B
-	const map = {
-		0: {icon: "\uF00D", label: "D\u00E9gag\u00E9"},
-		1: {icon: "\uF00C", label: "Principalement d\u00E9gag\u00E9"},
-		2: {icon: "\uF002", label: "Partiellement nuageux"},
-		3: {icon: "\uF013", label: "Couvert"},
-		45: {icon: "\uF014", label: "Brouillard"},
-		48: {icon: "\uF014", label: "Brouillard givrant"},
-		51: {icon: "\uF01C", label: "Bruine"},
-		53: {icon: "\uF01C", label: "Bruine"},
-		55: {icon: "\uF019", label: "Forte bruine"},
-		56: {icon: "\uF017", label: "Bruine vergla\u00E7ante"},
-		57: {icon: "\uF017", label: "Bruine vergla\u00E7ante"},
-		61: {icon: "\uF019", label: "Pluie"},
-		63: {icon: "\uF019", label: "Pluie"},
-		65: {icon: "\uF019", label: "Forte pluie"},
-		66: {icon: "\uF017", label: "Pluie vergla\u00E7ante"},
-		67: {icon: "\uF017", label: "Pluie vergla\u00E7ante"},
-		71: {icon: "\uF01B", label: "Neige"},
-		73: {icon: "\uF01B", label: "Neige"},
-		75: {icon: "\uF01B", label: "Forte neige"},
-		77: {icon: "\uF076", label: "Grains de neige"},
-		80: {icon: "\uF01A", label: "Averses de pluie"},
-		81: {icon: "\uF01A", label: "Averses de pluie"},
-		82: {icon: "\uF019", label: "Fortes averses"},
-		85: {icon: "\uF064", label: "Averses de neige"},
-		86: {icon: "\uF064", label: "Fortes averses de neige"},
-		95: {icon: "\uF01E", label: "Orage"},
-		96: {icon: "\uF015", label: "Temp\u00EAte de gr\u00EAle"},
-		99: {icon: "\uF015", label: "Temp\u00EAte de gr\u00EAle"},
+	const icons = {
+		0: "\uF00D",
+		1: "\uF00C",
+		2: "\uF002",
+		3: "\uF013",
+		45: "\uF014",
+		48: "\uF014",
+		51: "\uF01C",
+		53: "\uF01C",
+		55: "\uF019",
+		56: "\uF017",
+		57: "\uF017",
+		61: "\uF019",
+		63: "\uF019",
+		65: "\uF019",
+		66: "\uF017",
+		67: "\uF017",
+		71: "\uF01B",
+		73: "\uF01B",
+		75: "\uF01B",
+		77: "\uF076",
+		80: "\uF01A",
+		81: "\uF01A",
+		82: "\uF019",
+		85: "\uF064",
+		86: "\uF064",
+		95: "\uF01E",
+		96: "\uF015",
+		99: "\uF015",
 	};
-	return map[code] ?? {icon: WEATHER_ICON_NA, label: "M\u00E9t\u00E9o"};
+	return {
+		icon: icons[code] ?? WEATHER_ICON_NA,
+		label: weatherConditionLabel(getLocale(), code),
+	};
 }

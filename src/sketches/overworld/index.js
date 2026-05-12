@@ -13,6 +13,8 @@
  * Captured frame-perfectly by GlobalShaderOverlay via flat mode (drawImage on canvas).
  */
 
+import {getLocale} from "../../lib/data/scene-data.js";
+import {overworldStrings} from "../../lib/i18n/ui-strings.js";
 import {sceneNavigate} from "../../lib/router/scene-nav.js";
 import {THEME, drawTitleAberration, hitTest, applyThemeCanvasFont, readingUiFontSize, truncateCanvasTextToFitWidth} from "../../lib/utils/retro-theme.js";
 import {createCanvasCursor, drawCanvasCursor} from "../../lib/input/canvas-cursor.js";
@@ -226,14 +228,14 @@ export default function (container) {
 
 			// ── Title ─────────────────────────────────────────────────────────────
 			const titleSz = w * 0.028;
-			drawTitleAberration(artBuffer, "Les Villes Verticales", w / 2, topBarH + titleH * 0.45, titleSz, 255, sketch);
+			drawTitleAberration(artBuffer, overworldStrings(getLocale()).mapTitle, w / 2, topBarH + titleH * 0.45, titleSz, 255, sketch);
 
 			// Key hint
 			const hintSz = readingUiFontSize(Math.max(10, w * 0.011));
 			artBuffer.textAlign(sketch.RIGHT, sketch.CENTER);
 			applyThemeCanvasFont(artBuffer, hintSz, sketch);
 			artBuffer.fill(...THEME.GREEN_SUBTLE, 210);
-			artBuffer.text("↑↓ CHOISIR   ENTRÉE CONFIRMER   ÉCH FERMER   🖱↑↓ ZOOM/PAN", w - w * 0.04, h - bottomBarH * 0.5);
+			artBuffer.text(overworldStrings(getLocale()).keyboardHints, w - w * 0.04, h - bottomBarH * 0.5);
 
 			// Draw pan limit indicators
 			if (zoomLevel > 1.01) {
@@ -465,7 +467,7 @@ function drawPin(buf, x, y, name, hovered, p, options = {}) {
 	if (disabled) {
 		applyThemeCanvasFont(buf, readingUiFontSize(Math.max(9, labelBase * 0.72)), p);
 		buf.fill(228, 146, 146, 230);
-		if (showLabel) buf.text("ACCÈS BLOQUÉ", x, y + dotR * 3.7);
+		if (showLabel) buf.text(overworldStrings(getLocale()).accessDenied, x, y + dotR * 3.7);
 	} else if (showLabel) {
 		buf.fill(255, 255, 255, 255);
 		buf.text(name, x, y + dotR * 3.5);
@@ -601,7 +603,7 @@ function drawOverlayAnchor(buf, mapRect, overlay, isHovered, isSelected, geoBoun
 		applyThemeCanvasFont(buf, readingUiFontSize(Math.max(9, labelBase * 0.72)), p);
 		buf.textAlign(p.CENTER, p.BOTTOM);
 		buf.fill(228, 146, 146, 230);
-		if (isHovered) buf.text("ACCÈS BLOQUÉ", center.x, center.y - dotR * 2.1);
+		if (isHovered) buf.text(overworldStrings(getLocale()).accessDenied, center.x, center.y - dotR * 2.1);
 	} else if (isHovered) {
 		buf.fill(255, 255, 255, 255);
 		buf.text(overlay.name, center.x, center.y - dotR * 2.1);
@@ -648,7 +650,8 @@ function drawNeighborhoodSidebar(buf, sidebarRect, neighborhoods, selectedIndex,
 	applyThemeCanvasFont(buf, lay.titleSize, p);
 	buf.fill(255, 255, 255, 255);
 	buf.textAlign(p.LEFT, p.TOP);
-	buf.text("Quartiers", x + lay.padX, y + lay.padY * 0.55);
+	const ow = overworldStrings(getLocale());
+	buf.text(ow.districtListTitle, x + lay.padX, y + lay.padY * 0.55);
 
 	for (let i = 0; i < neighborhoods.length; i++) {
 		const itemY = lay.contentTop + i * (lay.rowH + lay.rowGap);
@@ -665,7 +668,7 @@ function drawNeighborhoodSidebar(buf, sidebarRect, neighborhoods, selectedIndex,
 		buf.noStroke();
 		buf.fill(...(enabled ? THEME.GREEN_MID : [255, 255, 255]), 255);
 		buf.textAlign(p.LEFT, p.CENTER);
-		const raw = neighborhoods[i]?.name ?? `Quartier ${i + 1}`;
+		const raw = neighborhoods[i]?.name ?? ow.districtFallback(i);
 		const label = truncateCanvasTextToFitWidth(buf, raw, lay.labelMaxW);
 		buf.text(label, lay.textX, itemY + lay.rowH * 0.52);
 	}
@@ -818,7 +821,7 @@ function drawWindowTopBar(buf, w, h, closeHovered, p) {
 	applyThemeCanvasFont(buf, readingUiFontSize(Math.max(12, w * 0.014)), p);
 	buf.fill(...THEME.GREEN_SUBTLE, 240);
 	buf.textAlign(p.LEFT, p.CENTER);
-	buf.text("Retour au menu principal", btnX + btnSize + w * 0.02, barH * 0.5);
+	buf.text(overworldStrings(getLocale()).backToMenu, btnX + btnSize + w * 0.02, barH * 0.5);
 
 	return {
 		height: barH,
@@ -848,11 +851,12 @@ function drawBottomStatusBar(buf, w, h, p, zoomLevel = 1, panX = 0, panY = 0) {
 	applyThemeCanvasFont(buf, navSz, p);
 	buf.fill(...THEME.GREEN_MID, 245);
 	buf.textAlign(p.LEFT, p.CENTER);
-	buf.text("Cartographie active", w * 0.03, barY + barH * 0.5);
+	const ow = overworldStrings(getLocale());
+	buf.text(ow.mapStatus, w * 0.03, barY + barH * 0.5);
 
 	// Center: 2D View
 	buf.textAlign(p.CENTER, p.CENTER);
-	buf.text("2D View", w * 0.5, barY + barH * 0.5);
+	buf.text(ow.view2D, w * 0.5, barY + barH * 0.5);
 
 	return barH;
 }

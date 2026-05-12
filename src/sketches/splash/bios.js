@@ -6,21 +6,9 @@
  *   createBiosPhase(sketch, artBuffer, fontApi) → { draw(now), isDone(), reset() }
  */
 
+import {getLocale} from "../../lib/data/scene-data.js";
+import {splashBiosLines} from "../../lib/i18n/ui-strings.js";
 import {THEME, readingUiFontSize} from "../../lib/utils/retro-theme.js";
-
-const LINES = [
-	"BOOT-BOY BIOS  Version 1.04",
-	"Copyright (C) 1998-2026  BootSoft Inc.  Tous droits réservés.",
-	"",
-	"CPU : Compatible Z80  @  4.00 MHz .............. OK",
-	"TEST MÉMOIRE: 640K  Mémoire de base ............ OK",
-	"TEST MÉMOIRE: 32768K  Mémoire étendue ......... OK",
-	"IDE CHANNEL 0: Primary Master",
-	"  QUANTUM FIREBALL  2.1GB  LBA HDS=4092 C=16 S=63",
-	"INITIALISATION BUS PCI ..................... OK",
-	"",
-	"CHARGEMENT  BOOT-BOY OS  3.0 ...",
-];
 
 /** Milliseconds between revealing each character */
 const CHAR_MS = 1;
@@ -39,6 +27,8 @@ const DIM = [...THEME.GREEN_SUBTLE];
  * @param {{ getCanvasFont?: () => string | import('p5').Font }} [fontApi]
  */
 export function createBiosPhase(sketch, artBuffer, fontApi) {
+	const LINES = splashBiosLines(getLocale());
+
 	let lineIdx = 0;
 	let charIdx = 0;
 	let lastCharTime = 0;

@@ -11,7 +11,7 @@
 import {compareRemDates} from "./rem-calendar.js";
 import {syncStackParallaxFromDepth} from "../scene/layer-stacks.js";
 
-/** @type {{ neighborhoods: NeighborhoodData[], stories: Record<string, StoryData> } | null} */
+/** @type {{ locale?: string, neighborhoods: NeighborhoodData[], stories: Record<string, StoryData> } | null} */
 let _cache = null;
 
 /**
@@ -45,6 +45,12 @@ function loadCache() {
 	if (!el) throw new Error("[scene-data] #game-data element not found in DOM");
 	_cache = JSON.parse(el.textContent);
 	return _cache;
+}
+
+/** @returns {'fr'|'en'} */
+export function getLocale() {
+	const raw = loadCache().locale;
+	return raw === "en" ? "en" : "fr";
 }
 
 /** @returns {NeighborhoodData[]} */

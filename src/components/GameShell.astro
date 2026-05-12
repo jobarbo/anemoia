@@ -6,8 +6,13 @@
 import GameLayout from "../layouts/GameLayout.astro";
 import {getCollection} from "astro:content";
 
-const neighborhoods = await getCollection("neighborhoods");
-const storiesCollection = await getCollection("stories");
+const {locale = "fr"} = Astro.props;
+const isEn = locale === "en";
+
+const neighborhoodsCol = await getCollection(isEn ? "neighborhoodsEn" : "neighborhoods");
+const storiesFr = await getCollection("stories");
+const storiesEnList = isEn ? await getCollection("storiesEn") : [];
+const enById = Object.fromEntries(storiesEnList.map((s) => [s.id, s]));
 
 function parseMarkdownBlocks(md) {
 	const blocks = [];
@@ -41,10 +46,8 @@ function parseMarkdownBlocks(md) {
 			continue;
 		}
 
-		// Table row: | cell | cell |
 		if (/^\|/.test(line) && /\|$/.test(line)) {
 			flushPara();
-			// Separator row — skip
 			if (/^\|[-| :]+\|$/.test(line)) continue;
 			const cells = line
 				.split("|")
@@ -63,7 +66,6 @@ function parseMarkdownBlocks(md) {
 			if (last?.type === "table") {
 				last.rows.push(cells);
 			} else {
-				// First row becomes headers
 				blocks.push({type: "table", headers: cells, rows: []});
 			}
 			continue;
@@ -83,7 +85,6 @@ function parseMarkdownBlocks(md) {
 			continue;
 		}
 
-		// Credit / partner logos: line is only markdown images (e.g. two SVGs side by side).
 		if (/^(?:!\[[^\]]*\]\([^)]+\)\s*)+$/.test(line)) {
 			flushPara();
 			const srcs = [];
@@ -110,28 +111,35 @@ function parseMarkdownBlocks(md) {
 }
 
 const storiesMap = Object.fromEntries(
-	storiesCollection.map((story) => [
-		story.id,
-		{
-			id: story.id,
-			title: story.data.title,
-			date: story.data.date ?? null,
-			neighborhood: story.data.neighborhood,
-			returnTo: story.data.returnTo ?? "neighborhood",
-			audioSrc: story.data.audioSrc ?? null,
-			order: story.data.order,
-			blocks: parseMarkdownBlocks(story.body),
-		},
-	]),
+	storiesFr.map((story) => {
+		const override = isEn ? enById[story.id] : null;
+		const src = override ?? story;
+		return [
+			story.id,
+			{
+				id: story.id,
+				title: src.data.title,
+				date: src.data.date ?? null,
+				neighborhood: src.data.neighborhood,
+				returnTo: src.data.returnTo ?? "neighborhood",
+				audioSrc: src.data.audioSrc ?? null,
+				order: src.data.order,
+				blocks: parseMarkdownBlocks(src.body),
+			},
+		];
+	}),
 );
 
 const gameData = {
-	neighborhoods: neighborhoods.map((n) => n.data),
+	locale,
+	neighborhoods: neighborhoodsCol.map((n) => n.data),
 	stories: storiesMap,
 };
+
+const htmlLang = locale === "en" ? "en" : "fr";
 ---
 
-<GameLayout title='Anemoia'>
+<GameLayout title='Anemoia' htmlLang={htmlLang}>
 	<main id='game-container' data-game-screen='splash'></main>
 	<script type='application/json' id='game-data' set:html={JSON.stringify(gameData)} />
 </GameLayout>
