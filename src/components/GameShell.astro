@@ -5,7 +5,6 @@
  */
 import GameLayout from "../layouts/GameLayout.astro";
 import {getCollection} from "astro:content";
-import {localizedHref} from "../lib/i18n/locale-path.js";
 
 const {locale = "fr"} = Astro.props;
 const isEn = locale === "en";
@@ -137,18 +136,10 @@ const gameData = {
 	stories: storiesMap,
 };
 
-const path = Astro.url.pathname;
-const frHref = localizedHref(path, "fr");
-const enHref = localizedHref(path, "en");
 const htmlLang = locale === "en" ? "en" : "fr";
 ---
 
 <GameLayout title='Anemoia' htmlLang={htmlLang}>
-	<nav class='lang-switch' aria-label='Language'>
-		<a id='lang-switch-fr' class:list={[{current: locale === "fr"}]} href={frHref} lang='fr'>FR</a>
-		<span class='lang-switch-sep' aria-hidden='true'>/</span>
-		<a id='lang-switch-en' class:list={[{current: locale === "en"}]} href={enHref} lang='en'>EN</a>
-	</nav>
 	<main id='game-container' data-game-screen='splash'></main>
 	<script type='application/json' id='game-data' set:html={JSON.stringify(gameData)} />
 </GameLayout>
@@ -167,33 +158,6 @@ const htmlLang = locale === "en" ? "en" : "fr";
 </script>
 
 <style lang='scss'>
-	.lang-switch {
-		position: fixed;
-		top: 0.75rem;
-		right: 0.75rem;
-		z-index: 10000;
-		font-family: ui-monospace, monospace;
-		font-size: 0.75rem;
-		letter-spacing: 0.06em;
-		a {
-			color: rgba(180, 220, 160, 0.85);
-			text-decoration: none;
-			padding: 0.2rem 0.35rem;
-			border-radius: 4px;
-			&:hover {
-				color: rgba(210, 255, 190, 1);
-				background: rgba(40, 80, 40, 0.35);
-			}
-			&.current {
-				color: rgba(255, 240, 200, 0.95);
-				pointer-events: none;
-			}
-		}
-	}
-	.lang-switch-sep {
-		color: rgba(120, 160, 100, 0.5);
-		user-select: none;
-	}
 	#game-container {
 		width: 100vw;
 		height: 100vh;
