@@ -27,6 +27,8 @@
  */
 
 import gsap from "gsap";
+import {getLocale} from "../../lib/data/scene-data.js";
+import {storyStrings} from "../../lib/i18n/ui-strings.js";
 import {
 	computeMainNavSidebarRect,
 	drawMainNavSidebar,
@@ -729,7 +731,7 @@ function measureStoryWindowTopBarMetrics(buf, w, h, title, p) {
 
 	let titleFont = Math.max(12, w * 0.014);
 	applyThemeCanvasFont(buf, titleFont, p);
-	let titleLines = wrapText(buf, title || "Visionneuse de récit", wrapTitleMaxW);
+	let titleLines = wrapText(buf, title || storyStrings(getLocale()).defaultTitle, wrapTitleMaxW);
 	const lineGap = 1.2;
 	let lineH = titleFont * lineGap;
 	let barH = Math.max(minBarH, Math.min(titleLines.length * lineH + titleFont * 0.45, maxBarH));
@@ -737,7 +739,7 @@ function measureStoryWindowTopBarMetrics(buf, w, h, title, p) {
 	while (titleLines.length * lineH > barH * 0.92 && titleFont > 9) {
 		titleFont -= 0.5;
 		applyThemeCanvasFont(buf, titleFont, p);
-		titleLines = wrapText(buf, title || "Visionneuse de récit", wrapTitleMaxW);
+		titleLines = wrapText(buf, title || storyStrings(getLocale()).defaultTitle, wrapTitleMaxW);
 		lineH = titleFont * lineGap;
 		barH = Math.max(minBarH, Math.min(titleLines.length * lineH + titleFont * 0.45, maxBarH));
 	}

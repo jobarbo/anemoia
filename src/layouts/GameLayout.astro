@@ -2,12 +2,12 @@
 import "../styles/global.scss";
 import {THEME_FONT} from "../lib/utils/retro-theme.js";
 
-const {title = "Anemoia", audioSrc} = Astro.props;
+const {title = "Anemoia", audioSrc, htmlLang = "fr"} = Astro.props;
 const audioAttrs = typeof audioSrc === "string" && audioSrc.length > 0 ? {src: audioSrc} : {};
 const googleFontCssUrl = THEME_FONT.provider === "google" ? THEME_FONT.googleCssUrl : "";
 ---
 
-<html lang='fr'>
+<html lang={htmlLang}>
 	<head>
 		<meta charset='utf-8' />
 		<link rel='icon' type='image/svg+xml' href='/favicon.svg' />

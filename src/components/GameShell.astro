@@ -5,9 +5,15 @@
  */
 import GameLayout from "../layouts/GameLayout.astro";
 import {getCollection} from "astro:content";
+import {localizedHref} from "../lib/i18n/locale-path.js";
 
-const neighborhoods = await getCollection("neighborhoods");
-const storiesCollection = await getCollection("stories");
+const {locale = "fr"} = Astro.props;
+const isEn = locale === "en";
+
+const neighborhoodsCol = await getCollection(isEn ? "neighborhoodsEn" : "neighborhoods");
+const storiesFr = await getCollection("stories");
+const storiesEnList = isEn ? await getCollection("storiesEn") : [];
+const enById = Object.fromEntries(storiesEnList.map((s) => [s.id, s]));
 
 function parseMarkdownBlocks(md) {
 	const blocks = [];
@@ -41,10 +47,8 @@ function parseMarkdownBlocks(md) {
 			continue;
 		}
 
-		// Table row: | cell | cell |
 		if (/^\|/.test(line) && /\|$/.test(line)) {
 			flushPara();
-			// Separator row — skip
 			if (/^\|[-| :]+\|$/.test(line)) continue;
 			const cells = line
 				.split("|")
@@ -63,7 +67,6 @@ function parseMarkdownBlocks(md) {
 			if (last?.type === "table") {
 				last.rows.push(cells);
 			} else {
-				// First row becomes headers
 				blocks.push({type: "table", headers: cells, rows: []});
 			}
 			continue;
@@ -83,7 +86,6 @@ function parseMarkdownBlocks(md) {
 			continue;
 		}
 
-		// Credit / partner logos: line is only markdown images (e.g. two SVGs side by side).
 		if (/^(?:!\[[^\]]*\]\([^)]+\)\s*)+$/.test(line)) {
 			flushPara();
 			const srcs = [];
@@ -110,28 +112,43 @@ function parseMarkdownBlocks(md) {
 }
 
 const storiesMap = Object.fromEntries(
-	storiesCollection.map((story) => [
-		story.id,
-		{
-			id: story.id,
-			title: story.data.title,
-			date: story.data.date ?? null,
-			neighborhood: story.data.neighborhood,
-			returnTo: story.data.returnTo ?? "neighborhood",
-			audioSrc: story.data.audioSrc ?? null,
-			order: story.data.order,
-			blocks: parseMarkdownBlocks(story.body),
-		},
-	]),
+	storiesFr.map((story) => {
+		const override = isEn ? enById[story.id] : null;
+		const src = override ?? story;
+		return [
+			story.id,
+			{
+				id: story.id,
+				title: src.data.title,
+				date: src.data.date ?? null,
+				neighborhood: src.data.neighborhood,
+				returnTo: src.data.returnTo ?? "neighborhood",
+				audioSrc: src.data.audioSrc ?? null,
+				order: src.data.order,
+				blocks: parseMarkdownBlocks(src.body),
+			},
+		];
+	}),
 );
 
 const gameData = {
-	neighborhoods: neighborhoods.map((n) => n.data),
+	locale,
+	neighborhoods: neighborhoodsCol.map((n) => n.data),
 	stories: storiesMap,
 };
+
+const path = Astro.url.pathname;
+const frHref = localizedHref(path, "fr");
+const enHref = localizedHref(path, "en");
+const htmlLang = locale === "en" ? "en" : "fr";
 ---
 
-<GameLayout title='Anemoia'>
+<GameLayout title='Anemoia' htmlLang={htmlLang}>
+	<nav class='lang-switch' aria-label='Language'>
+		<a id='lang-switch-fr' class:list={[{current: locale === "fr"}]} href={frHref} lang='fr'>FR</a>
+		<span class='lang-switch-sep' aria-hidden='true'>/</span>
+		<a id='lang-switch-en' class:list={[{current: locale === "en"}]} href={enHref} lang='en'>EN</a>
+	</nav>
 	<main id='game-container' data-game-screen='splash'></main>
 	<script type='application/json' id='game-data' set:html={JSON.stringify(gameData)} />
 </GameLayout>
@@ -150,6 +167,33 @@ const gameData = {
 </script>
 
 <style lang='scss'>
+	.lang-switch {
+		position: fixed;
+		top: 0.75rem;
+		right: 0.75rem;
+		z-index: 10000;
+		font-family: ui-monospace, monospace;
+		font-size: 0.75rem;
+		letter-spacing: 0.06em;
+		a {
+			color: rgba(180, 220, 160, 0.85);
+			text-decoration: none;
+			padding: 0.2rem 0.35rem;
+			border-radius: 4px;
+			&:hover {
+				color: rgba(210, 255, 190, 1);
+				background: rgba(40, 80, 40, 0.35);
+			}
+			&.current {
+				color: rgba(255, 240, 200, 0.95);
+				pointer-events: none;
+			}
+		}
+	}
+	.lang-switch-sep {
+		color: rgba(120, 160, 100, 0.5);
+		user-select: none;
+	}
 	#game-container {
 		width: 100vw;
 		height: 100vh;

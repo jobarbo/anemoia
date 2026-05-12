@@ -1,13 +1,12 @@
 ---
 /**
- * Pré-génère les routes SPA connues pour que le serveur Astro (dev + build)
- * renvoie toujours le shell HTML au lieu d’un 404 sur rechargement / lien direct.
+ * English SPA routes — same slugs as French; content from embedded game-data (en).
  */
-import GameShell from "../components/GameShell.astro";
+import GameShell from "../../components/GameShell.astro";
 import {getCollection} from "astro:content";
 
 export async function getStaticPaths() {
-	const neighborhoods = await getCollection("neighborhoods");
+	const neighborhoods = await getCollection("neighborhoodsEn");
 	const stories = await getCollection("stories");
 
 	return [
@@ -23,4 +22,4 @@ export async function getStaticPaths() {
 }
 ---
 
-<GameShell locale='fr' />
+<GameShell locale='en' />

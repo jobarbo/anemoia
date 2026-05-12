@@ -15,6 +15,13 @@ const watchParallaxConfig = {
 
 export default defineConfig({
 	adapter: netlify(),
+	i18n: {
+		defaultLocale: "fr",
+		locales: ["fr", "en"],
+		routing: {
+			prefixDefaultLocale: false,
+		},
+	},
 	vite: {
 		plugins: [watchParallaxConfig],
 		optimizeDeps: {

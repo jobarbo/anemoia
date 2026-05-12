@@ -27,6 +27,8 @@ import {
 	measureMainNavStoryList,
 	pointerInMainNavStoriesClip,
 } from "../../lib/navigation/main-nav-canvas.js";
+import {getLocale} from "../../lib/data/scene-data.js";
+import {neighborhoodStrings} from "../../lib/i18n/ui-strings.js";
 import {THEME, applyThemeCanvasFont, drawButton, hitTest, readingUiFontSize} from "../../lib/utils/retro-theme.js";
 import {sceneNavigate} from "../../lib/router/scene-nav.js";
 import {createCanvasCursor, drawCanvasCursor} from "../../lib/input/canvas-cursor.js";
@@ -476,7 +478,7 @@ export default function (container) {
 				drawNavSidebarToggleRail(artBuffer, rail, toggleRailHovered, sketch);
 			}
 
-			const backLabel = "[ RETOUR À LA CARTE ]";
+			const backLabel = neighborhoodStrings(getLocale()).backToMap;
 			const backSize = readingUiFontSize(Math.max(11, Math.round(w * 0.013)));
 			applyThemeCanvasFont(artBuffer, backSize, sketch);
 			const backW = artBuffer.textWidth(backLabel) + backSize;
@@ -494,7 +496,7 @@ export default function (container) {
 
 			applyThemeCanvasFont(artBuffer, readingUiFontSize(Math.max(10, Math.round(w * 0.011))), sketch);
 			artBuffer.fill(...THEME.GREEN_SUBTLE, 255);
-			artBuffer.text("SCÈNE DE QUARTIER ACTIVE", w - innerPadX, innerPadY / 2);
+			artBuffer.text(neighborhoodStrings(getLocale()).activeScene, w - innerPadX, innerPadY / 2);
 
 			const sceneZoneVirtualHover = updateVirtualZoneHoverFromArtPointer(pointer.x, pointer.y, lay, w, h);
 

@@ -13,6 +13,8 @@
  * Captured frame-perfectly by GlobalShaderOverlay via flat mode (drawImage on canvas).
  */
 
+import {getLocale} from "../../lib/data/scene-data.js";
+import {overworldStrings} from "../../lib/i18n/ui-strings.js";
 import {sceneNavigate} from "../../lib/router/scene-nav.js";
 import {THEME, drawTitleAberration, hitTest, applyThemeCanvasFont, readingUiFontSize, truncateCanvasTextToFitWidth} from "../../lib/utils/retro-theme.js";
 import {createCanvasCursor, drawCanvasCursor} from "../../lib/input/canvas-cursor.js";
@@ -226,7 +228,7 @@ export default function (container) {
 
 			// ── Title ─────────────────────────────────────────────────────────────
 			const titleSz = w * 0.028;
-			drawTitleAberration(artBuffer, "Les Villes Verticales", w / 2, topBarH + titleH * 0.45, titleSz, 255, sketch);
+			drawTitleAberration(artBuffer, overworldStrings(getLocale()).mapTitle, w / 2, topBarH + titleH * 0.45, titleSz, 255, sketch);
 
 			// Key hint
 			const hintSz = readingUiFontSize(Math.max(10, w * 0.011));
@@ -465,7 +467,7 @@ function drawPin(buf, x, y, name, hovered, p, options = {}) {
 	if (disabled) {
 		applyThemeCanvasFont(buf, readingUiFontSize(Math.max(9, labelBase * 0.72)), p);
 		buf.fill(228, 146, 146, 230);
-		if (showLabel) buf.text("ACCÈS BLOQUÉ", x, y + dotR * 3.7);
+		if (showLabel) buf.text(overworldStrings(getLocale()).accessDenied, x, y + dotR * 3.7);
 	} else if (showLabel) {
 		buf.fill(255, 255, 255, 255);
 		buf.text(name, x, y + dotR * 3.5);
@@ -601,7 +603,7 @@ function drawOverlayAnchor(buf, mapRect, overlay, isHovered, isSelected, geoBoun
 		applyThemeCanvasFont(buf, readingUiFontSize(Math.max(9, labelBase * 0.72)), p);
 		buf.textAlign(p.CENTER, p.BOTTOM);
 		buf.fill(228, 146, 146, 230);
-		if (isHovered) buf.text("ACCÈS BLOQUÉ", center.x, center.y - dotR * 2.1);
+		if (isHovered) buf.text(overworldStrings(getLocale()).accessDenied, center.x, center.y - dotR * 2.1);
 	} else if (isHovered) {
 		buf.fill(255, 255, 255, 255);
 		buf.text(overlay.name, center.x, center.y - dotR * 2.1);
@@ -818,7 +820,7 @@ function drawWindowTopBar(buf, w, h, closeHovered, p) {
 	applyThemeCanvasFont(buf, readingUiFontSize(Math.max(12, w * 0.014)), p);
 	buf.fill(...THEME.GREEN_SUBTLE, 240);
 	buf.textAlign(p.LEFT, p.CENTER);
-	buf.text("Retour au menu principal", btnX + btnSize + w * 0.02, barH * 0.5);
+	buf.text(overworldStrings(getLocale()).backToMenu, btnX + btnSize + w * 0.02, barH * 0.5);
 
 	return {
 		height: barH,

@@ -13,6 +13,8 @@
 
 import {loadSlicedSfx, playSlicedSfx} from "../../lib/audio/sliced-audio-sfx.js";
 import {playSfx} from "../../lib/audio/sfx.js";
+import {getLocale} from "../../lib/data/scene-data.js";
+import {splashLoginStrings} from "../../lib/i18n/ui-strings.js";
 import {THEME, readingUiFontSize} from "../../lib/utils/retro-theme.js";
 
 const BG = [...THEME.BG];
@@ -45,11 +47,6 @@ const STEPS = {
 	DONE: 4,
 };
 
-const USERNAME_STR = "Archiviste";
-const PASSWORD = "ketchup";
-const AUTH_BASE = "Authentification";
-const GRANTED_STR = "ACCÈS ACCORDÉ — Bienvenue, Archiviste.";
-
 const CHAR_MS = 80;
 const DOT_MS = 320;
 const POST_GRANT_MS = 900; // pause after GRANTED before isDone()
@@ -60,6 +57,8 @@ const POST_GRANT_MS = 900; // pause after GRANTED before isDone()
  * @param {{ getCanvasFont?: () => string | import('p5').Font }} [fontApi]
  */
 export function createLoginPhase(sketch, artBuffer, fontApi) {
+	const L = splashLoginStrings(getLocale());
+
 	let step = STEPS.USERNAME_TYPING;
 	let charIdx = 0; // for auto-typing username
 	let lastChar = 0; // timer for auto-type
@@ -155,17 +154,17 @@ export function createLoginPhase(sketch, artBuffer, fontApi) {
 
 	function _submitPassword() {
 		const masked = "*".repeat(passwordInput.length);
-		if (passwordInput === PASSWORD) {
+		if (passwordInput === L.password) {
 			// Correct — commit and move to auth
-			lines.push("mot de passe: " + masked);
+			lines.push(L.passwordLabel + masked);
 			lines.push("");
 			passwordInput = "";
 			step = STEPS.AUTH_DOTS;
 			dotCount = 0;
 		} else {
 			// Wrong — show masked attempt + error, clear, stay at prompt
-			lines.push("mot de passe: " + masked);
-			lines.push("  Identifiant incorrect. Veuillez réessayer.");
+			lines.push(L.passwordLabel + masked);
+			lines.push(L.incorrectLine);
 			lines.push("");
 			passwordInput = "";
 		}
@@ -179,15 +178,15 @@ export function createLoginPhase(sketch, artBuffer, fontApi) {
 
 		if (step === STEPS.USERNAME_TYPING) {
 			charIdx++;
-			if (charIdx >= USERNAME_STR.length) {
-				lines.push("identifiant: " + USERNAME_STR);
+			if (charIdx >= L.username.length) {
+				lines.push(L.usernameLabel + L.username);
 				step = STEPS.PASSWORD_PROMPT;
 				charIdx = 0;
 			}
 		} else if (step === STEPS.AUTH_DOTS) {
 			dotCount++;
 			if (dotCount > 3) {
-				lines.push(AUTH_BASE + "...");
+				lines.push(L.authBase + "...");
 				step = STEPS.GRANTED;
 				grantedCharIdx = 0;
 				lastGrantedChar = now;
@@ -200,8 +199,8 @@ export function createLoginPhase(sketch, artBuffer, fontApi) {
 		if (now - lastGrantedChar < CHAR_MS) return;
 		lastGrantedChar = now;
 		grantedCharIdx++;
-		if (grantedCharIdx >= GRANTED_STR.length) {
-			lines.push(GRANTED_STR);
+		if (grantedCharIdx >= L.granted.length) {
+			lines.push(L.granted);
 			step = STEPS.DONE;
 			grantedAt = now;
 		}
@@ -237,7 +236,7 @@ export function createLoginPhase(sketch, artBuffer, fontApi) {
 		buf.textAlign(sketch.LEFT, sketch.TOP);
 		fontApi?.applyCanvasFont?.(buf, Math.round(w * 0.022)) ?? buf.textSize(Math.round(w * 0.022));
 		buf.fill(...THEME.GREEN_PRIMARY);
-		buf.text("Boot-Boy OS  3.0  —  Système Interactif ANEMOIA", padLeft, headerY);
+		buf.text(L.header, padLeft, headerY);
 
 		// Separator line
 		const sepY = headerY + fontSize * 2.4;
@@ -249,7 +248,7 @@ export function createLoginPhase(sketch, artBuffer, fontApi) {
 		// Status line
 		fontApi?.applyCanvasFont?.(buf, fontSize) ?? buf.textSize(fontSize);
 		buf.fill(...THEME.GREEN_SUBTLE, 230);
-		buf.text("CONNECTÉ À: ANEMOIA-SRV-01", padLeft, sepY + fontSize * 0.8);
+		buf.text(L.connected, padLeft, sepY + fontSize * 0.8);
 
 		// ── Committed lines ───────────────────────────────────────────────────
 		const termStartY = sepY + fontSize * 3.2;
@@ -259,9 +258,9 @@ export function createLoginPhase(sketch, artBuffer, fontApi) {
 			if (line === "") continue;
 			const y = termStartY + i * lineH;
 
-			if (line === GRANTED_STR) {
+			if (line === L.granted) {
 				buf.fill(...THEME.GREEN_PRIMARY, 255);
-			} else if (line.startsWith("  Identifiant incorrect")) {
+			} else if (line === L.incorrectLine) {
 				buf.fill(220, 80, 80); // red-tinted error
 			} else {
 				buf.fill(...THEME.GREEN_MID);
@@ -273,12 +272,12 @@ export function createLoginPhase(sketch, artBuffer, fontApi) {
 		const currentY = termStartY + lines.length * lineH;
 
 		if (step === STEPS.USERNAME_TYPING) {
-			const partial = "identifiant: " + USERNAME_STR.slice(0, charIdx);
+			const partial = L.usernameLabel + L.username.slice(0, charIdx);
 			buf.fill(...THEME.GREEN_MID);
 			buf.text(partial, padLeft, currentY);
 			if (blinkVisible) _drawCursor(buf, partial, padLeft, currentY, fontSize);
 		} else if (step === STEPS.PASSWORD_PROMPT) {
-			const masked = "mot de passe: " + "*".repeat(passwordInput.length);
+			const masked = L.passwordLabel + "*".repeat(passwordInput.length);
 			buf.fill(...THEME.GREEN_MID);
 			buf.text(masked, padLeft, currentY);
 			if (blinkVisible) _drawCursor(buf, masked, padLeft, currentY, fontSize);
@@ -289,14 +288,14 @@ export function createLoginPhase(sketch, artBuffer, fontApi) {
 				const hintPx = readingUiFontSize(Math.max(10, Math.round(w * 0.012)));
 				fontApi?.applyCanvasFont?.(buf, hintPx) ?? buf.textSize(hintPx);
 				buf.fill(...THEME.GREEN_SUBTLE, 200);
-				buf.text("Entrez le mot de passe et appuyez sur ENTRÉE", padLeft, currentY + lineH);
+				buf.text(L.passwordHint, padLeft, currentY + lineH);
 			}
 		} else if (step === STEPS.AUTH_DOTS) {
-			const partial = AUTH_BASE + ".".repeat(Math.min(dotCount, 3));
+			const partial = L.authBase + ".".repeat(Math.min(dotCount, 3));
 			buf.fill(...THEME.GREEN_MID);
 			buf.text(partial, padLeft, currentY);
 		} else if (step === STEPS.GRANTED) {
-			const partial = GRANTED_STR.slice(0, grantedCharIdx);
+			const partial = L.granted.slice(0, grantedCharIdx);
 			buf.fill(...THEME.GREEN_PRIMARY, 255);
 			buf.text(partial, padLeft, currentY);
 			if (blinkVisible) _drawCursor(buf, partial, padLeft, currentY, fontSize);

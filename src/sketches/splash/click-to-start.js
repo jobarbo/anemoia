@@ -9,10 +9,11 @@
  *   `cursor: none` est appliqué pendant la phase pour masquer le pointeur système (le curseur dessiné reste dans l’art buffer).
  */
 
+import {getLocale} from "../../lib/data/scene-data.js";
+import {splashClickPrompt} from "../../lib/i18n/ui-strings.js";
 import {THEME, readingUiFontSize} from "../../lib/utils/retro-theme.js";
 
 const BG = [...THEME.BG];
-const PROMPT = "[ CLIQUER POUR DÉMARRER ]";
 
 /**
  * @param {import('p5')} sketch
@@ -72,7 +73,7 @@ export function createClickToStartPhase(sketch, artBuffer, fontApi, options = {}
 			const promptSize = readingUiFontSize(Math.max(12, Math.round(w * 0.016)));
 			fontApi?.applyCanvasFont?.(buf, promptSize, {weight: fontApi?.getCanvasFontWeight?.() ?? "500"}) ?? (buf.textFont(fontApi?.getCanvasFont?.() ?? "monospace"), buf.textSize(promptSize));
 			buf.fill(...THEME.GREEN_MID);
-			buf.text(PROMPT, w / 2, h * 0.48);
+			buf.text(splashClickPrompt(getLocale()), w / 2, h * 0.48);
 		}
 	}
 

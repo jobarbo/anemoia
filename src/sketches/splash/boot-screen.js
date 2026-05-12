@@ -8,6 +8,8 @@
  *   createBootScreenPhase(sketch, artBuffer, fontApi) → { draw, isDone, isPointerOver, onPointerPressed, onConfirm, reset }
  */
 
+import {getLocale} from "../../lib/data/scene-data.js";
+import {splashBootMessage} from "../../lib/i18n/ui-strings.js";
 import {THEME, readingUiFontSize} from "../../lib/utils/retro-theme.js";
 
 const BG = [...THEME.BG];
@@ -72,7 +74,7 @@ export function createBootScreenPhase(sketch, artBuffer, fontApi) {
 		const subSize = readingUiFontSize(Math.max(11, Math.round(w * 0.018)));
 		fontApi?.applyCanvasFont?.(buf, subSize, {weight: fontApi?.getCanvasFontWeight?.() ?? "400"}) ?? buf.textSize(subSize);
 		buf.fill(...THEME.GREEN_SUBTLE, subAlpha);
-		buf.text("Mise en route du système…", w / 2, h * 0.52);
+		buf.text(splashBootMessage(getLocale()), w / 2, h * 0.52);
 	}
 
 	return {draw, isDone, isPointerOver, onPointerPressed, onConfirm, reset};

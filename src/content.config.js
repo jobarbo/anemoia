@@ -32,4 +32,34 @@ const neighborhoods = defineCollection({
 	}),
 });
 
-export const collections = {stories, neighborhoods};
+const storiesEn = defineCollection({
+	loader: glob({pattern: "**/*.md", base: "./src/data/stories-en"}),
+	schema: z.object({
+		title: z.string(),
+		neighborhood: z.string(),
+		returnTo: z.enum(["desktop", "neighborhood"]).optional(),
+		audioSrc: z.string().optional(),
+		order: z.number(),
+		date: z.string().optional(),
+		duration: z.string().optional(),
+	}),
+});
+
+const neighborhoodsEn = defineCollection({
+	loader: file("src/data/neighborhoods/index.en.json"),
+	schema: z.object({
+		id: z.string(),
+		name: z.string(),
+		slug: z.string(),
+		order: z.number().optional(),
+		description: z.string().optional(),
+		viewEnabled: z.boolean().optional(),
+		scenePath: z.string(),
+		audioSrc: z.string().optional(),
+		stories: z.array(z.string()),
+		apiSearchTerms: z.array(z.string()).optional(),
+		position: z.object({x: z.number(), y: z.number()}),
+	}),
+});
+
+export const collections = {stories, storiesEn, neighborhoods, neighborhoodsEn};

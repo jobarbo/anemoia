@@ -20,7 +20,9 @@
 
 import {ensureTransitionSfxPackLoaded, playRandomTransitionSfx} from "../audio/transition-sfx.js";
 import {syncWorldAmbient} from "../audio/world-ambient.js";
-import {getNeighborhoods, getStory} from "../data/scene-data.js";
+import {getLocale, getNeighborhoods, getStory} from "../data/scene-data.js";
+import {parseGamePathname, syncLangSwitchAnchors, toBrowserPath} from "../i18n/locale-path.js";
+import {pageTitle} from "../i18n/ui-strings.js";
 
 /** Vertical phosphor “tube off / on” timing — feels like old CRT input switching */
 const CRT_OUT_MS = 220;
@@ -51,11 +53,9 @@ export class SceneRouter {
 
 		ensureTransitionSfxPackLoaded();
 
-		window.addEventListener("popstate", (e) => {
-			const state = e.state;
-			if (state?.route) {
-				this._mount(state.route, state.params ?? {}, false);
-			}
+		window.addEventListener("popstate", () => {
+			const {route, params} = parseUrl(location.pathname);
+			void this._mount(route, params, false);
 		});
 	}
 
@@ -75,7 +75,7 @@ export class SceneRouter {
 	 */
 	async bootFromUrl() {
 		const {route, params} = parseUrl(location.pathname);
-		history.replaceState({route, params}, "", location.pathname);
+		history.replaceState({route, params, locale: getLocale()}, "", location.pathname);
 		await this._mount(route, params, false);
 	}
 
@@ -108,8 +108,10 @@ export class SceneRouter {
 		// Update history
 		if (pushHistory) {
 			const url = buildUrl(route, params);
-			history.pushState({route, params}, "", url);
+			history.pushState({route, params, locale: getLocale()}, "", url);
 		}
+
+		syncLangSwitchAnchors();
 
 		// Update document title
 		document.title = buildTitle(route, params);
@@ -152,14 +154,18 @@ export class SceneRouter {
  * @returns {{ route: string, params: Record<string,string> }}
  */
 function parseUrl(pathname) {
-	const neighborhoodMatch = pathname.match(/^\/neighborhood\/([^/]+)\/?$/);
+	const {logicalPath} = parseGamePathname(pathname);
+	let p = logicalPath;
+	if (p.length > 1 && p.endsWith("/")) p = p.slice(0, -1);
+
+	const neighborhoodMatch = p.match(/^\/neighborhood\/([^/]+)$/);
 	if (neighborhoodMatch) return {route: "neighborhood", params: {slug: neighborhoodMatch[1]}};
 
-	const storyMatch = pathname.match(/^\/story\/([^/]+)\/?$/);
+	const storyMatch = p.match(/^\/story\/([^/]+)$/);
 	if (storyMatch) return {route: "story", params: {slug: storyMatch[1]}};
 
-	if (pathname === "/desktop" || pathname === "/desktop/") return {route: "desktop", params: {}};
-	if (pathname === "/overworld" || pathname === "/overworld/") return {route: "overworld", params: {}};
+	if (p === "/desktop") return {route: "desktop", params: {}};
+	if (p === "/overworld") return {route: "overworld", params: {}};
 
 	return {route: "splash", params: {}};
 }
@@ -170,12 +176,14 @@ function parseUrl(pathname) {
  * @returns {string}
  */
 function buildUrl(route, params) {
-	if (route === "splash") return "/";
-	if (route === "desktop") return "/desktop";
-	if (route === "overworld") return "/overworld";
-	if (route === "neighborhood") return `/neighborhood/${params.slug}`;
-	if (route === "story") return `/story/${params.slug}`;
-	return "/";
+	/** @type {string} */
+	let logical = "/";
+	if (route === "splash") logical = "/";
+	else if (route === "desktop") logical = "/desktop";
+	else if (route === "overworld") logical = "/overworld";
+	else if (route === "neighborhood") logical = `/neighborhood/${params.slug}`;
+	else if (route === "story") logical = `/story/${params.slug}`;
+	return toBrowserPath(logical, getLocale());
 }
 
 /**
@@ -184,18 +192,7 @@ function buildUrl(route, params) {
  * @returns {string}
  */
 function buildTitle(route, params) {
-	if (route === "splash") return "Anemoia";
-	if (route === "desktop") return "Anemoia — Bureau";
-	if (route === "overworld") return "Anemoia — Carte";
-	if (route === "neighborhood") {
-		const hood = getNeighborhoods().find((n) => n.slug === params.slug);
-		return `Anemoia — ${hood?.name ?? params.slug}`;
-	}
-	if (route === "story") {
-		const story = getStory(params.slug);
-		return `Anemoia — ${story?.title ?? params.slug}`;
-	}
-	return "Anemoia";
+	return pageTitle(getLocale(), route, params, (slug) => getNeighborhoods().find((n) => n.slug === slug)?.name, (slug) => getStory(slug)?.title);
 }
 
 // ── Scene module loader ───────────────────────────────────────────────────────

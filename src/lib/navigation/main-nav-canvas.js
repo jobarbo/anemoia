@@ -3,17 +3,21 @@
  * Used by story and neighborhood p5 sketches — matches overworld list styling.
  */
 
-import {getNeighborhood} from "../data/scene-data.js";
+import {getLocale, getNeighborhood} from "../data/scene-data.js";
+import {navStrings} from "../i18n/ui-strings.js";
 import {THEME, applyThemeCanvasFont, hitTest, readingUiFontSize, truncateCanvasTextToFitWidth} from "../utils/retro-theme.js";
 
 /** @typedef {{ id: string, label: string, needsNeighborhood?: boolean }} NavLinkDef */
 
-/** @type {NavLinkDef[]} */
-const NAV_LINK_DEFS = [
-	{id: "desktop", label: "Bureau"},
-	{id: "overworld", label: "Carte"},
-	{id: "neighborhood", label: "Ce quartier", needsNeighborhood: true},
-];
+/** @param {'fr'|'en'} locale */
+function navLinkDefsForLocale(locale) {
+	const n = navStrings(locale);
+	return [
+		{id: "desktop", label: n.desktop},
+		{id: "overworld", label: n.map},
+		{id: "neighborhood", label: n.thisNeighborhood, needsNeighborhood: true},
+	];
+}
 
 /**
  * @param {string | undefined} neighborhoodSlug
@@ -24,8 +28,9 @@ export function getVisibleNavLinks(neighborhoodSlug, options = {}) {
 	const slug = String(neighborhoodSlug ?? "").trim();
 	const omitSelf = options.omitNeighborhoodLink === true;
 	const explicitLinked = options.neighborhoodLinked;
+	const defs = navLinkDefsForLocale(getLocale());
 
-	return NAV_LINK_DEFS.filter((l) => {
+	return defs.filter((l) => {
 		if (!l.needsNeighborhood) return true;
 		if (omitSelf) return false;
 		if (!slug.length) return false;
@@ -156,7 +161,7 @@ export function drawMainNavSidebar(buf, rect, ctx, p) {
 	applyThemeCanvasFont(buf, titleSize, p);
 	buf.fill(255, 255, 255, 245);
 	buf.textAlign(p.LEFT, p.TOP);
-	buf.text("Navigation", rect.x + padX, cy);
+	buf.text(navStrings(getLocale()).navigation, rect.x + padX, cy);
 	cy += titleSize * 1.35;
 
 	for (const def of links) {
@@ -187,7 +192,7 @@ export function drawMainNavSidebar(buf, rect, ctx, p) {
 	buf.noStroke();
 	cy += padY * 0.9;
 
-	const secTitle = "Récits";
+	const secTitle = navStrings(getLocale()).stories;
 	applyThemeCanvasFont(buf, titleSize, p);
 	buf.fill(...THEME.GREEN_SUBTLE, 230);
 	buf.textAlign(p.LEFT, p.TOP);
@@ -242,7 +247,7 @@ export function drawMainNavSidebar(buf, rect, ctx, p) {
 		applyThemeCanvasFont(buf, readingUiFontSize(Math.max(10, rect.w * 0.068 * 0.95)), p);
 		buf.fill(...THEME.GREEN_SUBTLE, 160);
 		buf.textAlign(p.LEFT, p.TOP);
-		buf.text("Aucun récit lié", rect.x + padX, clipTop);
+		buf.text(navStrings(getLocale()).noLinkedStories, rect.x + padX, clipTop);
 	}
 
 	return {storyScrollMax, storiesClip, storyScrollY: scrollY};
