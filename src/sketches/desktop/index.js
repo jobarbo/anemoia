@@ -264,7 +264,7 @@ function drawTopBar(buf, w, h, p) {
 	buf.line(0, barH - 3, w, barH - 3);
 	buf.noStroke();
 
-	const textSize = readingUiFontSize(Math.max(12, w * 0.014));
+	const textSize = readingUiFontSize(Math.max(12, w * 0.012));
 	applyThemeCanvasFont(buf, textSize, p);
 	buf.fill(...THEME.GREEN_SUBTLE, 255);
 	buf.textAlign(p.LEFT, p.CENTER);
@@ -548,7 +548,7 @@ function drawInteractivePanel(buf, w, h, hoveredAction, panelState, p) {
 		connectorSegments.push({x1: trunkX, y1, x2: trunkX, y2});
 	}
 
-	const optionBase = Math.max(13, w * 0.016);
+	const optionBase = Math.max(13, w * 0.013);
 	const optionSz = readingUiFontSize(optionBase);
 	applyThemeCanvasFont(buf, optionSz, p);
 	buf.textAlign(p.LEFT, p.CENTER);
@@ -628,7 +628,7 @@ function drawInteractivePanel(buf, w, h, hoveredAction, panelState, p) {
 			buf.noStroke();
 			drawTrudeylMark(buf, rowBoxX + panelW * 0.045, y, rowH * 0.48);
 			if (statusLabel) {
-				const statusSz = readingUiFontSize(Math.max(9, optionBase * 0.68));
+				const statusSz = readingUiFontSize(Math.max(9, w * 0.007));
 				applyThemeCanvasFont(buf, statusSz, p);
 				buf.textAlign(p.RIGHT, p.CENTER);
 				buf.fill(228, 146, 146, 230);
