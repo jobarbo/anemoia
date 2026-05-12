@@ -23,12 +23,14 @@ export function parseRemDate(dateStr) {
 
 	const legacyMatch = dateStr.match(/^(\S+),\s*(\d+)\s+(\S+),\s*an\s+(\d+)\s+REM$/i);
 	const englishMatch = dateStr.match(/^(?:(\S+),\s*)?(\S+)\s+(\d+),\s*Year\s+(\d+)\s+After\s+REM$/i);
-	if (!legacyMatch && !englishMatch) return null;
+	/** e.g. "Busedi, Reveillase 12, Année 4 Après REM" */
+	const frAfterMatch = dateStr.match(/^(\S+),\s*(\S+)\s+(\d+),\s*Année\s+(\d+)\s+Après\s+REM$/i);
+	if (!legacyMatch && !englishMatch && !frAfterMatch) return null;
 
-	const dayName = legacyMatch?.[1] ?? englishMatch?.[1] ?? null;
-	const dayNumStr = legacyMatch?.[2] ?? englishMatch?.[3];
-	const monthName = legacyMatch?.[3] ?? englishMatch?.[2];
-	const yearStr = legacyMatch?.[4] ?? englishMatch?.[4];
+	const dayName = legacyMatch?.[1] ?? englishMatch?.[1] ?? frAfterMatch?.[1] ?? null;
+	const dayNumStr = legacyMatch?.[2] ?? englishMatch?.[3] ?? frAfterMatch?.[3];
+	const monthName = legacyMatch?.[3] ?? englishMatch?.[2] ?? frAfterMatch?.[2];
+	const yearStr = legacyMatch?.[4] ?? englishMatch?.[4] ?? frAfterMatch?.[4];
 
 	const dayIndex = dayName ? DAYS.findIndex((d) => d.toLowerCase() === dayName.toLowerCase()) : 0;
 	const monthIndex = MONTHS.findIndex((m) => m.toLowerCase() === monthName.toLowerCase());
@@ -41,6 +43,26 @@ export function parseRemDate(dateStr) {
 		day: parseInt(dayNumStr, 10),
 		dayIndex: dayIndex === -1 ? 0 : dayIndex,
 	};
+}
+
+/**
+ * Canonical REM date string for UI (story subtitle), localized.
+ * Falls back to the raw string if parsing fails.
+ *
+ * @param {string | null | undefined} dateStr
+ * @param {'fr'|'en'} locale
+ * @returns {string}
+ */
+export function formatRemDateForDisplay(dateStr, locale) {
+	if (!dateStr) return "";
+	const p = parseRemDate(dateStr);
+	if (!p) return String(dateStr);
+	const dayLabel = DAYS[p.dayIndex] ?? DAYS[0];
+	const monthLabel = MONTHS[p.monthIndex] ?? "";
+	if (locale === "en") {
+		return `${dayLabel}, ${monthLabel} ${p.day}, Year ${p.year} After REM`;
+	}
+	return `${dayLabel}, ${monthLabel} ${p.day}, Année ${p.year} Après REM`;
 }
 
 /**

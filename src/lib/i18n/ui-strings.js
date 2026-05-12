@@ -183,12 +183,22 @@ export function overworldStrings(locale) {
 			accessDenied: "ACCESS DENIED",
 			backToMenu: "Back to main menu",
 			mapTitle: "Vertical Cities",
+			keyboardHints: "↑↓ SELECT   ENTER CONFIRM   ESC CLOSE   🖱↑↓ ZOOM/PAN",
+			districtListTitle: "Districts",
+			mapStatus: "Mapping active",
+			view2D: "2D View",
+			districtFallback: (i) => `District ${i + 1}`,
 		};
 	}
 	return {
 		accessDenied: "ACCÈS BLOQUÉ",
 		backToMenu: "Retour au menu principal",
 		mapTitle: "Les Villes Verticales",
+		keyboardHints: "↑↓ CHOISIR   ENTRÉE CONFIRMER   ÉCH FERMER   🖱↑↓ ZOOM/PAN",
+		districtListTitle: "Quartiers",
+		mapStatus: "Cartographie active",
+		view2D: "2D View",
+		districtFallback: (i) => `Quartier ${i + 1}`,
 	};
 }
 
@@ -218,6 +228,18 @@ export function storyStrings(locale) {
 /** @param {'fr'|'en'} locale */
 export function splashClickPrompt(locale) {
 	return normalizeLocale(locale) === "en" ? "[ CLICK TO START ]" : "[ CLIQUER POUR DÉMARRER ]";
+}
+
+/** Logo phase — OEM footer under firmware line */
+export function splashLogoOemFooter(locale) {
+	return normalizeLocale(locale) === "en"
+		? "1998 BootSoft Inc.  OEM startup environment"
+		: "1998 BootSoft Inc.  Environnement de démarrage OEM";
+}
+
+/** Title phase — click to continue after title card */
+export function splashTitleContinuePrompt(locale) {
+	return normalizeLocale(locale) === "en" ? "[ CLICK TO CONTINUE ]" : "[ CLIQUER POUR CONTINUER ]";
 }
 
 /** @param {'fr'|'en'} locale */

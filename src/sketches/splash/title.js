@@ -6,6 +6,8 @@
  *   createTitlePhase(sketch, artBuffer, fontApi) → { draw(now), isDone(), onPointerPressed(), reset() }
  */
 
+import {getLocale} from "../../lib/data/scene-data.js";
+import {splashTitleContinuePrompt} from "../../lib/i18n/ui-strings.js";
 import {THEME, applyThemeCanvasFont, drawScanLines, drawTitleAberration, drawVignette, readingUiFontSize} from "../../lib/utils/retro-theme.js";
 
 const BG = [...THEME.BG];
@@ -25,7 +27,6 @@ const TITLE_AUDIO_VOLUME = 0.85;
 
 const TITLE_TEXT = "ANÉMOIA";
 const AUTHOR_TEXT = "Olivier Laforest  ·  Jonathan Barbeau";
-const PROMPT_TEXT = "[ CLIQUER POUR CONTINUER ]";
 const SKY_PAN_MS = 16800;
 /** Délai (ms) avant le début de la révélation du titre ; plus petit = titre arrive plus tôt (peut devancer la fin du pan ciel si < SKY_PAN_MS). */
 const TITLE_ARRIVAL_MS = SKY_PAN_MS;
@@ -492,7 +493,8 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 			const promptSize = readingUiFontSize(Math.max(11, Math.round(w * 0.016)));
 			fontApi?.applyCanvasFont?.(buf, promptSize, {weight: fontApi?.getCanvasFontWeight?.() ?? "400"}) ?? buf.textSize(promptSize);
 			const promptY = titleY + titleSize * 2.0;
-			const promptW = buf.textWidth(PROMPT_TEXT);
+			const continuePrompt = splashTitleContinuePrompt(getLocale());
+			const promptW = buf.textWidth(continuePrompt);
 			const promptPadX = Math.max(10, promptSize * 0.65);
 			const promptPadY = Math.max(6, promptSize * 0.4);
 			promptRect = {
@@ -510,7 +512,7 @@ export function createTitlePhase(sketch, artBuffer, fontApi) {
 				buf.noStroke();
 			}
 			buf.fill(...THEME.GREEN_MID, promptHovered ? 255 : 230);
-			buf.text(PROMPT_TEXT, titleX, promptY);
+			buf.text(continuePrompt, titleX, promptY);
 		} else {
 			promptRect = null;
 		}

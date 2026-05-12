@@ -9,6 +9,8 @@
  *   createLogoPhase(sketch, artBuffer, fontApi) → { draw(now), isDone(), onPointerPressed(), reset() }
  */
 
+import {getLocale} from "../../lib/data/scene-data.js";
+import {splashClickPrompt, splashLogoOemFooter} from "../../lib/i18n/ui-strings.js";
 import {THEME, drawTitleAberration, readingUiFontSize} from "../../lib/utils/retro-theme.js";
 
 const AUTO_ADVANCE_MS = 60000000;
@@ -191,7 +193,7 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 		buf.textAlign(sketch.CENTER, sketch.CENTER);
 		fontApi?.applyCanvasFont?.(buf, subSz) ?? (buf.textFont(canvasFont), buf.textSize(subSz));
 		buf.fill(188, 216, 255, 220);
-		buf.text("CERT. PAR T-CORP CORP", cx, markY + subtitleOffsetY);
+		buf.text("CERT. BY T-CORP", cx, markY + subtitleOffsetY);
 
 		// ── Version info (below box) ───────────────────────────────────────────
 		const infoSz = readingUiFontSize(Math.max(10, Math.round(w * 0.013)));
@@ -201,13 +203,13 @@ export function createLogoPhase(sketch, artBuffer, fontApi) {
 		buf.fill(176, 208, 255, 220);
 		buf.text("Boot-Boy Firmware 3.0.1   Build 9804", cx, infoY);
 		buf.fill(150, 186, 230, 175);
-		buf.text("1998 BootSoft Inc.  Environnement de démarrage OEM", cx, infoY + infoSz * 1.8);
+		buf.text(splashLogoOemFooter(getLocale()), cx, infoY + infoSz * 1.8);
 
 		// ── Prompt ─────────────────────────────────────────────────────────────
 		const promptSz = readingUiFontSize(Math.max(10, Math.round(w * 0.016)));
 		buf.textAlign(sketch.CENTER, sketch.CENTER);
 		fontApi?.applyCanvasFont?.(buf, promptSz) ?? buf.textSize(promptSz);
-		const promptText = "[ CLIQUER POUR DÉMARRER ]";
+		const promptText = splashClickPrompt(getLocale());
 		const promptY = h - h * 0.12;
 		const promptW = buf.textWidth(promptText);
 		const promptPadX = Math.max(10, promptSz * 0.65);

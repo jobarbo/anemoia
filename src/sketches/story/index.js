@@ -27,6 +27,7 @@
  */
 
 import gsap from "gsap";
+import {formatRemDateForDisplay} from "../../lib/data/rem-calendar.js";
 import {getLocale} from "../../lib/data/scene-data.js";
 import {storyStrings} from "../../lib/i18n/ui-strings.js";
 import {
@@ -48,7 +49,8 @@ import {playUiClickSfx, playUiHoverSfxIfTargetChanged} from "../../lib/audio/ui-
 export default function (container) {
 	const raw = container.dataset.sketchData;
 	const {id: storyId = "", title = "", date = null, neighborhood = "", neighborhoodName = "", navStories = [], neighborhoodLinked, blocks = []} = raw ? JSON.parse(raw) : {};
-	const titleBlocks = title ? [{type: "h1", text: title}, ...(date ? [{type: "h2", text: date}] : [])] : [];
+	const dateSubtitle = date ? formatRemDateForDisplay(date, getLocale()) : null;
+	const titleBlocks = title ? [{type: "h1", text: title}, ...(dateSubtitle ? [{type: "h2", text: dateSubtitle}] : [])] : [];
 	const allBlocks = [...titleBlocks, ...blocks];
 
 	return (sketch) => {

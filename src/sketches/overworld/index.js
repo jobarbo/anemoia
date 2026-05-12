@@ -235,7 +235,7 @@ export default function (container) {
 			artBuffer.textAlign(sketch.RIGHT, sketch.CENTER);
 			applyThemeCanvasFont(artBuffer, hintSz, sketch);
 			artBuffer.fill(...THEME.GREEN_SUBTLE, 210);
-			artBuffer.text("↑↓ CHOISIR   ENTRÉE CONFIRMER   ÉCH FERMER   🖱↑↓ ZOOM/PAN", w - w * 0.04, h - bottomBarH * 0.5);
+			artBuffer.text(overworldStrings(getLocale()).keyboardHints, w - w * 0.04, h - bottomBarH * 0.5);
 
 			// Draw pan limit indicators
 			if (zoomLevel > 1.01) {
@@ -650,7 +650,8 @@ function drawNeighborhoodSidebar(buf, sidebarRect, neighborhoods, selectedIndex,
 	applyThemeCanvasFont(buf, lay.titleSize, p);
 	buf.fill(255, 255, 255, 255);
 	buf.textAlign(p.LEFT, p.TOP);
-	buf.text("Quartiers", x + lay.padX, y + lay.padY * 0.55);
+	const ow = overworldStrings(getLocale());
+	buf.text(ow.districtListTitle, x + lay.padX, y + lay.padY * 0.55);
 
 	for (let i = 0; i < neighborhoods.length; i++) {
 		const itemY = lay.contentTop + i * (lay.rowH + lay.rowGap);
@@ -667,7 +668,7 @@ function drawNeighborhoodSidebar(buf, sidebarRect, neighborhoods, selectedIndex,
 		buf.noStroke();
 		buf.fill(...(enabled ? THEME.GREEN_MID : [255, 255, 255]), 255);
 		buf.textAlign(p.LEFT, p.CENTER);
-		const raw = neighborhoods[i]?.name ?? `Quartier ${i + 1}`;
+		const raw = neighborhoods[i]?.name ?? ow.districtFallback(i);
 		const label = truncateCanvasTextToFitWidth(buf, raw, lay.labelMaxW);
 		buf.text(label, lay.textX, itemY + lay.rowH * 0.52);
 	}
@@ -850,11 +851,12 @@ function drawBottomStatusBar(buf, w, h, p, zoomLevel = 1, panX = 0, panY = 0) {
 	applyThemeCanvasFont(buf, navSz, p);
 	buf.fill(...THEME.GREEN_MID, 245);
 	buf.textAlign(p.LEFT, p.CENTER);
-	buf.text("Cartographie active", w * 0.03, barY + barH * 0.5);
+	const ow = overworldStrings(getLocale());
+	buf.text(ow.mapStatus, w * 0.03, barY + barH * 0.5);
 
 	// Center: 2D View
 	buf.textAlign(p.CENTER, p.CENTER);
-	buf.text("2D View", w * 0.5, barY + barH * 0.5);
+	buf.text(ow.view2D, w * 0.5, barY + barH * 0.5);
 
 	return barH;
 }
